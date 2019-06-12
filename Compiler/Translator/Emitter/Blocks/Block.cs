@@ -2,6 +2,7 @@ using Bridge.Contract;
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.TypeSystem;
 using System.Linq;
+using ICSharpCode.NRefactory.CSharp.Analysis;
 
 namespace Bridge.Translator
 {
@@ -13,7 +14,12 @@ namespace Bridge.Translator
             this.Emitter = emitter;
             this.BlockStatement = blockStatement;
 
-            if (this.Emitter.IgnoreBlock == blockStatement)
+            if (blockStatement.Parent is BlockStatement && this.Emitter.IsAsync)
+            {
+                this.Emitter.IgnoreBlock = blockStatement;
+            }
+
+            if (this.Emitter.IgnoreBlock == blockStatement || this.Emitter.IsAsync && this.GetAwaiters(blockStatement).Length > 0)
             {
                 this.AsyncNoBraces = true;
             }
@@ -48,31 +54,13 @@ namespace Bridge.Translator
             set;
         }
 
-        public bool? WrapByFn
-        {
-            get;
-            set;
-        }
-
-        public bool? HandleContinue
-        {
-            get;
-            set;
-        }
-
-        public bool? HandleBreak
-        {
-            get;
-            set;
-        }
-
         public int BeginPosition
         {
             get;
             set;
         }
 
-        public bool IsMethodBlock
+        public int SignaturePosition
         {
             get;
             set;
@@ -110,29 +98,6 @@ namespace Bridge.Translator
 
         protected override void DoEmit()
         {
-            if ((!this.WrapByFn.HasValue || this.WrapByFn.Value) && (this.BlockStatement.Parent is ForStatement ||
-                     this.BlockStatement.Parent is ForeachStatement ||
-                     this.BlockStatement.Parent is WhileStatement ||
-                     this.BlockStatement.Parent is DoWhileStatement))
-            {
-                var visitor = new LambdaVisitor();
-                this.BlockStatement.AcceptVisitor(visitor);
-
-                this.WrapByFn = visitor.LambdaExpression.Count > 0;
-
-                if (this.WrapByFn.Value)
-                {
-                    var jumpVisitor = new ContinueBreakVisitor();
-                    this.BlockStatement.AcceptVisitor(jumpVisitor);
-                    this.HandleContinue = jumpVisitor.Continue.Count > 0;
-                    this.HandleBreak = jumpVisitor.Break.Count > 0;
-                }
-
-                this.OldReplaceJump = this.Emitter.ReplaceJump;
-                this.Emitter.ReplaceJump = (this.HandleContinue.HasValue && this.HandleContinue.Value) ||
-                                           (this.HandleBreak.HasValue && this.HandleBreak.Value);
-            }
-
             this.EmitBlock();
         }
 
@@ -141,6 +106,16 @@ namespace Bridge.Translator
             var parent = block.Parent;
 
             if (this.AsyncNoBraces || this.NoBraces)
+            {
+                return true;
+            }
+
+            if (parent is TryCatchStatement tcs && tcs.TryBlock.Equals(this.BlockStatement))
+            {
+                return true;
+            }
+
+            if (parent is CatchClause)
             {
                 return true;
             }
@@ -177,6 +152,12 @@ namespace Bridge.Translator
                 return true;
             }
 
+            var ifStatement = parent as IfElseStatement;
+            if (ifStatement != null && ifStatement.FalseStatement != null && !ifStatement.FalseStatement.IsNull && ifStatement.FalseStatement != block)
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -187,11 +168,31 @@ namespace Bridge.Translator
             this.EndEmitBlock();
         }
 
+        private bool? isMethodBlock;
+        public bool IsMethodBlock
+        {
+            get
+            {
+                if (!this.isMethodBlock.HasValue)
+                {
+                    this.isMethodBlock = this.BlockStatement.Parent is MethodDeclaration ||
+                                         this.BlockStatement.Parent is AnonymousMethodExpression ||
+                                         this.BlockStatement.Parent is LambdaExpression ||
+                                         this.BlockStatement.Parent is ConstructorDeclaration ||
+                                         this.BlockStatement.Parent is OperatorDeclaration ||
+                                         this.BlockStatement.Parent is Accessor;
+                }
+
+                return this.isMethodBlock.Value;
+            }
+        }
+
+        public int OldWrapRestCounter { get; private set; }
+
         public void DoEmitBlock()
         {
             if (this.BlockStatement.Parent is MethodDeclaration)
             {
-                this.IsMethodBlock = true;
                 var methodDeclaration = (MethodDeclaration)this.BlockStatement.Parent;
                 if (!methodDeclaration.ReturnType.IsNull)
                 {
@@ -202,7 +203,6 @@ namespace Bridge.Translator
             }
             else if (this.BlockStatement.Parent is AnonymousMethodExpression)
             {
-                this.IsMethodBlock = true;
                 var methodDeclaration = (AnonymousMethodExpression)this.BlockStatement.Parent;
                 var rr = this.Emitter.Resolver.ResolveNode(methodDeclaration, this.Emitter);
                 this.ReturnType = rr.Type;
@@ -210,7 +210,6 @@ namespace Bridge.Translator
             }
             else if (this.BlockStatement.Parent is LambdaExpression)
             {
-                this.IsMethodBlock = true;
                 var methodDeclaration = (LambdaExpression)this.BlockStatement.Parent;
                 var rr = this.Emitter.Resolver.ResolveNode(methodDeclaration, this.Emitter);
                 this.ReturnType = rr.Type;
@@ -218,17 +217,14 @@ namespace Bridge.Translator
             }
             else if (this.BlockStatement.Parent is ConstructorDeclaration)
             {
-                this.IsMethodBlock = true;
                 this.ConvertParamsToReferences(((ConstructorDeclaration)this.BlockStatement.Parent).Parameters);
             }
             else if (this.BlockStatement.Parent is OperatorDeclaration)
             {
-                this.IsMethodBlock = true;
                 this.ConvertParamsToReferences(((OperatorDeclaration)this.BlockStatement.Parent).Parameters);
             }
             else if (this.BlockStatement.Parent is Accessor)
             {
-                this.IsMethodBlock = true;
                 var role = this.BlockStatement.Parent.Role.ToString();
 
                 if (role == "Setter")
@@ -249,7 +245,6 @@ namespace Bridge.Translator
             if (this.IsMethodBlock && YieldBlock.HasYield(this.BlockStatement))
             {
                 this.IsYield = true;
-                YieldBlock.EmitYield(this, this.ReturnType);
             }
 
             if (this.IsMethodBlock)
@@ -264,71 +259,56 @@ namespace Bridge.Translator
                 this.Emitter.BeforeBlock = null;
             }
 
-            this.BlockStatement.Children.ToList().ForEach(child => child.AcceptVisitor(this.Emitter));
+            var ra = ReachabilityAnalysis.Create(this.BlockStatement, this.Emitter.Resolver.Resolver);
+            this.BlockStatement.Children.ToList().ForEach(child =>
+            {
+                var statement = child as Statement;
+                if (statement != null && !ra.IsReachable(statement))
+                {
+                    return;
+                }
+
+                child.AcceptVisitor(this.Emitter);
+            });
         }
 
         public void EndEmitBlock()
         {
-            if (this.IsYield)
-            {
-                YieldBlock.EmitYieldReturn(this, this.ReturnType);
-            }
-
             if (this.IsMethodBlock)
             {
                 this.Emitter.ReturnType = this.OldReturnType;
+
+                if (this.Emitter.WrapRestCounter > 0)
+                {
+                    for (int i = 0; i < this.Emitter.WrapRestCounter; i++)
+                    {
+                        this.EndBlock();
+                        this.Write("));");
+                        this.WriteNewLine();
+                    }
+                }
+
+                this.Emitter.WrapRestCounter = this.OldWrapRestCounter;
             }
 
             if (!this.NoBraces && (!this.Emitter.IsAsync || (!this.AsyncNoBraces && this.BlockStatement.Parent != this.Emitter.AsyncBlock.Node)))
             {
-                this.EndBlock();
+                if (this.IsMethodBlock && this.BeginPosition == this.Emitter.Output.Length)
+                {
+                    this.EndBlock();
+                    this.Emitter.Output.Length = this.SignaturePosition;
+                    this.WriteOpenCloseBrace();
+                }
+                else
+                {
+                    this.EndBlock();
+                }
             }
 
             if (this.AddEndBlock)
             {
                 this.WriteNewLine();
                 this.EndBlock();
-            }
-
-            if (this.WrapByFn.HasValue && this.WrapByFn.Value)
-            {
-                var isBlock = (this.HandleContinue.HasValue && this.HandleContinue.Value) ||
-                              (this.HandleBreak.HasValue && this.HandleBreak.Value);
-
-                if (this.NoBraces)
-                {
-                    this.Outdent();
-                }
-
-                if (this.NoBraces)
-                {
-                    this.Write("}");
-                }
-
-                this.Write(").call(this);");
-
-                if (this.HandleContinue.HasValue && this.HandleContinue.Value)
-                {
-                    this.WriteNewLine();
-                    this.Write("if(" + this.LoopVar + " == 1) continue;");
-                }
-
-                if (this.HandleBreak.HasValue && this.HandleBreak.Value)
-                {
-                    this.WriteNewLine();
-                    this.Write("if(" + this.LoopVar + " == 2) break;");
-                }
-
-                if (!this.NoBraces)
-                {
-                    this.WriteNewLine();
-                    this.EndBlock();
-                }
-
-                if (isBlock)
-                {
-                    this.RemoveTempVar(this.LoopVar);
-                }
             }
 
             if (this.OldReplaceJump.HasValue)
@@ -353,33 +333,19 @@ namespace Bridge.Translator
         {
             this.PushLocals();
 
-            if (this.WrapByFn.HasValue && this.WrapByFn.Value)
+            if (!this.NoBraces && (!this.Emitter.IsAsync || (!this.AsyncNoBraces && this.BlockStatement.Parent != this.Emitter.AsyncBlock.Node)))
             {
-                if (!this.NoBraces)
-                {
-                    this.BeginBlock();
-                }
-
-                if ((this.HandleContinue.HasValue && this.HandleContinue.Value) ||
-                    (this.HandleBreak.HasValue && this.HandleBreak.Value))
-                {
-                    this.LoopVar = this.GetTempVarName();
-                    this.Write("var " + this.LoopVar + " = ");
-                }
-                else if (!this.NoBraces)
-                {
-                    //this.Indent();
-                }
-
-                this.Write("(function () ");
-                this.BeginBlock();
-            }
-            else if (!this.NoBraces && (!this.Emitter.IsAsync || (!this.AsyncNoBraces && this.BlockStatement.Parent != this.Emitter.AsyncBlock.Node)))
-            {
+                this.SignaturePosition = this.Emitter.Output.Length;
                 this.BeginBlock();
             }
 
             this.BeginPosition = this.Emitter.Output.Length;
+
+            if (this.IsMethodBlock)
+            {
+                this.OldWrapRestCounter = this.Emitter.WrapRestCounter;
+                this.Emitter.WrapRestCounter = 0;
+            }
         }
     }
 }

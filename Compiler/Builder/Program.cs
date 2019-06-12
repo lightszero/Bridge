@@ -1,70 +1,149 @@
 using Bridge.Contract;
+using Bridge.Translator;
+using Bridge.Translator.Logging;
+
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 
 namespace Bridge.Builder
 {
-    internal class Program
+    public class Program
     {
-        private static void LogMessage(string level, string message)
+        private static int Main(string[] args)
         {
-            level = level ?? "message";
-            switch (level.ToLowerInvariant())
+            var logger = new Logger(null, false, LoggerLevel.Info, true, new ConsoleLoggerWriter(), new FileLoggerWriter());
+
+            logger.Info("Executing Bridge.Builder.Console...");
+
+            var bridgeOptions = GetBridgeOptionsFromCommandLine(args, logger);
+
+            if (bridgeOptions == null)
             {
-                case "message":
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.WriteLine("Message: {0}", message);
-                    Console.ResetColor();
-                    break;
-
-                case "warning":
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine("Warning: {0}", message);
-                    Console.ResetColor();
-                    break;
-
-                case "error":
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Error: {0}", message);
-                    Console.ResetColor();
-                    break;
+                ShowHelp(logger);
+                return 1;
             }
+
+            if (bridgeOptions.NoCompilation)
+            {
+                return 0;
+            }
+
+            logger.Trace("Command line arguments:");
+            logger.Trace("\t" + (string.Join(" ", args) ?? ""));
+
+            var processor = new TranslatorProcessor(bridgeOptions, logger);
+
+            try
+            {
+                processor.PreProcess();
+
+                processor.Process();
+
+                processor.PostProcess();
+            }
+            catch (EmitterException ex)
+            {
+                logger.Error(string.Format("Bridge.NET Compiler error: {1} ({2}, {3}) {0}", ex.ToString(), ex.FileName, ex.StartLine, ex.StartColumn));
+                return 1;
+            }
+            catch (Exception ex)
+            {
+                var ee = processor.Translator != null ? processor.Translator.CreateExceptionFromLastNode() : null;
+
+                if (ee != null)
+                {
+                    logger.Error(string.Format("Bridge.NET Compiler error: {1} ({2}, {3}) {0}", ee.ToString(), ee.FileName, ee.StartLine, ee.StartColumn));
+                }
+                else
+                {
+                    logger.Error(string.Format("Bridge.NET Compiler error: {0}", ex.ToString()));
+                }
+
+                return 1;
+            }
+
+            return 0;
         }
 
-        private static void Main(string[] args)
+        /// <summary>
+        /// Commandline arguments based on http://docopt.org/
+        /// </summary>
+        private static void ShowHelp(ILogger logger)
         {
-            string projectLocation = null;
-            string outputLocation = null;
-            string bridgeLocation = null;
-            bool rebuild = false;
-            bool extractCore = true;
-            string cfg = null;
-            string source = null;
-            string folder = Environment.CurrentDirectory;
-            bool recursive = false;
-            string lib = null;
-            string def = null;
+            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+            string programName = Path.GetFileName(codeBase);
 
-            if (args.Length == 0)
-            {
-                Console.WriteLine("Bridge.Builder commands:");
-                Console.WriteLine("-p or -project           Path to csproj file (required)");
-                Console.WriteLine("-o or -output            Output directory for generated script");
-                Console.WriteLine("-cfg or -configuration   Configuration name, typically Debug/Release");
-                Console.WriteLine("-r or -rebuild           Force assembly rebuilding");
-                Console.WriteLine("-nocore                  Do not extract core javascript files");
-                Console.WriteLine("-def or -define          Defines project constants. For example, \"CONSTANT1;CONSTANT2\" ");
+            logger.Warn(@"Usage: " + programName + @" [options] (<project-file>|<assembly-file>)
+       " + programName + @" [-h|--help]
+
+-h --help                  This help message.
+-c --configuration <name>  Configuration name (Debug/Release etc)
+                           [default: none].
+-P --platform <name>       Platform name (AnyCPU etc) [default: none].
+-S --settings <name:value> Comma-delimited list of project settings
+                           I.e -S name1:value1,name2:value2)
+                           List of allowed settings:
+                             AssemblyName, CheckForOverflowUnderflow,
+                             Configuration, DefineConstants,
+                             OutputPath, OutDir, OutputType,
+                             Platform, RootNamespace
+                           options -c, -P and -D have priority over -S
+-r --rebuild               Force assembly rebuilding.
+--nocore                   Do not extract core javascript files.
+-D --define <const-list>   Semicolon-delimited list of project constants.
+-b --bridge <file>         Bridge.dll file location (currently unused).
+-s --source <file>         Source files name/pattern [default: *.cs].
+-f --folder <path>         Builder working directory relative to current WD
+                           [default: current wd].
+-R --recursive             Recursively search for .cs source files inside
+                           current workind directory.
+-notimestamp --notimestamp Do not show timestamp in log messages
+                           [default: shows timestamp]");
+
 #if DEBUG
-                // This code and logic is only compiled in when building bridge.net in Debug configuration
-                Console.WriteLine("-d or -debug             Attach the builder to an visual studio debugging instance.");
-                Console.WriteLine("                         Use this to attach the process to an open Bridge.NET solution.");
-                Console.WriteLine("                         This option is equivalent to Build.dll's 'AttachDebugger'.");
+            // This code and logic is only compiled in when building bridge.net in Debug configuration
+            logger.Warn(@"-d --debug                 Attach the builder to a visual studio debugging
+                           session. Use this to attach the process to an
+                           open Bridge.NET solution. This option is equivalent
+                           to Build.dll's 'AttachDebugger'.");
 #endif
-                Console.WriteLine("");
-                return;
+        }
+
+        private static bool BindCmdArgumentToOption(string arg, BridgeOptions bridgeOptions, ILogger logger)
+        {
+            if (bridgeOptions.ProjectLocation == null && bridgeOptions.Lib == null)
+            {
+                if (arg.ToLower().EndsWith(".csproj"))
+                {
+                    bridgeOptions.ProjectLocation = arg;
+                    return true;
+                }
+                else if (arg.ToLower().EndsWith(".dll"))
+                {
+                    bridgeOptions.Lib = arg;
+                    return true;
+                }
             }
+            return false; // didn't bind anywhere
+        }
+
+        public static BridgeOptions GetBridgeOptionsFromCommandLine(string[] args, ILogger logger)
+        {
+            var bridgeOptions = new BridgeOptions();
+
+            bridgeOptions.Name = "";
+            bridgeOptions.ProjectProperties = new ProjectProperties();
+
+            // options -c, -P and -D have priority over -S
+            string configuration = null;
+            var hasPriorityConfiguration = false;
+            string platform = null;
+            var hasPriorityPlatform = false;
+            string defineConstants = null;
+            var hasPriorityDefineConstants = false;
 
             int i = 0;
 
@@ -72,183 +151,294 @@ namespace Bridge.Builder
             {
                 switch (args[i])
                 {
+                    // backwards compatibility -- now is non-switch argument to builder
                     case "-p":
                     case "-project":
-                        projectLocation = args[++i];
+                    case "--project":
+                        if (bridgeOptions.Lib != null)
+                        {
+                            logger.Error("Error: Project and assembly file specification is mutually exclusive.");
+                            return null;
+                        };
+                        bridgeOptions.ProjectLocation = args[++i];
                         break;
 
                     case "-b":
-                    case "-bridge":
-                        bridgeLocation = args[++i];
+                    case "-bridge": // backwards compatibility
+                    case "--bridge":
+                        bridgeOptions.BridgeLocation = args[++i];
                         break;
 
                     case "-o":
-                    case "-output":
-                        outputLocation = args[++i];
+                    case "-output": // backwards compatibility
+                    case "--output":
+                        bridgeOptions.OutputLocation = args[++i];
                         break;
 
-                    case "-cfg":
-                    case "-configuration":
-                        cfg = args[++i];
+                    case "-c":
+                    case "-cfg": // backwards compatibility
+                    case "-configuration": // backwards compatibility
+                    case "--configuration":
+                        configuration = args[++i];
+                        hasPriorityConfiguration = true;
                         break;
 
-                    case "-def":
-                    case "-define":
-                        def = args[++i];
+                    case "-P":
+                    case "--platform":
+                        platform = args[++i];
+                        hasPriorityPlatform = true;
                         break;
 
-                    case "-rebuild":
+                    case "-def": // backwards compatibility
+                    case "-D":
+                    case "-define": // backwards compatibility
+                    case "--define":
+                        defineConstants = args[++i];
+                        hasPriorityDefineConstants = true;
+                        break;
+
+                    case "-rebuild": // backwards compatibility
+                    case "--rebuild":
                     case "-r":
-                        rebuild = true;
+                        bridgeOptions.Rebuild = true;
                         break;
 
-                    case "-nocore":
-                        extractCore = false;
+                    case "-nocore": // backwards compatibility
+                    case "--nocore":
+                        bridgeOptions.ExtractCore = false;
                         break;
 
-                    case "-src":
-                        source = args[++i];
+                    case "-s":
+                    case "-src": // backwards compatibility
+                    case "--source":
+                        bridgeOptions.Sources = args[++i];
                         break;
 
-                    case "-folder":
-                        folder = Path.Combine(Environment.CurrentDirectory, args[++i]);
+                    case "-S":
+                    case "--settings":
+                        var error = ParseProjectProperties(bridgeOptions, args[++i], logger);
+
+                        if (error != null)
+                        {
+                            logger.Error("Invalid argument --setting(-S): " + args[i]);
+                            logger.Error(error);
+                            return null;
+                        }
+
                         break;
 
-                    case "-recursive":
-                        recursive = true;
+                    case "-f":
+                    case "-folder": // backwards compatibility
+                    case "--folder":
+                        bridgeOptions.Folder = Path.Combine(Environment.CurrentDirectory, args[++i]);
                         break;
 
-                    case "-lib":
-                        lib = args[++i];
+                    case "-R":
+                    case "-recursive": // backwards compatibility
+                    case "--recursive":
+                        bridgeOptions.Recursive = true;
                         break;
+
+                    case "-lib": // backwards compatibility -- now is non-switch argument to builder
+                        if (bridgeOptions.ProjectLocation != null)
+                        {
+                            logger.Error("Error: Project and assembly file specification is mutually exclusive.");
+                            return null;
+                        }
+                        bridgeOptions.Lib = args[++i];
+                        break;
+
+                    case "-h":
+                    case "--help":
+                        ShowHelp(logger);
+                        bridgeOptions.NoCompilation = true;
+                        return bridgeOptions; // success. Asked for help. Help provided.
+
+                    case "-notimestamp":
+                    case "--notimestamp":
+                        bridgeOptions.NoTimeStamp = true;
+                        break;
+
 #if DEBUG
                     case "-debug":
+                    case "--debug":
                     case "-attachdebugger":
+                    case "--attachdebugger":
                     case "-d":
                         System.Diagnostics.Debugger.Launch();
                         break;
 #endif
+                    case "--": // stop reading commandline arguments
+                        // Only non-hyphen commandline argument accepted is the file name of the project or
+                        // assembly file, so if not provided already, when this option is specified, check if
+                        // it is still needed and bind the file to the correct location
+                        if (i < (args.Length - 1))
+                        {
+                            // don't care about success. If not set already, then try next cmdline argument
+                            // as the file parameter and ignore following arguments, if any.
+                            BindCmdArgumentToOption(args[i + 1], bridgeOptions, logger);
+                        }
+                        i = args.Length; // move to the end of arguments list
+                        break;
+
                     default:
-                        Console.WriteLine("Unknown command: " + args[i]);
-                        return;
+
+                        // If this argument does not look like a cmdline switch and
+                        // neither backwards -project nor -lib were specified
+                        if (!BindCmdArgumentToOption(args[i], bridgeOptions, logger))
+                        {
+                            logger.Error("Invalid argument: " + args[i]);
+                            return null;
+                        }
+                        break;
                 }
 
                 i++;
             }
 
-            if (string.IsNullOrEmpty(outputLocation))
+            if (hasPriorityConfiguration)
             {
-                outputLocation = !string.IsNullOrWhiteSpace(projectLocation) ? Path.GetFileNameWithoutExtension(projectLocation) : folder;
+                bridgeOptions.ProjectProperties.Configuration = configuration;
             }
 
-            Bridge.Translator.Translator translator = null;
-            try
+            if (hasPriorityPlatform)
             {
-                Console.WriteLine("Generating script...");
-
-                if (!string.IsNullOrWhiteSpace(projectLocation))
-                {
-                    translator = new Bridge.Translator.Translator(projectLocation);
-                }
-                else
-                {
-                    if (string.IsNullOrWhiteSpace(lib))
-                    {
-                        throw new Exception("Please define path to assembly using -lib option");
-                    }
-
-                    lib = Path.Combine(folder, lib);
-                    translator = new Bridge.Translator.Translator(folder, source, recursive, lib);
-                }
-
-                bridgeLocation = !string.IsNullOrEmpty(bridgeLocation) ? bridgeLocation : Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Bridge.dll");
-
-                translator.BridgeLocation = bridgeLocation;
-                translator.Rebuild = rebuild;
-                translator.Log = LogMessage;
-                translator.Configuration = cfg;
-                if (def != null)
-                {
-                    translator.DefineConstants.AddRange(def.Split(';').Select(s => s.Trim()).Where(s => s != ""));
-                    translator.DefineConstants = translator.DefineConstants.Distinct().ToList();
-                }
-                translator.Translate();
-
-                string path = string.IsNullOrWhiteSpace(Path.GetFileName(outputLocation)) ? outputLocation : Path.GetDirectoryName(outputLocation);
-                string outputPath = null;
-
-                if (!string.IsNullOrWhiteSpace(translator.AssemblyInfo.Output))
-                {
-                    outputPath = Path.Combine(!string.IsNullOrWhiteSpace(projectLocation) ? Path.GetDirectoryName(projectLocation) : folder, translator.AssemblyInfo.Output);
-                }
-                else
-                {
-                    outputPath = Path.Combine(!string.IsNullOrWhiteSpace(projectLocation) ? Path.GetDirectoryName(projectLocation) : folder, !string.IsNullOrWhiteSpace(translator.AssemblyInfo.Output) ? translator.AssemblyInfo.Output : path);
-                }
-
-                if (translator.AssemblyInfo != null && translator.AssemblyInfo.CleanOutputFolderBeforeBuild)
-                {
-                    Console.WriteLine("Cleaning output folder before extracting scripts...");
-                    CleanDirectory(outputPath);
-                }
-
-                if (extractCore)
-                {
-                    Console.WriteLine("Extracting core scripts...");
-                    translator.ExtractCore(outputPath);
-                }
-
-                Console.WriteLine("Saving to " + outputPath);
-                translator.SaveTo(outputPath, Path.GetFileName(outputLocation));
-                translator.Flush(outputPath, Path.GetFileName(outputLocation));
-                translator.Plugins.AfterOutput(translator, outputPath, !extractCore);
-
-                Console.WriteLine("Done.");
+                bridgeOptions.ProjectProperties.Platform = platform;
             }
-            catch (EmitterException e)
+
+            if (hasPriorityDefineConstants)
             {
-                Console.WriteLine("Error: {2} ({3}, {4}) {0} {1}", e.Message, e.StackTrace, e.FileName, e.StartLine, e.StartColumn, e.EndLine, e.EndColumn);
+                bridgeOptions.ProjectProperties.DefineConstants = defineConstants;
             }
-            catch (Exception e)
+
+            if (bridgeOptions.ProjectLocation == null && bridgeOptions.Lib == null)
             {
-                var ee = translator != null ? translator.CreateExceptionFromLastNode() : null;
-                Console.ForegroundColor = ConsoleColor.Red;
+                var folder = bridgeOptions.Folder ?? Environment.CurrentDirectory;
 
-                if (ee != null)
+                var csprojs = new string[] { };
+
+                try
                 {
-                    Console.WriteLine("Error: {2} ({3}, {4}) {0} {1}", e.Message, e.StackTrace, ee.FileName, ee.StartLine, ee.StartColumn, ee.EndLine, ee.EndColumn);
+                    csprojs = Directory.GetFiles(folder, "*.csproj", SearchOption.TopDirectoryOnly);
                 }
-                else
+                catch (Exception ex)
                 {
-                    // Iteractively print inner exceptions
-                    var ine = e;
-                    var elvl = 0;
-                    while (ine != null)
-                    {
-                        Console.WriteLine("Error: exception level: {0} - {1}\nStack trace:\n{2}", elvl++, ine.Message, ine.StackTrace);
-                        ine = ine.InnerException;
-                    }
+                    logger.Error(ex.ToString());
                 }
 
-                Console.ResetColor();
-                Console.ReadLine();
+                if (csprojs.Length > 1)
+                {
+                    logger.Error("Could not default to a csproj because multiple were found:");
+                    logger.Info(string.Join(", ", csprojs.Select(path => Path.GetFileName(path))));
+                    return null; // error: arguments not provided, so can't guess what to do
+                }
+
+                if (csprojs.Length == 0)
+                {
+                    logger.Warn("Could not default to a csproj because none were found.");
+                    logger.Error("Error: Project or assembly file name must be specified.");
+                    return null;
+                }
+
+                var csproj = csprojs[0];
+                bridgeOptions.ProjectLocation = csproj;
+                logger.Info("Defaulting Project Location to " + csproj);
             }
+
+            if (string.IsNullOrEmpty(bridgeOptions.OutputLocation))
+            {
+                bridgeOptions.OutputLocation = !string.IsNullOrWhiteSpace(bridgeOptions.ProjectLocation)
+                    ? Path.GetFileNameWithoutExtension(bridgeOptions.ProjectLocation) : bridgeOptions.Folder;
+            }
+
+            if (bridgeOptions.IsFolderMode)
+            {
+                bridgeOptions.DefaultFileName = Path.GetFileNameWithoutExtension(bridgeOptions.Lib);
+                bridgeOptions.ProjectProperties.AssemblyName = bridgeOptions.DefaultFileName;
+            }
+            else
+            {
+                bridgeOptions.DefaultFileName = Path.GetFileName(bridgeOptions.OutputLocation);
+            }
+
+            if (string.IsNullOrWhiteSpace(bridgeOptions.DefaultFileName))
+            {
+                bridgeOptions.DefaultFileName = Path.GetFileName(bridgeOptions.OutputLocation);
+            }
+
+            return bridgeOptions;
         }
 
-        private static void CleanDirectory(string outputPath)
+        private static string ParseProjectProperties(BridgeOptions bridgeOptions, string parameters, ILogger logger)
         {
-            var outputDirectory = new DirectoryInfo(outputPath);
-            if (outputDirectory.Exists)
+            var properties = new ProjectProperties();
+            bridgeOptions.ProjectProperties = properties;
+
+            if (string.IsNullOrWhiteSpace(parameters))
             {
-                foreach (var file in outputDirectory.GetFiles())
-                {
-                    file.Delete();
-                }
-                foreach (var dir in outputDirectory.GetDirectories())
-                {
-                    dir.Delete(true);
-                }
+                return null;
             }
+
+            if (parameters != null && parameters.Length > 1 && parameters[0] == '"' && parameters.Last() == '"')
+            {
+                parameters = parameters.Trim('"');
+            }
+
+            var settings = new Dictionary<string, string>();
+
+            var splitParameters = parameters.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var pair in splitParameters)
+            {
+                if (pair == null)
+                {
+                    continue;
+                }
+
+                var parts = pair.Split(new char[] { ':' }, 2);
+                if (parts.Length < 2)
+                {
+                    logger.Warn("Skipped " + pair + " when parsing --settings as it is not well-formed like name:value");
+                    continue;
+                }
+
+                var name = parts[0].Trim();
+
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    logger.Warn("Skipped " + pair + " when parsing --settings as name is empty in name:value");
+                    continue;
+                }
+
+                string value;
+
+                if (settings.ContainsKey(name))
+                {
+                    value = settings[name];
+                    logger.Warn("Skipped " + pair + " when parsing --settings as it already found in " + name + ":" + value);
+                    continue;
+                }
+
+                value = parts[1];
+
+                if (value != null && value.Length > 1 && (value[0] == '"' || value.Last() == '"'))
+                {
+                    value = value.Trim('"');
+                }
+
+                settings.Add(name, value);
+            }
+
+            try
+            {
+                properties.SetValues(settings);
+            }
+            catch (ArgumentException ex)
+            {
+                return ex.Message;
+            }
+
+            return null;
         }
     }
 }

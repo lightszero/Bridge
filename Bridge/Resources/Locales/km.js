@@ -1,15 +1,15 @@
-﻿Bridge.merge(new Bridge.CultureInfo("km", true), {
+Bridge.merge(new System.Globalization.CultureInfo("km", true), {
     englishName: "Khmer",
     nativeName: "ភាសាខ្មែរ",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NAN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-- អនន្ត",
-        positiveInfinitySymbol: "អនន្ត",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
-        percentGroupSizes: [3,0],
+        percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
@@ -22,14 +22,14 @@
         currencyGroupSeparator: ",",
         currencyNegativePattern: 5,
         currencyPositivePattern: 1,
-        numberGroupSizes: [3,0],
+        numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ".",
         numberGroupSeparator: ",",
         numberNegativePattern: 2
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["អាទិ.","ច.","អ.","ពុ","ព្រហ.","សុ.","ស."],
         abbreviatedMonthGenitiveNames: ["១","២","៣","៤","៥","៦","៧","៨","៩","១០","១១","១២",""],
         abbreviatedMonthNames: ["១","២","៣","៤","៥","៦","៧","៨","៩","១០","១១","១២",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "'ខែ' MM 'ឆ្នាំ' yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 0,
+        CultureName: "km-KH",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1107,
+        listSeparator: ",",
+        MacCodePage: 2,
+        OEMCodePage: 1,
+        IsReadOnly: true
     })
 });

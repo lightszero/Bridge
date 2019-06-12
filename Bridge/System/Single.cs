@@ -1,165 +1,103 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Name("Number")]
-    [Constructor("Number")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
+    [Bridge.Constructor("Number")]
     public struct Single : IComparable, IComparable<Single>, IEquatable<Single>, IFormattable
     {
-        private Single(int i)
-        {
-        }
+        private extern Single(int i);
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const float MaxValue = (float)3.40282346638528859e+38;
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const float MinValue = (float)-3.40282346638528859e+38;
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const float Epsilon = (float)1.4e-45;
 
-        [Name("NaN")]
-        public static readonly float NaN = 0;
+        [Bridge.Template("Number.NaN")]
+        public const float NaN = 0f / 0f;
 
-        [Name("NEGATIVE_INFINITY")]
-        public static readonly float NegativeInfinity = 0;
+        [Bridge.Template("Number.NEGATIVE_INFINITY")]
+        public const float NegativeInfinity = -1f / 0f;
 
-        [Name("POSITIVE_INFINITY")]
-        public static readonly float PositiveInfinity = 0;
+        [Bridge.Template("Number.POSITIVE_INFINITY")]
+        public const float PositiveInfinity = 1f / 0f;
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string Format(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Single.format({this}, {format})")]
+        public extern string Format(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string Format(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Single.format({this}, {format}, {provider})")]
+        public extern string Format(string format, IFormatProvider provider);
 
-        public string ToString(int radix)
-        {
-            return null;
-        }
+        public extern string ToString(int radix);
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string ToString(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Single.format({this}, {format})")]
+        public extern string ToString(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string ToString(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Single.format({this}, {format}, {provider})")]
+        public extern string ToString(string format, IFormatProvider provider);
 
-        [Template("Bridge.Int.parseFloat({s})")]
-        public static float Parse(string s)
-        {
-            return 0;
-        }
+        [Bridge.Template(Fn = "System.Single.format")]
+        public override extern string ToString();
 
-        [Template("Bridge.Int.parseFloat({s}, {provider})")]
-        public static float Parse(string s, IFormatProvider provider)
-        {
-            return 0;
-        }
+        [Bridge.Template("System.Single.format({this}, \"G\", {provider})")]
+        public extern string ToString(IFormatProvider provider);
 
-        [Template("Bridge.Int.tryParseFloat({s}, null, {result})")]
-        public static bool TryParse(string s, out float result)
-        {
-            result = 0;
-            return false;
-        }
+        [Bridge.Template("System.Single.parse({s})")]
+        public static extern float Parse(string s);
 
-        [Template("Bridge.Int.tryParseFloat({s}, {provider}, {result})")]
-        public static bool TryParse(string s, IFormatProvider provider, out float result)
-        {
-            result = 0;
-            return false;
-        }
+        [Bridge.Template("System.Single.parse({s}, {provider})")]
+        public static extern float Parse(string s, IFormatProvider provider);
 
-        public string ToExponential()
-        {
-            return null;
-        }
+        [Bridge.Template("System.Single.tryParse({s}, null, {result})")]
+        public static extern bool TryParse(string s, out float result);
 
-        public string ToExponential(int fractionDigits)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Single.tryParse({s}, {provider}, {result})")]
+        public static extern bool TryParse(string s, IFormatProvider provider, out float result);
 
-        public string ToFixed()
-        {
-            return null;
-        }
+        public extern string ToExponential();
 
-        public string ToFixed(int fractionDigits)
-        {
-            return null;
-        }
+        public extern string ToExponential(int fractionDigits);
 
-        public string ToPrecision()
-        {
-            return null;
-        }
+        public extern string ToFixed();
 
-        public string ToPrecision(int precision)
-        {
-            return null;
-        }
+        public extern string ToFixed(int fractionDigits);
 
-        [Template("({d} === Number.POSITIVE_INFINITY)")]
-        public static bool IsPositiveInfinity(float d)
-        {
-            return false;
-        }
+        public extern string ToPrecision();
 
-        [Template("({d} === Number.NEGATIVE_INFINITY)")]
-        public static bool IsNegativeInfinity(float d)
-        {
-            return false;
-        }
+        public extern string ToPrecision(int precision);
 
-        [Template("(Math.abs({d}) === Number.POSITIVE_INFINITY)")]
-        public static bool IsInfinity(float d)
-        {
-            return false;
-        }
+        [Bridge.Template("({d} === Number.POSITIVE_INFINITY)")]
+        public static extern bool IsPositiveInfinity(float d);
 
-        [Template("isFinite({d})")]
-        public static bool IsFinite(float d)
-        {
-            return false;
-        }
+        [Bridge.Template("({d} === Number.NEGATIVE_INFINITY)")]
+        public static extern bool IsNegativeInfinity(float d);
 
-        [Template("isNaN({d})")]
-        public static bool IsNaN(float d)
-        {
-            return false;
-        }
+        [Bridge.Template("(Math.abs({d}) === Number.POSITIVE_INFINITY)")]
+        public static extern bool IsInfinity(float d);
 
-        [Template("Bridge.compare({this}, {other})")]
-        public int CompareTo(float other)
-        {
-            return 0;
-        }
+        [Bridge.Template("isFinite({d})")]
+        public static extern bool IsFinite(float d);
 
-        [Template("Bridge.compare({this}, {obj})")]
-        public int CompareTo(object obj)
-        {
-            return 0;
-        }
+        [Bridge.Template("isNaN({d})")]
+        public static extern bool IsNaN(float d);
 
-        [Template("Bridge.equalsT({this}, {other})")]
-        public bool Equals(float other)
-        {
-            return false;
-        }
+        [Bridge.Template("Bridge.compare({this}, {other})")]
+        public extern int CompareTo(float other);
+
+        [Bridge.Template("Bridge.compare({this}, {obj})")]
+        public extern int CompareTo(object obj);
+
+        [Bridge.Template("{this} === {other}")]
+        public extern bool Equals(float other);
+
+        [Bridge.Template("System.Single.equals({this}, {other})")]
+        public override extern bool Equals(object other);
+
+        [Bridge.Template(Fn = "System.Single.getHashCode")]
+        public override extern int GetHashCode();
     }
 }

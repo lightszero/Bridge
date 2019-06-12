@@ -1,0 +1,11 @@
+{
+  "cleanOutputFolderBeforeBuildPattern": "*.*",
+  "html": {
+    "disabled": true
+  },
+  "output": "Bridge\\output",
+  "outputFormatting": "Formatted",
+  "reflection": {
+    "disabled": true
+  }
+}

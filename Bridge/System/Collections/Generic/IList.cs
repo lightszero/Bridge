@@ -1,26 +1,25 @@
-using Bridge;
-
 namespace System.Collections.Generic
 {
-    [External]
-    [Namespace("Bridge")]
+    [Bridge.External]
+    [Bridge.Reflectable]
+    [Bridge.Convention(Target = Bridge.ConventionTarget.Member, Member = Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
     public interface IList<T> : ICollection<T>
     {
         T this[int index]
         {
-            [Template("Bridge.Array.getItem({this}, {0})")]
+            [Bridge.Template("System.Array.getItem({this}, {index}, {T})")]
             get;
-            [Template("Bridge.Array.setItem({this}, {0})")]
+            [Bridge.Template("System.Array.setItem({this}, {index}, {value}, {T})")]
             set;
         }
 
-        [Template("Bridge.Array.indexOf({this}, {item})")]
+        [Bridge.Template("System.Array.indexOf({this}, {item}, 0, null, {T})")]
         int IndexOf(T item);
 
-        [Template("Bridge.Array.insert({this}, {index}, {item})")]
+        [Bridge.Template("System.Array.insert({this}, {index}, {item}, {T})")]
         void Insert(int index, T item);
 
-        [Template("Bridge.Array.removeAt({this}, {index})")]
+        [Bridge.Template("System.Array.removeAt({this}, {index}, {T})")]
         void RemoveAt(int index);
     }
 }

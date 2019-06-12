@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("smn-FI", true), {
+Bridge.merge(new System.Globalization.CultureInfo("smn-FI", true), {
     englishName: "Sami, Inari (Finland)",
-    nativeName: "sämikielâ (Suomâ)",
+    nativeName: "anarâškielâ (Suomâ)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "epiloho",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinity",
-        positiveInfinitySymbol: "Infinity",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["pas","vuo","maj","kos","tuo","vás","láv"],
         abbreviatedMonthGenitiveNames: ["uđiv","kuov","njuh","cuáŋ","vyes","kesi","syei","porg","čohč","roov","skam","juov",""],
         abbreviatedMonthNames: ["uđiv","kuov","njuh","cuáŋ","vyes","kesi","syei","porg","čohč","roov","skam","juov",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "smn-FI",
+        EBCDICCodePage: 20278,
+        IsRightToLeft: false,
+        LCID: 9275,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

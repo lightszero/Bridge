@@ -1,4 +1,5 @@
 using ICSharpCode.NRefactory.CSharp;
+using System.Collections.Generic;
 
 namespace Bridge.Contract
 {
@@ -14,7 +15,13 @@ namespace Bridge.Contract
             set;
         }
 
-        ICSharpCode.NRefactory.CSharp.Expression[] AwaitExpressions
+        ICSharpCode.NRefactory.CSharp.AstNode[] AwaitExpressions
+        {
+            get;
+            set;
+        }
+
+        List<ICSharpCode.NRefactory.CSharp.AstNode> WrittenAwaitExpressions
         {
             get;
             set;
@@ -40,6 +47,12 @@ namespace Bridge.Contract
         bool IsParentForAsync(ICSharpCode.NRefactory.CSharp.AstNode child);
 
         bool IsTaskReturn
+        {
+            get;
+            set;
+        }
+
+        bool IsEnumeratorReturn
         {
             get;
             set;

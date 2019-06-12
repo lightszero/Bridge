@@ -1,21 +1,21 @@
-﻿Bridge.merge(new Bridge.CultureInfo("mk-MK", true), {
-    englishName: "Macedonian (Former Yugoslav Republic of Macedonia)",
-    nativeName: "македонски јазик (Македонија)",
+Bridge.merge(new System.Globalization.CultureInfo("mk-MK", true), {
+    englishName: "Macedonian (Macedonia, FYRO)",
+    nativeName: "македонски (Република Македонија)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinity",
-        positiveInfinitySymbol: "Infinity",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: ".",
-        percentPositivePattern: 0,
-        percentNegativePattern: 0,
-        currencySymbol: "ден.",
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
+        currencySymbol: "ден",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
@@ -29,11 +29,11 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
-        abbreviatedDayNames: ["нед","пон","втр","срд","чет","пет","саб"],
-        abbreviatedMonthGenitiveNames: ["јан","фев","мар","апр","мај","јун","јул","авг","сеп","окт","ное","дек",""],
-        abbreviatedMonthNames: ["јан","фев","мар","апр","мај","јун","јул","авг","сеп","окт","ное","дек",""],
-        amDesignator: "",
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
+        abbreviatedDayNames: ["нед.","пон.","вт.","сре.","чет.","пет.","саб."],
+        abbreviatedMonthGenitiveNames: ["јан.","фев.","мар.","апр.","мај","јун.","јул.","авг.","септ.","окт.","ноем.","дек.",""],
+        abbreviatedMonthNames: ["јан.","фев.","мар.","апр.","мај","јун.","јул.","авг.","септ.","окт.","ноем.","дек.",""],
+        amDesignator: "претпл.",
         dateSeparator: ".",
         dayNames: ["недела","понеделник","вторник","среда","четврток","петок","сабота"],
         firstDayOfWeek: 1,
@@ -43,16 +43,28 @@
         monthDayPattern: "d MMMM",
         monthGenitiveNames: ["јануари","февруари","март","април","мај","јуни","јули","август","септември","октомври","ноември","декември",""],
         monthNames: ["јануари","февруари","март","април","мај","јуни","јули","август","септември","октомври","ноември","декември",""],
-        pmDesignator: "",
+        pmDesignator: "попл.",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "dd.MM.yyyy",
+        shortDatePattern: "dd.M.yyyy",
         shortestDayNames: ["не","по","вт","ср","че","пе","са"],
         shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
-        yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        yearMonthPattern: "MMMM yyyy 'г'.",
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1251,
+        CultureName: "mk-MK",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1071,
+        listSeparator: ";",
+        MacCodePage: 10007,
+        OEMCodePage: 866,
+        IsReadOnly: true
     })
 });

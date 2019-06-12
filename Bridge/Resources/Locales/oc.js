@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("oc", true), {
+Bridge.merge(new System.Globalization.CultureInfo("oc", true), {
     englishName: "Occitan",
     nativeName: "Occitan",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "Micca numericu",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "Micca numericu",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-Infinit",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["dg.","dl.","dma.","dmc.","dj.","dv.","ds."],
         abbreviatedMonthGenitiveNames: ["gen.","feb.","març","abr.","mai","junh","julh","ag.","set.","oct.","nov.","dec.",""],
         abbreviatedMonthNames: ["gen.","feb.","març","abr.","mai","junh","julh","ag.","set.","oct.","nov.","dec.",""],
@@ -53,6 +53,18 @@
         timeSeparator: ".",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM' de 'yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "oc-FR",
+        EBCDICCodePage: 20297,
+        IsRightToLeft: false,
+        LCID: 1154,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

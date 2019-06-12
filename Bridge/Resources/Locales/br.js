@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("br", true), {
+Bridge.merge(new System.Globalization.CultureInfo("br", true), {
     englishName: "Breton",
     nativeName: "brezhoneg",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NkN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Anfin",
-        positiveInfinitySymbol: "+Anfin",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,30 +29,42 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Sul","Lun","Meu.","Mer.","Yaou","Gwe.","Sad."],
-        abbreviatedMonthGenitiveNames: ["Gen.","C'hwe.","Meur.","Ebr.","Mae","Mezh.","Goue.","Eost","Gwen.","Here","Du","Kzu",""],
-        abbreviatedMonthNames: ["Gen.","C'hwe.","Meur.","Ebr.","Mae","Mezh.","Goue.","Eost","Gwen.","Here","Du","Kzu",""],
-        amDesignator: "",
-        dateSeparator: "/",
-        dayNames: ["Sul","Lun","Meurzh","Merc'her","Yaou","Gwener","Sadorn"],
+        abbreviatedMonthGenitiveNames: ["Gen.","Cʼhwe.","Meur.","Ebr.","Mae","Mezh.","Goue.","Eost","Gwen.","Here","Du","Kzu.",""],
+        abbreviatedMonthNames: ["Gen.","Cʼhwe.","Meur.","Ebr.","Mae","Mezh.","Goue.","Eost","Gwen.","Here","Du","Ker.",""],
+        amDesignator: "A.M.",
+        dateSeparator: "-",
+        dayNames: ["Sul","Lun","Meurzh","Mercʼher","Yaou","Gwener","Sadorn"],
         firstDayOfWeek: 1,
-        fullDateTimePattern: "dddd d MMMM yyyy HH:mm:ss",
-        longDatePattern: "dddd d MMMM yyyy",
+        fullDateTimePattern: "yyyy MMMM d, dddd HH:mm:ss",
+        longDatePattern: "yyyy MMMM d, dddd",
         longTimePattern: "HH:mm:ss",
-        monthDayPattern: "d MMMM",
-        monthGenitiveNames: ["Genver","C'hwevrer","Meurzh","Ebrel","Mae","Mezheven","Gouere","Eost","Gwengolo","Here","Du","Kerzu",""],
-        monthNames: ["Genver","C'hwevrer","Meurzh","Ebrel","Mae","Mezheven","Gouere","Eost","Gwengolo","Here","Du","Kerzu",""],
-        pmDesignator: "",
+        monthDayPattern: "MMMM d",
+        monthGenitiveNames: ["Genver","Cʼhwevrer","Meurzh","Ebrel","Mae","Mezheven","Gouere","Eost","Gwengolo","Here","Du","Kerzu",""],
+        monthNames: ["Genver","Cʼhwevrer","Meurzh","Ebrel","Mae","Mezheven","Gouere","Eost","Gwengolo","Here","Du","Kerzu",""],
+        pmDesignator: "G.M.",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "dd/MM/yyyy",
-        shortestDayNames: ["Su","L","Mz","Mc","Y","G","Sa"],
+        shortDatePattern: "yyyy-MM-dd",
+        shortestDayNames: ["Sul","Lun","Meu.","Mer.","Yaou","Gwe.","Sad."],
         shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
-        yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        yearMonthPattern: "yyyy MMMM",
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "br-FR",
+        EBCDICCodePage: 20297,
+        IsRightToLeft: false,
+        LCID: 1150,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

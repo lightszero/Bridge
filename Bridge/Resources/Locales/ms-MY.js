@@ -1,26 +1,26 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ms-MY", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ms-MY", true), {
     englishName: "Malay (Malaysia)",
     nativeName: "Bahasa Melayu (Malaysia)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinity",
-        positiveInfinitySymbol: "Infinity",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
-        percentPositivePattern: 0,
-        percentNegativePattern: 0,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "RM",
         currencyGroupSizes: [3],
-        currencyDecimalDigits: 0,
+        currencyDecimalDigits: 2,
         currencyDecimalSeparator: ".",
         currencyGroupSeparator: ",",
-        currencyNegativePattern: 0,
+        currencyNegativePattern: 1,
         currencyPositivePattern: 0,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
@@ -29,30 +29,42 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Ahd","Isn","Sel","Rab","Kha","Jum","Sab"],
-        abbreviatedMonthGenitiveNames: ["Jan","Feb","Mac","Apr","Mei","Jun","Jul","Ogos","Sept","Okt","Nov","Dis",""],
-        abbreviatedMonthNames: ["Jan","Feb","Mac","Apr","Mei","Jun","Jul","Ogos","Sept","Okt","Nov","Dis",""],
-        amDesignator: "AM",
+        abbreviatedMonthGenitiveNames: ["Jan","Feb","Mac","Apr","Mei","Jun","Jul","Ogo","Sep","Okt","Nov","Dis",""],
+        abbreviatedMonthNames: ["Jan","Feb","Mac","Apr","Mei","Jun","Jul","Ogo","Sep","Okt","Nov","Dis",""],
+        amDesignator: "PG",
         dateSeparator: "/",
         dayNames: ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"],
         firstDayOfWeek: 1,
-        fullDateTimePattern: "dd MMMM yyyy H:mm:ss",
-        longDatePattern: "dd MMMM yyyy",
-        longTimePattern: "H:mm:ss",
-        monthDayPattern: "dd MMMM",
+        fullDateTimePattern: "dddd, d MMMM yyyy h:mm:ss tt",
+        longDatePattern: "dddd, d MMMM yyyy",
+        longTimePattern: "h:mm:ss tt",
+        monthDayPattern: "d MMMM",
         monthGenitiveNames: ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember",""],
         monthNames: ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember",""],
-        pmDesignator: "PM",
+        pmDesignator: "PTG",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "dd/MM/yyyy",
-        shortestDayNames: ["A","I","S","R","K","J","S"],
-        shortTimePattern: "H:mm",
+        shortDatePattern: "d/MM/yyyy",
+        shortestDayNames: ["Ah","Is","Se","Ra","Kh","Ju","Sa"],
+        shortTimePattern: "h:mm tt",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
-        yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        yearMonthPattern: "yyyy MMMM",
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "ms-MY",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1086,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

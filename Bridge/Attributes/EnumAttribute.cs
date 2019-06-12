@@ -2,7 +2,7 @@
 
 namespace Bridge
 {
-    [External]
+    [NonScriptable]
     [AttributeUsage(AttributeTargets.Enum)]
     public class EnumAttribute : Attribute
     {
@@ -11,7 +11,7 @@ namespace Bridge
         }
     }
 
-    [External]
+    [NonScriptable]
     public enum Emit
     {
         Name = 1,
@@ -19,6 +19,9 @@ namespace Bridge
         StringName = 3,
         StringNamePreserveCase = 4,
         StringNameLowerCase = 5,
-        StringNameUpperCase = 6
+        StringNameUpperCase = 6,
+        NamePreserveCase = 7,
+        NameLowerCase = 8,
+        NameUpperCase = 9
     }
 }

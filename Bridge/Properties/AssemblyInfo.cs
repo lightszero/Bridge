@@ -1,15 +1,17 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System;
 
 [assembly: AssemblyTitle("Bridge")]
 [assembly: AssemblyProduct("Bridge")]
 [assembly: AssemblyDescription("Build Mobile, Web And Desktop Apps In C#. Run On Any Device Using JavaScript.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Object.NET, Inc.")]
-[assembly: AssemblyCopyright("Copyright 2008-2015 Object.NET, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: Guid("76ba3097-5b23-4900-bca9-2ba3bc0afcfe")]
-[assembly: AssemblyVersion("1.10")]
-[assembly: AssemblyFileVersion("1.10.2")]
+
+[assembly: InternalsVisibleTo("Bridge.ClientTest")]
+[assembly: InternalsVisibleTo("Bridge.ClientTest.Batch3")]
+[assembly: CLSCompliant(true)]

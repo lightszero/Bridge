@@ -1,32 +1,23 @@
-using Bridge;
-
 namespace System
 {
-    [External]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Name("System.Object")]
     public static class Activator
     {
-        [Template("new {type}({*arguments})")]
-        public static object CreateInstance(Type type, params object[] arguments)
-        {
-            return null;
-        }
+        [Bridge.Template("Bridge.createInstance({type}, {arguments:array})", "Bridge.Reflection.applyConstructor({type}, {arguments:array})")]
+        public static extern object CreateInstance(Type type, params object[] arguments);
 
-        [Template("new {T}({*arguments})")]
-        public static T CreateInstance<T>(params object[] arguments)
-        {
-            return default(T);
-        }
+        [Bridge.Template("Bridge.createInstance({T}, {arguments:array})", "Bridge.Reflection.applyConstructor({T}, {arguments:array})")]
+        public static extern T CreateInstance<T>(params object[] arguments);
 
-        [Template("new {type}()")]
-        public static object CreateInstance(Type type)
-        {
-            return null;
-        }
+        [Bridge.Template("Bridge.createInstance({type})")]
+        public static extern object CreateInstance(Type type);
 
-        [Template("new {T}()")]
-        public static T CreateInstance<T>()
-        {
-            return default(T);
-        }
+        [Bridge.Template("Bridge.createInstance({type}, {nonPublic})")]
+        public static extern object CreateInstance(Type type, bool nonPublic);
+
+        [Bridge.Template("Bridge.createInstance({T})")]
+        public static extern T CreateInstance<T>();
     }
 }

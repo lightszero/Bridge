@@ -1,479 +1,359 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public sealed class Tuple<T1>
     {
-        [Template("{ item1: {item1} }")]
-        public Tuple(T1 item1)
+        [Bridge.Template("{ Item1: {item1} }")]
+        public extern Tuple(T1 item1);
+
+        public extern T1 Item1
         {
+            [Bridge.Template("Item1")]
+            get;
         }
 
-        public T1 Item1
-        {
-            [Template("item1")]
-            get
-            {
-                return default(T1);
-            }
-        }
+        [Bridge.Template("Bridge.objectEquals({this}, {o}, true)")]
+        public override extern bool Equals(object o);
+
+        [Bridge.Template("Bridge.getHashCode({this}, false, true)")]
+        public override extern int GetHashCode();
     }
 
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public sealed class Tuple<T1, T2>
     {
-        [Template("{ item1: {item1}, item2: {item2} }")]
-        public Tuple(T1 item1, T2 item2)
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2} }")]
+        public extern Tuple(T1 item1, T2 item2);
+
+        public extern T1 Item1
         {
+            [Bridge.Template("Item1")]
+            get;
         }
 
-        public T1 Item1
+        public extern T2 Item2
         {
-            [Template("item1")]
-            get
-            {
-                return default(T1);
-            }
+            [Bridge.Template("Item2")]
+            get;
         }
 
-        public T2 Item2
-        {
-            [Template("item2")]
-            get
-            {
-                return default(T2);
-            }
-        }
+        [Bridge.Template("Bridge.objectEquals({this}, {o}, true)")]
+        public override extern bool Equals(object o);
+
+        [Bridge.Template("Bridge.getHashCode({this}, false, true)")]
+        public override extern int GetHashCode();
     }
 
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public sealed class Tuple<T1, T2, T3>
     {
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3} }")]
-        public Tuple(T1 item1, T2 item2, T3 item3)
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3} }")]
+        public extern Tuple(T1 item1, T2 item2, T3 item3);
+
+        public extern T1 Item1
         {
+            [Bridge.Template("Item1")]
+            get;
         }
 
-        public T1 Item1
+        public extern T2 Item2
         {
-            [Template("item1")]
-            get
-            {
-                return default(T1);
-            }
+            [Bridge.Template("Item2")]
+            get;
         }
 
-        public T2 Item2
+        public extern T3 Item3
         {
-            [Template("item2")]
-            get
-            {
-                return default(T2);
-            }
+            [Bridge.Template("Item3")]
+            get;
         }
 
-        public T3 Item3
-        {
-            [Template("item3")]
-            get
-            {
-                return default(T3);
-            }
-        }
+        [Bridge.Template("Bridge.objectEquals({this}, {o}, true)")]
+        public override extern bool Equals(object o);
+
+        [Bridge.Template("Bridge.getHashCode({this}, false, true)")]
+        public override extern int GetHashCode();
     }
 
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public sealed class Tuple<T1, T2, T3, T4>
     {
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4} }")]
-        public Tuple(T1 item1, T2 item2, T3 item3, T4 item4)
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4} }")]
+        public extern Tuple(T1 item1, T2 item2, T3 item3, T4 item4);
+
+        public extern T1 Item1
         {
+            [Bridge.Template("Item1")]
+            get;
         }
 
-        public T1 Item1
+        public extern T2 Item2
         {
-            [Template("item1")]
-            get
-            {
-                return default(T1);
-            }
+            [Bridge.Template("Item2")]
+            get;
         }
 
-        public T2 Item2
+        public extern T3 Item3
         {
-            [Template("item2")]
-            get
-            {
-                return default(T2);
-            }
+            [Bridge.Template("Item3")]
+            get;
         }
 
-        public T3 Item3
+        public extern T4 Item4
         {
-            [Template("item3")]
-            get
-            {
-                return default(T3);
-            }
+            [Bridge.Template("Item4")]
+            get;
         }
 
-        public T4 Item4
-        {
-            [Template("item4")]
-            get
-            {
-                return default(T4);
-            }
-        }
+        [Bridge.Template("Bridge.objectEquals({this}, {o}, true)")]
+        public override extern bool Equals(object o);
+
+        [Bridge.Template("Bridge.getHashCode({this}, false, true)")]
+        public override extern int GetHashCode();
     }
 
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public sealed class Tuple<T1, T2, T3, T4, T5>
     {
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4}, item5: {item5} }")]
-        public Tuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4}, Item5: {item5} }")]
+        public extern Tuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5);
+
+        public extern T1 Item1
         {
+            [Bridge.Template("Item1")]
+            get;
         }
 
-        public T1 Item1
+        public extern T2 Item2
         {
-            [Template("item1")]
-            get
-            {
-                return default(T1);
-            }
+            [Bridge.Template("Item2")]
+            get;
         }
 
-        public T2 Item2
+        public extern T3 Item3
         {
-            [Template("item2")]
-            get
-            {
-                return default(T2);
-            }
+            [Bridge.Template("Item3")]
+            get;
         }
 
-        public T3 Item3
+        public extern T4 Item4
         {
-            [Template("item3")]
-            get
-            {
-                return default(T3);
-            }
+            [Bridge.Template("Item4")]
+            get;
         }
 
-        public T4 Item4
+        public extern T5 Item5
         {
-            [Template("item4")]
-            get
-            {
-                return default(T4);
-            }
+            [Bridge.Template("Item5")]
+            get;
         }
 
-        public T5 Item5
-        {
-            [Template("item5")]
-            get
-            {
-                return default(T5);
-            }
-        }
+        [Bridge.Template("Bridge.objectEquals({this}, {o}, true)")]
+        public override extern bool Equals(object o);
+
+        [Bridge.Template("Bridge.getHashCode({this}, false, true)")]
+        public override extern int GetHashCode();
     }
 
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public sealed class Tuple<T1, T2, T3, T4, T5, T6>
     {
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4}, item5: {item5}, item6: {item6} }")]
-        public Tuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4}, Item5: {item5}, Item6: {item6} }")]
+        public extern Tuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6);
+
+        public extern T1 Item1
         {
+            [Bridge.Template("Item1")]
+            get;
         }
 
-        public T1 Item1
+        public extern T2 Item2
         {
-            [Template("item1")]
-            get
-            {
-                return default(T1);
-            }
+            [Bridge.Template("Item2")]
+            get;
         }
 
-        public T2 Item2
+        public extern T3 Item3
         {
-            [Template("item2")]
-            get
-            {
-                return default(T2);
-            }
+            [Bridge.Template("Item3")]
+            get;
         }
 
-        public T3 Item3
+        public extern T4 Item4
         {
-            [Template("item3")]
-            get
-            {
-                return default(T3);
-            }
+            [Bridge.Template("Item4")]
+            get;
         }
 
-        public T4 Item4
+        public extern T5 Item5
         {
-            [Template("item4")]
-            get
-            {
-                return default(T4);
-            }
+            [Bridge.Template("Item5")]
+            get;
         }
 
-        public T5 Item5
+        public extern T6 Item6
         {
-            [Template("item5")]
-            get
-            {
-                return default(T5);
-            }
+            [Bridge.Template("Item6")]
+            get;
         }
 
-        public T6 Item6
-        {
-            [Template("item6")]
-            get
-            {
-                return default(T6);
-            }
-        }
+        [Bridge.Template("Bridge.objectEquals({this}, {o}, true)")]
+        public override extern bool Equals(object o);
+
+        [Bridge.Template("Bridge.getHashCode({this}, false, true)")]
+        public override extern int GetHashCode();
     }
 
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public sealed class Tuple<T1, T2, T3, T4, T5, T6, T7>
     {
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4}, item5: {item5}, item6: {item6}, item7: {item7} }")]
-        public Tuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4}, Item5: {item5}, Item6: {item6}, Item7: {item7} }")]
+        public extern Tuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7);
+
+        public extern T1 Item1
         {
+            [Bridge.Template("Item1")]
+            get;
         }
 
-        public T1 Item1
+        public extern T2 Item2
         {
-            [Template("item1")]
-            get
-            {
-                return default(T1);
-            }
+            [Bridge.Template("Item2")]
+            get;
         }
 
-        public T2 Item2
+        public extern T3 Item3
         {
-            [Template("item2")]
-            get
-            {
-                return default(T2);
-            }
+            [Bridge.Template("Item3")]
+            get;
         }
 
-        public T3 Item3
+        public extern T4 Item4
         {
-            [Template("item3")]
-            get
-            {
-                return default(T3);
-            }
+            [Bridge.Template("Item4")]
+            get;
         }
 
-        public T4 Item4
+        public extern T5 Item5
         {
-            [Template("item4")]
-            get
-            {
-                return default(T4);
-            }
+            [Bridge.Template("Item5")]
+            get;
         }
 
-        public T5 Item5
+        public extern T6 Item6
         {
-            [Template("item5")]
-            get
-            {
-                return default(T5);
-            }
+            [Bridge.Template("Item6")]
+            get;
         }
 
-        public T6 Item6
+        public extern T7 Item7
         {
-            [Template("item6")]
-            get
-            {
-                return default(T6);
-            }
+            [Bridge.Template("Item7")]
+            get;
         }
 
-        public T7 Item7
-        {
-            [Template("item7")]
-            get
-            {
-                return default(T7);
-            }
-        }
+        [Bridge.Template("Bridge.objectEquals({this}, {o}, true)")]
+        public override extern bool Equals(object o);
+
+        [Bridge.Template("Bridge.getHashCode({this}, false, true)")]
+        public override extern int GetHashCode();
     }
 
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public sealed class Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>
     {
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4}, item5: {item5}, item6: {item6}, item7: {item7}, rest: {rest} }")]
-        public Tuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4}, Item5: {item5}, Item6: {item6}, Item7: {item7}, rest: {rest} }")]
+        public extern Tuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest);
+
+        public extern T1 Item1
         {
+            [Bridge.Template("Item1")]
+            get;
         }
 
-        public T1 Item1
+        public extern T2 Item2
         {
-            [Template("item1")]
-            get
-            {
-                return default(T1);
-            }
+            [Bridge.Template("Item2")]
+            get;
         }
 
-        public T2 Item2
+        public extern T3 Item3
         {
-            [Template("item2")]
-            get
-            {
-                return default(T2);
-            }
+            [Bridge.Template("Item3")]
+            get;
         }
 
-        public T3 Item3
+        public extern T4 Item4
         {
-            [Template("item3")]
-            get
-            {
-                return default(T3);
-            }
+            [Bridge.Template("Item4")]
+            get;
         }
 
-        public T4 Item4
+        public extern T5 Item5
         {
-            [Template("item4")]
-            get
-            {
-                return default(T4);
-            }
+            [Bridge.Template("Item5")]
+            get;
         }
 
-        public T5 Item5
+        public extern T6 Item6
         {
-            [Template("item5")]
-            get
-            {
-                return default(T5);
-            }
+            [Bridge.Template("Item6")]
+            get;
         }
 
-        public T6 Item6
+        public extern T7 Item7
         {
-            [Template("item6")]
-            get
-            {
-                return default(T6);
-            }
+            [Bridge.Template("Item7")]
+            get;
         }
 
-        public T7 Item7
+        public extern TRest Rest
         {
-            [Template("item7")]
-            get
-            {
-                return default(T7);
-            }
+            [Bridge.Template("rest")]
+            get;
         }
 
-        public TRest Rest
-        {
-            [Template("rest")]
-            get
-            {
-                return default(TRest);
-            }
-        }
+        [Bridge.Template("Bridge.objectEquals({this}, {o}, true)")]
+        public override extern bool Equals(object o);
+
+        [Bridge.Template("Bridge.getHashCode({this}, false, true)")]
+        public override extern int GetHashCode();
     }
 
-    [External]
-    [IgnoreGeneric]
-    [IgnoreCast]
-    [Name("Object")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.IgnoreCast]
     public static class Tuple
     {
-        [Template("{ item1: {item1} }")]
-        public static Tuple<T1> Create<T1>(T1 item1)
-        {
-            return null;
-        }
+        [Bridge.Template("{ Item1: {item1} }")]
+        public static extern Tuple<T1> Create<T1>(T1 item1);
 
-        [Template("{ item1: {item1}, item2: {item2} }")]
-        public static Tuple<T1, T2> Create<T1, T2>(T1 item1, T2 item2)
-        {
-            return null;
-        }
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2} }")]
+        public static extern Tuple<T1, T2> Create<T1, T2>(T1 item1, T2 item2);
 
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3} }")]
-        public static Tuple<T1, T2, T3> Create<T1, T2, T3>(T1 item1, T2 item2, T3 item3)
-        {
-            return null;
-        }
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3} }")]
+        public static extern Tuple<T1, T2, T3> Create<T1, T2, T3>(T1 item1, T2 item2, T3 item3);
 
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4} }")]
-        public static Tuple<T1, T2, T3, T4> Create<T1, T2, T3, T4>(T1 item1, T2 item2, T3 item3, T4 item4)
-        {
-            return null;
-        }
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4} }")]
+        public static extern Tuple<T1, T2, T3, T4> Create<T1, T2, T3, T4>(T1 item1, T2 item2, T3 item3, T4 item4);
 
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4}, item5: {item5} }")]
-        public static Tuple<T1, T2, T3, T4, T5> Create<T1, T2, T3, T4, T5>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
-        {
-            return null;
-        }
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4}, Item5: {item5} }")]
+        public static extern Tuple<T1, T2, T3, T4, T5> Create<T1, T2, T3, T4, T5>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5);
 
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4}, item5: {item5}, item6: {item6} }")]
-        public static Tuple<T1, T2, T3, T4, T5, T6> Create<T1, T2, T3, T4, T5, T6>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
-        {
-            return null;
-        }
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4}, Item5: {item5}, Item6: {item6} }")]
+        public static extern Tuple<T1, T2, T3, T4, T5, T6> Create<T1, T2, T3, T4, T5, T6>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6);
 
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4}, item5: {item5}, item6: {item6}, item7: {item7} }")]
-        public static Tuple<T1, T2, T3, T4, T5, T6, T7> Create<T1, T2, T3, T4, T5, T6, T7>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
-        {
-            return null;
-        }
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4}, Item5: {item5}, Item6: {item6}, Item7: {item7} }")]
+        public static extern Tuple<T1, T2, T3, T4, T5, T6, T7> Create<T1, T2, T3, T4, T5, T6, T7>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7);
 
-        [Template("{ item1: {item1}, item2: {item2}, item3: {item3}, item4: {item4}, item5: {item5}, item6: {item6}, item7: {item7}, rest: {rest} }")]
-        public static Tuple<T1, T2, T3, T4, T5, T6, T7, TRest> Create<T1, T2, T3, T4, T5, T6, T7, TRest>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
-        {
-            return null;
-        }
+        [Bridge.Template("{ Item1: {item1}, Item2: {item2}, Item3: {item3}, Item4: {item4}, Item5: {item5}, Item6: {item6}, Item7: {item7}, rest: {rest} }")]
+        public static extern Tuple<T1, T2, T3, T4, T5, T6, T7, TRest> Create<T1, T2, T3, T4, T5, T6, T7, TRest>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest);
     }
 }

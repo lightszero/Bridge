@@ -1,20 +1,20 @@
-﻿Bridge.merge(new Bridge.CultureInfo("bg-BG", true), {
+Bridge.merge(new System.Globalization.CultureInfo("bg-BG", true), {
     englishName: "Bulgarian (Bulgaria)",
     nativeName: "български (България)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "- безкрайност",
-        positiveInfinitySymbol: "+ безкрайност",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: " ",
-        percentPositivePattern: 0,
-        percentNegativePattern: 0,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "лв.",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["нед","пон","вт","ср","четв","пет","съб"],
         abbreviatedMonthGenitiveNames: ["яну","фев","мар","апр","май","юни","юли","авг","сеп","окт","ное","дек",""],
         abbreviatedMonthNames: ["яну","фев","мар","апр","май","юни","юли","авг","сеп","окт","ное","дек",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy 'г.'",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1251,
+        CultureName: "bg-BG",
+        EBCDICCodePage: 21025,
+        IsRightToLeft: false,
+        LCID: 1026,
+        listSeparator: ";",
+        MacCodePage: 10007,
+        OEMCodePage: 866,
+        IsReadOnly: true
     })
 });

@@ -4,7 +4,7 @@ namespace Bridge.Contract
 {
     public interface IAsyncTryInfo
     {
-        System.Collections.Generic.List<Tuple<string, string, int>> CatchBlocks
+        System.Collections.Generic.List<Tuple<string, string, int, int>> CatchBlocks
         {
             get;
         }

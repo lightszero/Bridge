@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("gn-PY", true), {
+Bridge.merge(new System.Globalization.CultureInfo("gn-PY", true), {
     englishName: "Guarani (Paraguay)",
-    nativeName: "Guarani (Paraguái)",
+    nativeName: "Avañe’ẽ (Paraguái)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "ndaha’éi papaha",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "ndaha’éi papaha",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-Infinito",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["teĩ","kõi","apy","ndy","po","oteĩ","okõi"],
         abbreviatedMonthGenitiveNames: ["jteĩ","jkõi","japy","jrun","jpo","jpot","jpok","jpoa","jpor","jpa","jpat","jpak",""],
         abbreviatedMonthNames: ["jteĩ","jkõi","japy","jrun","jpo","jpot","jpok","jpoa","jpor","jpa","jpat","jpak",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "gn-PY",
+        EBCDICCodePage: 20284,
+        IsRightToLeft: false,
+        LCID: 1140,
+        listSeparator: ",",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

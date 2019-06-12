@@ -1,3 +1,5 @@
+using Bridge.Contract.Constants;
+
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.Semantics;
 using ICSharpCode.NRefactory.TypeSystem;
@@ -23,7 +25,7 @@ namespace Bridge.Contract
     {
         private const char newLine = Bridge.Contract.XmlToJSConstants.DEFAULT_LINE_SEPARATOR;
 
-        public static void EmitComment(IAbstractEmitterBlock block, AstNode node)
+        public static void EmitComment(IAbstractEmitterBlock block, AstNode node, bool? getter = null, VariableInitializer varInitializer = null)
         {
             if (block.Emitter.AssemblyInfo.GenerateDocumentation == Bridge.Contract.DocumentationMode.None || node.Parent == null)
             {
@@ -39,11 +41,12 @@ namespace Bridge.Contract
             }
 
             object value = null;
+            var rr = block.Emitter.Resolver.ResolveNode(varInitializer ?? node, block.Emitter);
+            string source = BuildCommentString(visitor.Comments);
+
             if (node is FieldDeclaration)
             {
-                var fieldDecl = (FieldDeclaration)node;
-                node = fieldDecl.Variables.First();
-                var initializer = fieldDecl.Variables.First().Initializer as PrimitiveExpression;
+                var initializer = varInitializer.Initializer as PrimitiveExpression;
 
                 if (initializer != null)
                 {
@@ -53,33 +56,58 @@ namespace Bridge.Contract
             else if (node is EventDeclaration)
             {
                 var eventDecl = (EventDeclaration)node;
-                node = eventDecl.Variables.First();
-                var initializer = eventDecl.Variables.First().Initializer as PrimitiveExpression;
-
-                if (initializer != null)
+                foreach (var evVar in eventDecl.Variables)
                 {
-                    value = initializer.Value;
-                }
-            }
+                    var ev_rr = block.Emitter.Resolver.ResolveNode(evVar, block.Emitter);
+                    var memberResolveResult = ev_rr as MemberResolveResult;
+                    var ev = memberResolveResult.Member as IEvent;
 
-            var rr = block.Emitter.Resolver.ResolveNode(node, block.Emitter);
-            string source = BuildCommentString(visitor.Comments);
+                    if (!getter.HasValue || getter.Value)
+                    {
+                        var comment = new JsDocComment();
+                        InitMember(comment, ev.AddAccessor, block.Emitter, null);
+                        comment.Function = Helpers.GetEventRef(ev, block.Emitter, false);
+                        block.Write(
+                            block.WriteIndentToString(XmlToJsDoc.ReadComment(source, ev_rr, block.Emitter, comment)));
+                        block.WriteNewLine();
+                    }
+
+                    if (!getter.HasValue || !getter.Value)
+                    {
+                        var comment = new JsDocComment();
+                        InitMember(comment, ev.RemoveAccessor, block.Emitter, null);
+                        comment.Function = Helpers.GetEventRef(ev, block.Emitter, true);
+                        block.Write(
+                            block.WriteIndentToString(XmlToJsDoc.ReadComment(source, ev_rr, block.Emitter, comment)));
+                        block.WriteNewLine();
+                    }
+                }
+
+                return;
+            }
 
             var prop = node as PropertyDeclaration;
             if (prop != null)
             {
                 var memberResolveResult = rr as MemberResolveResult;
-                var rProp = memberResolveResult.Member as DefaultResolvedProperty;
+                var rProp = memberResolveResult.Member as IProperty;
 
                 var comment = new JsDocComment();
-                InitMember(comment, rProp.Getter, block.Emitter, null);
-                comment.Function = Helpers.GetPropertyRef(rProp, block.Emitter, false);
+                InitMember(comment, rProp, block.Emitter, null);
+                comment.Function = Helpers.GetPropertyRef(rProp, block.Emitter);
                 block.Write(block.WriteIndentToString(XmlToJsDoc.ReadComment(source, rr, block.Emitter, comment)));
                 block.WriteNewLine();
+                return;
+            }
 
-                comment = new JsDocComment();
-                InitMember(comment, rProp.Setter, block.Emitter, null);
-                comment.Function = Helpers.GetPropertyRef(rProp, block.Emitter, true);
+            var indexer = node as IndexerDeclaration;
+            if (indexer != null)
+            {
+                var memberResolveResult = rr as MemberResolveResult;
+                var rProp = memberResolveResult.Member as IProperty;
+
+                var comment = new JsDocComment();
+                InitMember(comment, getter.HasValue && getter.Value ? rProp.Getter : rProp.Setter, block.Emitter, null);
                 block.Write(block.WriteIndentToString(XmlToJsDoc.ReadComment(source, rr, block.Emitter, comment)));
                 block.WriteNewLine();
                 return;
@@ -134,7 +162,15 @@ namespace Bridge.Contract
                 xml.Append("</comment>");
 
                 var doc = new System.Xml.XmlDocument();
-                doc.LoadXml(xml.ToString());
+
+                try
+                {
+                    doc.LoadXml(xml.ToString());
+                }
+                catch (XmlException)
+                {
+                    return "";
+                }
 
                 foreach (XmlNode node in doc.GetElementsByTagName("summary"))
                 {
@@ -196,13 +232,7 @@ namespace Bridge.Contract
                     var param = comment.Parameters.FirstOrDefault(p => p.Name == name);
                     if (param == null)
                     {
-                        param = new JsDocParam
-                        {
-                            Name = "[name]",
-                            Type = "[type]"
-                        };
-
-                        comment.Parameters.Add(param);
+                        continue;
                     }
 
                     attr = node.Attributes["type"];
@@ -245,14 +275,17 @@ namespace Bridge.Contract
                         param.Name = attr.Value.Trim();
                     }
 
-                    attr = node.Attributes["type"];
-                    if (attr != null)
+                    if (string.IsNullOrWhiteSpace(param.Type))
                     {
-                        param.Type = attr.Value.Trim();
-                    }
-                    else if (rr != null)
-                    {
-                        param.Type = XmlToJsDoc.GetParamTypeName(null, rr, emitter);
+                        attr = node.Attributes["type"];
+                        if (attr != null)
+                        {
+                            param.Type = attr.Value.Trim();
+                        }
+                        else if (rr != null)
+                        {
+                            param.Type = XmlToJsDoc.GetParamTypeName(null, rr, emitter);
+                        }
                     }
 
                     var text = HandleNode(node);
@@ -475,7 +508,7 @@ namespace Bridge.Contract
                 {
                     comment.MemberType = XmlToJsDoc.ToJavascriptName(variable.Type, emitter);
                 }
-                else
+                else if (!(member is IField || member is IProperty))
                 {
                     comment.Returns.Add(new JsDocParam
                     {
@@ -483,12 +516,21 @@ namespace Bridge.Contract
                     });
                 }
 
-                var field = member as DefaultResolvedField;
+                var field = member as IField;
                 if (field != null)
                 {
                     comment.ReadOnly = field.IsReadOnly;
                     comment.Const = field.IsConst;
                     comment.Default = value ?? field.ConstantValue;
+                    comment.MemberType = XmlToJsDoc.ToJavascriptName(field.Type, emitter);
+                }
+
+                var property = member as IProperty;
+                if (property != null)
+                {
+                    comment.ReadOnly = !property.CanSet;
+                    comment.Default = value;
+                    comment.MemberType = XmlToJsDoc.ToJavascriptName(property.ReturnType, emitter);
                 }
 
                 var ev = member as IEvent;
@@ -528,7 +570,7 @@ namespace Bridge.Contract
                 list.Add(name);
             }
 
-            if (list.Count > 0 && list[0] == "Object")
+            if (list.Count > 0 && list[0] == JS.Types.Object.NAME)
             {
                 list.RemoveAt(0);
             }
@@ -614,7 +656,7 @@ namespace Bridge.Contract
             var composedType = astType as ComposedType;
             if (composedType != null && composedType.ArraySpecifiers != null && composedType.ArraySpecifiers.Count > 0)
             {
-                return "Array.<" + BridgeTypes.ToTypeScriptName(composedType.BaseType, emitter) + ">";
+                return JS.Types.ARRAY + ".<" + BridgeTypes.ToTypeScriptName(composedType.BaseType, emitter) + ">";
             }
 
             var simpleType = astType as SimpleType;
@@ -667,7 +709,8 @@ namespace Bridge.Contract
                     }
 
                     emitter.JsDoc.Callbacks.Add(delegateName);
-                    emitter.Output.Insert(0, comment.ToString() + newLine + newLine);
+
+                    emitter.WriteIndented(comment.ToString() + newLine + newLine, 0);
                 }
 
                 return delegateName;
@@ -690,16 +733,13 @@ namespace Bridge.Contract
 
             if (type.IsKnownType(KnownTypeCode.Byte) ||
                 type.IsKnownType(KnownTypeCode.Char) ||
-                type.IsKnownType(KnownTypeCode.Decimal) ||
                 type.IsKnownType(KnownTypeCode.Double) ||
                 type.IsKnownType(KnownTypeCode.Int16) ||
                 type.IsKnownType(KnownTypeCode.Int32) ||
-                type.IsKnownType(KnownTypeCode.Int64) ||
                 type.IsKnownType(KnownTypeCode.SByte) ||
                 type.IsKnownType(KnownTypeCode.Single) ||
                 type.IsKnownType(KnownTypeCode.UInt16) ||
-                type.IsKnownType(KnownTypeCode.UInt32) ||
-                type.IsKnownType(KnownTypeCode.UInt64))
+                type.IsKnownType(KnownTypeCode.UInt32))
             {
                 return "number";
             }
@@ -707,7 +747,7 @@ namespace Bridge.Contract
             if (type.Kind == TypeKind.Array)
             {
                 ICSharpCode.NRefactory.TypeSystem.ArrayType arrayType = (ICSharpCode.NRefactory.TypeSystem.ArrayType)type;
-                return "Array.<" + XmlToJsDoc.ToJavascriptName(arrayType.ElementType, emitter) + ">";
+                return JS.Types.ARRAY + ".<" + XmlToJsDoc.ToJavascriptName(arrayType.ElementType, emitter) + ">";
             }
 
             if (type.Kind == TypeKind.Dynamic)
@@ -728,17 +768,17 @@ namespace Bridge.Contract
             BridgeType bridgeType = emitter.BridgeTypes.Get(type, true);
             //string name = BridgeTypes.ConvertName(type.FullName);
 
-
-
             var name = type.Namespace;
 
             var hasTypeDef = bridgeType != null && bridgeType.TypeDefinition != null;
+            bool isNested = false;
             if (hasTypeDef)
             {
                 var typeDef = bridgeType.TypeDefinition;
                 if (typeDef.IsNested)
                 {
-                    name = (string.IsNullOrEmpty(name) ? "" : (name + ".")) + BridgeTypes.GetParentNames(typeDef);
+                    name = (string.IsNullOrEmpty(name) ? "" : (name + ".")) + BridgeTypes.GetParentNames(emitter, typeDef);
+                    isNested = true;
                 }
 
                 name = (string.IsNullOrEmpty(name) ? "" : (name + ".")) + BridgeTypes.ConvertName(typeDef.Name);
@@ -747,28 +787,27 @@ namespace Bridge.Contract
             {
                 if (type.DeclaringType != null)
                 {
-                    name = (string.IsNullOrEmpty(name) ? "" : (name + ".")) + BridgeTypes.GetParentNames(type);
+                    name = (string.IsNullOrEmpty(name) ? "" : (name + ".")) + BridgeTypes.GetParentNames(emitter, type);
 
                     if (type.DeclaringType.TypeArguments.Count > 0)
                     {
-                        name += "$" + type.TypeArguments.Count;
+                        name += Helpers.PrefixDollar(type.TypeArguments.Count);
                     }
+                    isNested = true;
                 }
 
                 name = (string.IsNullOrEmpty(name) ? "" : (name + ".")) + BridgeTypes.ConvertName(type.Name);
             }
 
-
-
             bool isCustomName = false;
             if (bridgeType != null)
             {
-                name = BridgeTypes.AddModule(name, bridgeType, out isCustomName);
+                name = BridgeTypes.AddModule(name, bridgeType, false, isNested, out isCustomName);
             }
 
             if (!hasTypeDef && !isCustomName && type.TypeArguments.Count > 0)
             {
-                name += "$" + type.TypeArguments.Count;
+                name += Helpers.PrefixDollar(type.TypeArguments.Count);
             }
 
             return name;
@@ -996,7 +1035,7 @@ namespace Bridge.Contract
             tmp.AddRange(this.Returns);
             foreach (JsDocParam param in tmp)
             {
-                if (param.Type.Length > typeColumnWidth)
+                if (param.Type != null && param.Type.Length > typeColumnWidth)
                 {
                     typeColumnWidth = param.Type.Length;
                 }
@@ -1010,12 +1049,12 @@ namespace Bridge.Contract
             typeColumnWidth += 4;
             nameColumnWidth += 4;
 
-            if (this.Descriptions.Count > 0)
+            if (this.Descriptions.Count > 0 && this.Descriptions.Any(v => !string.IsNullOrWhiteSpace(v)))
             {
                 comment.Append(" * " + string.Join(newLine + " * ", this.Descriptions.ToArray()) + newLine + " *" + newLine);
             }
 
-            if (this.Remarks.Count > 0)
+            if (this.Remarks.Count > 0 && this.Remarks.Any(v=> !string.IsNullOrWhiteSpace(v)))
             {
                 comment.Append(" * " + string.Join(newLine + " * ", this.Remarks) + newLine + " *" + newLine);
             }
@@ -1162,7 +1201,7 @@ namespace Bridge.Contract
             {
                 comment.Append(" * @param   {" + param.Type + "}");
 
-                comment.Append(new String(' ', typeColumnWidth - param.Type.Length));
+                comment.Append(new String(' ', typeColumnWidth - (param.Type != null ? param.Type.Length : 0)));
                 comment.Append(param.Name);
 
                 var desc = param.Desc;
@@ -1196,7 +1235,7 @@ namespace Bridge.Contract
                 // (for last argument), then print whitespaces after param name.
                 if (++argCount < this.Returns.Count() || desc != null)
                 {
-                    comment.Append(new String(' ', typeColumnWidth - param.Type.Length));
+                    comment.Append(new String(' ', typeColumnWidth - (param.Type != null ? param.Type.Length : 0)));
                     comment.Append(new String(' ', nameColumnWidth));
                 }
 

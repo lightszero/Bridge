@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("az-Cyrl-AZ", true), {
+Bridge.merge(new System.Globalization.CultureInfo("az-Cyrl-AZ", true), {
     englishName: "Azerbaijani (Cyrillic, Azerbaijan)",
-    nativeName: "Азәрбајҹан (Азәрбајҹан)",
+    nativeName: "азәрбајҹан (Азәрбајҹан)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
@@ -15,7 +15,7 @@
         percentGroupSeparator: " ",
         percentPositivePattern: 1,
         percentNegativePattern: 1,
-        currencySymbol: "ман.",
+        currencySymbol: "₼",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Б","Бе","Ча","Ч","Ҹа","Ҹ","Ш"],
         abbreviatedMonthGenitiveNames: ["Јан","Фев","Мар","Апр","мая","ијун","ијул","Авг","Сен","Окт","Ноя","Дек",""],
         abbreviatedMonthNames: ["Јан","Фев","Мар","Апр","Мај","Ијун","Ијул","Авг","Сен","Окт","Ноя","Дек",""],
@@ -40,7 +40,7 @@
         fullDateTimePattern: "d MMMM yyyy HH:mm:ss",
         longDatePattern: "d MMMM yyyy",
         longTimePattern: "HH:mm:ss",
-        monthDayPattern: "d MMMM",
+        monthDayPattern: "MMMM d",
         monthGenitiveNames: ["јанвар","феврал","март","апрел","мај","ијун","ијул","август","сентјабр","октјабр","нојабр","декабр",""],
         monthNames: ["jанвар","феврал","март","апрел","мај","ијун","ијул","август","сентјабр","октјабр","нојабр","декабр",""],
         pmDesignator: "",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1251,
+        CultureName: "az-Cyrl-AZ",
+        EBCDICCodePage: 20880,
+        IsRightToLeft: false,
+        LCID: 2092,
+        listSeparator: ";",
+        MacCodePage: 10007,
+        OEMCodePage: 866,
+        IsReadOnly: true
     })
 });

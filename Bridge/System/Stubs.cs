@@ -1,50 +1,50 @@
-using Bridge;
+using System.ComponentModel;
 
 namespace System
 {
-    [External]
-    [Name("Function")]
-    public class Type
-    {
-        public static Type GetTypeFromHandle(RuntimeTypeHandle typeHandle)
-        {
-            return null;
-        }
-    }
-
-    [External]
-    [Name("Object")]
-    public class ValueType
+    [Bridge.External]
+    public abstract class ValueType
     {
     }
 
-    [External]
-    [Name("Object")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Bridge.External]
+    [Bridge.NonScriptable]
     public struct IntPtr
     {
     }
 
-    [External]
-    [Name("Object")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Bridge.External]
+    [Bridge.NonScriptable]
     public struct UIntPtr
     {
     }
 
-    [External]
-    [Name("Object")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Bridge.External]
+    [Bridge.NonScriptable]
     public class ParamArrayAttribute
     {
     }
 
-    [External]
-    [Name("Object")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Bridge.External]
+    [Bridge.NonScriptable]
     public struct RuntimeTypeHandle
     {
     }
 
-    [External]
-    [Name("Object")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Bridge.External]
+    [Bridge.NonScriptable]
     public struct RuntimeFieldHandle
+    {
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Bridge.NonScriptable]
+    public struct RuntimeMethodHandle
     {
     }
 }

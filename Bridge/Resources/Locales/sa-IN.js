@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("sa-IN", true), {
+Bridge.merge(new System.Globalization.CultureInfo("sa-IN", true), {
     englishName: "Sanskrit (India)",
     nativeName: "संस्कृत (भारतम्)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-Infinity",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["रवि","सोम","मङ्ग","बुध","गुरु","शुक्र","शनि"],
         abbreviatedMonthGenitiveNames: ["जान्युअरी","फेब्रुअरी","मार्च","एप्रिल","मे","जुन","जुलै","ऑगस्ट","सप्टेंबर","ऑक्टोबर","नोव्हेंबर","डिसेंबर",""],
         abbreviatedMonthNames: ["जान्युअरी","फेब्रुअरी","मार्च","एप्रिल","मे","जुन","जुलै","ऑगस्ट","सप्टेंबर","ऑक्टोबर","नोव्हेंबर","डिसेंबर",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 0,
+        CultureName: "sa-IN",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1103,
+        listSeparator: ",",
+        MacCodePage: 2,
+        OEMCodePage: 1,
+        IsReadOnly: true
     })
 });

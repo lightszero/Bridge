@@ -1,41 +1,33 @@
-using Bridge;
-
 namespace System.Collections.Generic
 {
-    [External]
-    [Namespace("Bridge")]
-    public interface IEqualityComparer<in T> : IBridgeClass
+    [Bridge.External]
+    [Bridge.Reflectable]
+    [Bridge.Convention(Target = Bridge.ConventionTarget.Member, Member = Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    public interface IEqualityComparer<in T> : Bridge.IBridgeClass
     {
-        [Template("{this}.equals({x}, {y})")]
+        [Bridge.Name("equals2")]
         bool Equals(T x, T y);
 
-        [Template("{this}.getHashCode({obj}, true)")]
+        [Bridge.Name("getHashCode2")]
         int GetHashCode(T obj);
     }
 
-    [External]
-    [Namespace("Bridge")]
-    public abstract class EqualityComparer<T> : IEqualityComparer<T>, IBridgeClass
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
+    public abstract class EqualityComparer<T> : IEqualityComparer<T>, Bridge.IBridgeClass
     {
         public static EqualityComparer<T> Default
         {
-            [Template("new Bridge.EqualityComparer$1({T})()")]
+            [Bridge.Template("System.Collections.Generic.EqualityComparer$1({T}).def")]
             get
             {
                 return null;
             }
         }
 
-        [Template("{this}.equals({x}, {y})")]
-        public virtual bool Equals(T x, T y)
-        {
-            return false;
-        }
+        public virtual extern bool Equals(T x, T y);
 
-        [Template("{this}.getHashCode({obj}, true)")]
-        public virtual int GetHashCode(T obj)
-        {
-            return 0;
-        }
+        public virtual extern int GetHashCode(T obj);
     }
 }

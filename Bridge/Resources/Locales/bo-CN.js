@@ -1,15 +1,15 @@
-﻿Bridge.merge(new Bridge.CultureInfo("bo-CN", true), {
+Bridge.merge(new System.Globalization.CultureInfo("bo-CN", true), {
     englishName: "Tibetan (China)",
     nativeName: "བོད་ཡིག (ཀྲུང་ཧྭ་མི་དམངས་སྤྱི་མཐུན་རྒྱལ་ཁབ།)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "ཨང་ཀི་མིན་པ།",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "མོ་གྲངས་ཚད་མེད་ཆུང་བ།",
-        positiveInfinitySymbol: "ཕོ་གྲངས་ཚད་མེད་ཆེ་བ།",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
-        percentGroupSizes: [3,0],
+        percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
@@ -22,14 +22,14 @@
         currencyGroupSeparator: ",",
         currencyNegativePattern: 2,
         currencyPositivePattern: 0,
-        numberGroupSizes: [3,0],
+        numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ".",
         numberGroupSeparator: ",",
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["ཉི་མ།","ཟླ་བ།","མིག་དམར།","ལྷག་པ།","ཕུར་བུ།","པ་སངས།","སྤེན་པ།"],
         abbreviatedMonthGenitiveNames: ["ཟླ་ ༡","ཟླ་ ༢","ཟླ་ ༣","ཟླ་ ༤","ཟླ་ ༥","ཟླ་ ༦","ཟླ་ ༧","ཟླ་ ༨","ཟླ་ ༩","ཟླ་ ༡༠","ཟླ་ ༡༡","ཟླ་ ༡༢",""],
         abbreviatedMonthNames: ["ཟླ་ ༡","ཟླ་ ༢","ཟླ་ ༣","ཟླ་ ༤","ཟླ་ ༥","ཟླ་ ༦","ཟླ་ ༧","ཟླ་ ༨","ཟླ་ ༩","ཟླ་ ༡༠","ཟླ་ ༡༡","ཟླ་ ༡༢",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "yyyy'ལོའི་ཟླ་' M",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 0,
+        CultureName: "bo-CN",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1105,
+        listSeparator: ",",
+        MacCodePage: 2,
+        OEMCodePage: 1,
+        IsReadOnly: true
     })
 });

@@ -1,35 +1,35 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ar-BH", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ar-BH", true), {
     englishName: "Arabic (Bahrain)",
     nativeName: "العربية (البحرين)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "ليس برقم",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "ليس رقمًا",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-لا نهاية",
-        positiveInfinitySymbol: "+لا نهاية",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
-        percentDecimalDigits: 3,
+        percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
-        percentPositivePattern: 0,
-        percentNegativePattern: 0,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "د.ب.‏",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 3,
         currencyDecimalSeparator: ".",
         currencyGroupSeparator: ",",
-        currencyNegativePattern: 3,
-        currencyPositivePattern: 2,
+        currencyNegativePattern: 8,
+        currencyPositivePattern: 3,
         numberGroupSizes: [3],
-        numberDecimalDigits: 3,
+        numberDecimalDigits: 2,
         numberDecimalSeparator: ".",
         numberGroupSeparator: ",",
-        numberNegativePattern: 3
+        numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],
         abbreviatedMonthGenitiveNames: ["يناير","فبراير","مارس","ابريل","مايو","يونيو","يوليو","اغسطس","سبتمبر","اكتوبر","نوفمبر","ديسمبر",""],
         abbreviatedMonthNames: ["يناير","فبراير","مارس","ابريل","مايو","يونيو","يوليو","اغسطس","سبتمبر","اكتوبر","نوفمبر","ديسمبر",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1256,
+        CultureName: "ar-BH",
+        EBCDICCodePage: 20420,
+        IsRightToLeft: true,
+        LCID: 15361,
+        listSeparator: ";",
+        MacCodePage: 10004,
+        OEMCodePage: 720,
+        IsReadOnly: true
     })
 });

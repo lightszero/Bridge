@@ -1,63 +1,52 @@
-using Bridge;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 
 namespace System
 {
     /// <summary>
     /// The String global object is a constructor for strings, or a sequence of characters.
     /// </summary>
-    [External]
-    [Name("String")]
-    [Constructor("String")]
-    public sealed class String : IEnumerable, IEnumerable<char>, IComparable<String>, IEquatable<String>
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Constructor("String")]
+    [Bridge.Reflectable]
+    public sealed class String : IEnumerable, ICloneable, IEnumerable<char>, IComparable<String>, IEquatable<String>
     {
-        [FieldProperty]
-        public int Length
+        /// <summary>
+        /// Gets the number of characters in the current String object.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern int Length
         {
-            get
-            {
-                return 0;
-            }
+            get;
         }
 
-        [InlineConst]
+        /// <summary>
+        /// Represents the empty string. This field is read-only.
+        /// </summary>
+        [Bridge.InlineConst]
         public const string Empty = "";
 
-        [Template("String.fromCharCode.apply(null, {value})")]
-        public String(char[] value)
-        {
-        }
+        [Bridge.Template("System.String.fromCharArray({value})")]
+        public extern String(char[] value);
 
         /// <summary>
         /// The String global object is a constructor for strings, or a sequence of characters.
         /// </summary>
-        public String()
-        {
-        }
-
-        /// <summary>
-        /// The String global object is a constructor for strings, or a sequence of characters.
-        /// </summary>
-        /// <param name="thing">Anything to be converted to a string.</param>
-        public String(object thing)
-        {
-        }
+        [Bridge.Template("\"\"")]
+        public extern String();
 
         /// <summary>
         /// Constructs a string from the value indicated by a specified character repeated a specified number of times.
         /// </summary>
         /// <param name="c">A character.</param>
         /// <param name="count">The number of times the character occurs.</param>
-        [Template("Bridge.String.fromCharCount({c}, {count})")]
-        public String(char c, int count)
-        {
-        }
+        [Bridge.Template("System.String.fromCharCount({c}, {count})")]
+        public extern String(char c, int count);
 
-        [Template("String.fromCharCode.apply(null, {value}.slice({startIndex}, {startIndex} + {length}))")]
+        [Bridge.Template("System.String.fromCharArray({value}, {startIndex}, {length})")]
         public extern String(char[] value, int startIndex, int length);
 
         /// <summary>
@@ -65,61 +54,16 @@ namespace System
         /// </summary>
         /// <param name="value">The string to test. </param>
         /// <returns>true if the value parameter is null or an empty string (""); otherwise, false.</returns>
-        [Template("Bridge.String.isNullOrEmpty({value})")]
-        public static bool IsNullOrEmpty(string value)
-        {
-            return false;
-        }
+        [Bridge.Template("System.String.isNullOrEmpty({value})")]
+        public static extern bool IsNullOrEmpty(string value);
 
         /// <summary>
         /// Indicates whether a specified string is null, empty, or consists only of white-space characters.
         /// </summary>
         /// <param name="value">The string to test.</param>
         /// <returns>true if the value parameter is null or String.Empty, or if value consists exclusively of white-space characters. </returns>
-        [Template("Bridge.String.isNullOrWhiteSpace({value})")]
-        public static bool IsNullOrWhiteSpace(string value)
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// The static String.fromCharCode() method returns a string created by using the specified sequence of Unicode values.
-        /// </summary>
-        /// <returns>String.Empty</returns>
-        public static string FromCharCode()
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The static String.fromCharCode() method returns a string created by using the specified sequence of Unicode values.
-        /// </summary>
-        /// <param name="numbers">A sequence of numbers that are Unicode values.</param>
-        /// <returns></returns>
-        public static string FromCharCode(params int[] numbers)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The charAt() method returns the specified character from a string.
-        /// </summary>
-        /// <param name="index">An integer between 0 and 1-less-than the length of the string.</param>
-        /// <returns></returns>
-        public string CharAt(int index)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The charCodeAt() method returns the numeric Unicode value of the character at the given index (except for unicode codepoints > 0x10000).
-        /// </summary>
-        /// <param name="index">An integer greater than or equal to 0 and less than the length of the string; if it is not a number, it defaults to 0.</param>
-        /// <returns></returns>
-        public int CharCodeAt(int index)
-        {
-            return 0;
-        }
+        [Bridge.Template("System.String.isNullOrWhiteSpace({value})")]
+        public static extern bool IsNullOrWhiteSpace(string value);
 
         /// <summary>
         /// Determines whether two specified String objects have the same value.
@@ -127,11 +71,8 @@ namespace System
         /// <param name="a">The first string to compare, or null. </param>
         /// <param name="b">The second string to compare, or null. </param>
         /// <returns>true if the value of a is the same as the value of b; otherwise, false. If both a and b are null, the method returns true.</returns>
-        [Template("Bridge.String.equals({a}, {b})")]
-        public static bool Equals(string a, string b)
-        {
-            return false;
-        }
+        [Bridge.Template("System.String.equals({a}, {b})")]
+        public static extern bool Equals(string a, string b);
 
         /// <summary>
         /// Determines whether two specified String objects have the same value. A parameter specifies the culture, case, and sort rules used in the comparison.
@@ -140,11 +81,8 @@ namespace System
         /// <param name="b">The second string to compare, or null. </param>
         /// <param name="comparisonType">One of the enumeration values that specifies the rules for the comparison.</param>
         /// <returns>true if the value of a is the same as the value of b; otherwise, false. If both a and b are null, the method returns true.</returns>
-        [Template("Bridge.String.equals({a}, {b}, {comparisonType})")]
-        public static bool Equals(string a, string b, StringComparison comparisonType)
-        {
-            return false;
-        }
+        [Bridge.Template("System.String.equals({a}, {b}, {comparisonType})")]
+        public static extern bool Equals(string a, string b, StringComparison comparisonType);
 
         /// <summary>
         /// Determines whether this string and a specified String object have the same value. A parameter specifies the culture, case, and sort rules used in the comparison.
@@ -152,134 +90,138 @@ namespace System
         /// <param name="value">The string to compare to this instance.</param>
         /// <param name="comparisonType">One of the enumeration values that specifies how the strings will be compared. </param>
         /// <returns>true if the value of the value parameter is the same as this string; otherwise, false.</returns>
-        [Template("Bridge.String.equals({this}, {value}, {comparisonType})")]
-        public bool Equals(string value, StringComparison comparisonType)
-        {
-            return false;
-        }
+        [Bridge.Template("System.String.equals({this}, {value}, {comparisonType})")]
+        public extern bool Equals(string value, StringComparison comparisonType);
 
         /// <summary>
         /// Determines whether this instance and another specified String object have the same value.
         /// </summary>
         /// <param name="value">The string to compare to this instance.</param>
         /// <returns>true if the value of the value parameter is the same as this string; otherwise, false.</returns>
-        [Template("Bridge.String.equals({this}, {value})")]
-        public bool Equals(string value)
-        {
-            return false;
-        }
+        [Bridge.Template("System.String.equals({this}, {value})")]
+        public extern bool Equals(string value);
+
+        /// <summary>
+        /// Concatenates the members of a constructed IEnumerable collection of type String.
+        /// </summary>
+        /// <param name="values">A collection object that implements IEnumerable and whose generic type argument is String.</param>
+        /// <returns>The concatenated strings in values, or String.Empty if values is an empty IEnumerable(Of String).</returns>
+        [Bridge.Template("System.String.concat(Bridge.toArray({values}))")]
+        public static extern string Concat(IEnumerable<string> values);
+
+        /// <summary>
+        /// Concatenates two specified instances of String.
+        /// </summary>
+        /// <param name="str0">The first string to concatenate.</param>
+        /// <param name="str1">The second string to concatenate.</param>
+        /// <returns></returns>
+        [Bridge.Template("System.String.concat({str0}, {str1})")]
+        public static extern string Concat(string str0, string str1);
+
+        /// <summary>
+        /// Concatenates two specified instances of String.
+        /// </summary>
+        /// <param name="str0">The first string to concatenate.</param>
+        /// <param name="str1">The second string to concatenate.</param>
+        /// <param name="str2">The third string to concatenate.</param>
+        /// <returns></returns>
+        [Bridge.Template("System.String.concat({str0}, {str1}, {str2})")]
+        public static extern string Concat(string str0, string str1, string str2);
+
+        /// <summary>
+        /// Concatenates two specified instances of String.
+        /// </summary>
+        /// <param name="str0">The first string to concatenate.</param>
+        /// <param name="str1">The second string to concatenate.</param>
+        /// <param name="str2">The third string to concatenate..</param>
+        /// <param name="str3">The fourth string to concatenate.</param>
+        /// <returns></returns>
+        [Bridge.Template("System.String.concat({str0}, {str1}, {str2}, {str3})")]
+        public static extern string Concat(string str0, string str1, string str2, string str3);
+
+        /// <summary>
+        /// Concatenates the elements of a specified String array.
+        /// </summary>
+        /// <param name="values">An array of string instances.</param>
+        /// <returns>The concatenated elements of values.</returns>
+        [Bridge.Template("System.String.concat({values:array})")]
+        public static extern string Concat(params string[] values);
+
+        /// <summary>
+        /// Creates the string representation of a specified object.
+        /// </summary>
+        /// <param name="arg0">The object to represent, or null.</param>
+        /// <returns>The string representation of the value of arg0, or String.Empty if arg0 is null.</returns>
+        [Bridge.Template("System.String.concat({arg0})")]
+        public static extern string Concat(object arg0);
+
+        /// <summary>
+        /// Concatenates the string representations of two specified objects.
+        /// </summary>
+        /// <param name="arg0">The first object to concatenate.</param>
+        /// <param name="arg1">The second object to concatenate.</param>
+        /// <returns>The concatenated string representations of the values of arg0 and arg1.</returns>
+        [Bridge.Template("System.String.concat({arg0}, {arg1})")]
+        public static extern string Concat(object arg0, object arg1);
 
         /// <summary>
         /// The concat() method combines the text of two or more strings and returns a new string.
         /// </summary>
-        /// <param name="string1">Strings to concatenate to this string.</param>
-        /// <param name="string2">Strings to concatenate to this string.</param>
-        /// <returns></returns>
-        [Template("[{string1}, {string2}].join('')")]
-        public static string Concat(string string1, string string2)
-        {
-            return null;
-        }
+        /// <param name="arg0">The first object to concatenate.</param>
+        /// <param name="arg1">The second object to concatenate.</param>
+        /// <param name="arg2">The third object to concatenate.</param>
+        /// <returns>The concatenated string representations of the values of arg0, arg1, and arg2.</returns>
+        [Bridge.Template("System.String.concat({arg0}, {arg1}, {arg2})")]
+        public static extern string Concat(object arg0, object arg1, object arg2);
 
         /// <summary>
         /// The concat() method combines the text of two or more strings and returns a new string.
         /// </summary>
-        /// <param name="string1">Strings to concatenate to this string.</param>
-        /// <param name="string2">Strings to concatenate to this string.</param>
-        /// <param name="string3">Strings to concatenate to this string.</param>
-        /// <returns></returns>
-        [Template("[{string1}, {string2}, {string3}].join('')")]
-        public static string Concat(string string1, string string2, string string3)
-        {
-            return null;
-        }
+        /// <param name="arg0">The first object to concatenate.</param>
+        /// <param name="arg1">The second object to concatenate.</param>
+        /// <param name="arg2">The third object to concatenate.</param>
+        /// <param name="arg3">The fourth object to concatenate.</param>
+        /// <returns>The concatenated string representation of each value in the parameter list.</returns>
+        [Bridge.Template("System.String.concat({arg0}, {arg1}, {arg2}, {arg3})")]
+        public static extern string Concat(object arg0, object arg1, object arg2, object arg3);
 
         /// <summary>
         /// The concat() method combines the text of two or more strings and returns a new string.
         /// </summary>
-        /// <param name="string1">Strings to concatenate to this string.</param>
-        /// <param name="string2">Strings to concatenate to this string.</param>
-        /// <param name="string3">Strings to concatenate to this string.</param>
-        /// <param name="string4">Strings to concatenate to this string.</param>
-        /// <returns></returns>
-        [Template("[{string1}, {string2}, {string3}, {string4}].join('')")]
-        public static string Concat(string string1, string string2, string string3, string string4)
-        {
-            return null;
-        }
+        /// <param name="arg0">The first object to concatenate.</param>
+        /// <param name="arg1">The second object to concatenate.</param>
+        /// <param name="arg2">The third object to concatenate.</param>
+        /// <param name="arg3">The fourth object to concatenate.</param>
+        /// <param name="args">An optional comma-delimited list of one or more additional objects to concatenate.</param>
+        /// <returns>The concatenated string representation of each value in the parameter list.</returns>
+        [Bridge.Template("System.String.concat({arg0}, {arg1}, {arg2}, {arg3}, {*args})")]
+        public static extern string Concat(object arg0, object arg1, object arg2, object arg3, params object[] args);
 
         /// <summary>
-        /// The concat() method combines the text of two or more strings and returns a new string.
+        /// Concatenates the string representations of the elements in a specified Object array.
         /// </summary>
-        /// <param name="strings">Strings to concatenate to this string.</param>
-        /// <returns></returns>
-        [Template("{strings:array}.toString().split(',').join('')")]
-        public static string Concat(params string[] strings)
-        {
-            return null;
-        }
+        /// <param name="args">An object array that contains the elements to concatenate.</param>
+        /// <returns>The concatenated string representations of the values of the elements in args.</returns>
+        [Bridge.Template("System.String.concat({args:array})")]
+        public static extern string Concat(params object[] args);
 
         /// <summary>
-        /// The concat() method combines the text of two or more strings and returns a new string.
+        /// Concatenates the members of an IEnumerable&lt;T&gt; implementation.
         /// </summary>
-        /// <param name="object1">Strings to concatenate to this string.</param>
-        /// <param name="object2">Strings to concatenate to this string.</param>
-        /// <returns></returns>
-        [Template("[{object1}, {object2}].join('')")]
-        public static string Concat(object object1, object object2)
-        {
-            return null;
-        }
+        /// <typeparam name="T">The type of the members of values.</typeparam>
+        /// <param name="values">A collection object that implements the IEnumerable&lt;T&gt; interface.</param>
+        /// <returns>The concatenated members in values.</returns>
+        [Bridge.Template("System.String.concat(Bridge.toArray({values}))")]
+        public static extern string Concat<T>(IEnumerable<T> values);
 
         /// <summary>
-        /// The concat() method combines the text of two or more strings and returns a new string.
-        /// </summary>
-        /// <param name="object1">Strings to concatenate to this string.</param>
-        /// <param name="object2">Strings to concatenate to this string.</param>
-        /// <param name="object3">Strings to concatenate to this string.</param>
-        /// <returns></returns>
-        [Template("[{object1}, {object2}, {object3}].join('')")]
-        public static string Concat(object object1, object object2, object object3)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The concat() method combines the text of two or more strings and returns a new string.
-        /// </summary>
-        /// <param name="object1">Strings to concatenate to this string.</param>
-        /// <param name="object2">Strings to concatenate to this string.</param>
-        /// <param name="object3">Strings to concatenate to this string.</param>
-        /// <param name="object4">Strings to concatenate to this string.</param>
-        /// <returns></returns>
-        [Template("[{object1}, {object2}, {object3}, {object4}].join('')")]
-        public static string Concat(object object1, object object2, object object3, object object4)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The concat() method combines the text of two or more strings and returns a new string.
-        /// </summary>
-        /// <param name="objects">Strings to concatenate to this string.</param>
-        /// <returns></returns>
-        [Template("{objects:array}.toString().split(',').join('')")]
-        public static string Concat(params object[] objects)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The compare() method compares two specified String objects and returns an integer that indicates their relative position in the sort order.
+        /// Compares two specified String objects and returns an integer that indicates their relative position in the sort order.
         /// </summary>
         /// <param name="strA">The first string to compare.</param>
         /// <param name="strB">The second string to compare.</param>
-        /// <returns></returns>
-        [Template("Bridge.String.compare({strA}, {strB})")]
-        public static int Compare(string strA, string strB)
-        {
-            return 0;
-        }
+        /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
+        [Bridge.Template("System.String.compare({strA}, {strB})")]
+        public static extern int Compare(string strA, string strB);
 
         /// <summary>
         /// The compare() method compares two specified String objects, ignoring or honoring their case, and returns an integer that indicates their relative position in the sort order.
@@ -287,27 +229,21 @@ namespace System
         /// <param name="strA">The first string to compare.</param>
         /// <param name="strB">The second string to compare.</param>
         /// <param name="ignoreCase">true to ignore case during the comparison; otherwise, false.</param>
-        /// <returns></returns>
-        [Template("Bridge.String.compare({strA}, {strB}, {ignoreCase})")]
-        public static int Compare(string strA, string strB, bool ignoreCase)
-        {
-            return 0;
-        }
+        /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
+        [Bridge.Template("System.String.compare({strA}, {strB}, {ignoreCase})")]
+        public static extern int Compare(string strA, string strB, bool ignoreCase);
 
         /// <summary>
-        /// The compare() method compares substrings of two specified String objects and returns an integer that indicates their relative position in the sort order.
+        /// Compares substrings of two specified String objects and returns an integer that indicates their relative position in the sort order.
         /// </summary>
         /// <param name="strA">The first string to compare.</param>
         /// <param name="indexA">The position of the substring within strA.</param>
         /// <param name="strB">The second string to compare.</param>
         /// <param name="indexB">The position of the substring within strB.</param>
         /// <param name="length">The maximum number of characters in the substrings to compare.</param>
-        /// <returns></returns>
-        [Template("Bridge.String.compare({strA}.substr({indexA}, {length}), {strB}.substr({indexB}, {length}))")]
-        public static int Compare(string strA, int indexA, string strB, int indexB, int length)
-        {
-            return 0;
-        }
+        /// <returns>A 32-bit signed integer indicating the lexical relationship between the two comparands.</returns>
+        [Bridge.Template("System.String.compare({strA}.substr({indexA}, {length}), {strB}.substr({indexB}, {length}))")]
+        public static extern int Compare(string strA, int indexA, string strB, int indexB, int length);
 
         /// <summary>
         /// The compare() method compares substrings of two specified String objects and returns an integer that indicates their relative position in the sort order.
@@ -318,784 +254,723 @@ namespace System
         /// <param name="indexB">The position of the substring within strB.</param>
         /// <param name="length">The maximum number of characters in the substrings to compare.</param>
         /// <param name="ignoreCase">true to ignore case during the comparison; otherwise, false.</param>
-        /// <returns></returns>
-        [Template("Bridge.String.compare({strA}.substr({indexA}, {length}), {strB}.substr({indexB}, {length}), {ignoreCase})")]
-        public static int Compare(string strA, int indexA, string strB, int indexB, int length, bool ignoreCase)
-        {
-            return 0;
-        }
-
-        [Template("Bridge.String.compare({strA}, {strB}, {comparisonType})")]
-        public static int Compare(string strA, string strB, StringComparison comparisonType)
-        {
-            return 0;
-        }
-
-        [Template("Bridge.String.compare({strA}, {strB}, {ignoreCase}, {culture})")]
-        public static int Compare(string strA, string strB, bool ignoreCase, CultureInfo culture)
-        {
-            return 0;
-        }
-
-        [Template("Bridge.String.compare({strA}.substr({indexA}, {length}), {strB}.substr({indexB}, {length}), {comparisonType})")]
-        public static int Compare(string strA, int indexA, string strB, int indexB, int length, StringComparison comparisonType)
-        {
-            return 0;
-        }
-
-        [Template("Bridge.String.compare({strA}.substr({indexA}, {length}), {strB}.substr({indexB}, {length}), {ignoreCase}, {culture})")]
-        public static int Compare(string strA, int indexA, string strB, int indexB, int length, bool ignoreCase, CultureInfo culture)
-        {
-            return 0;
-        }
+        /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
+        [Bridge.Template("System.String.compare({strA}.substr({indexA}, {length}), {strB}.substr({indexB}, {length}), {ignoreCase})")]
+        public static extern int Compare(string strA, int indexA, string strB, int indexB, int length, bool ignoreCase);
 
         /// <summary>
-        /// The indexOf() method returns the index within the calling String object of the first occurrence of the specified value. Returns -1 if the value is not found.
+        /// Compares two specified String objects using the specified rules, and returns an integer that indicates their relative position in the sort order.
         /// </summary>
-        /// <param name="searchValue">A character to search for.</param>
+        /// <param name="strA">The first string to compare.</param>
+        /// <param name="strB">The second string to compare.</param>
+        /// <param name="comparisonType">One of the enumeration values that specifies the rules to use in the comparison.</param>
+        /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
+        [Bridge.Template("System.String.compare({strA}, {strB}, {comparisonType})")]
+        public static extern int Compare(string strA, string strB, StringComparison comparisonType);
+
+        /// <summary>
+        /// Compares two specified String objects, ignoring or honoring their case, and using culture-specific information to influence the comparison, and returns an integer that indicates their relative position in the sort order.
+        /// </summary>
+        /// <param name="strA">The first string to compare.</param>
+        /// <param name="strB">The second string to compare.</param>
+        /// <param name="ignoreCase">true to ignore case during the comparison; otherwise, false.</param>
+        /// <param name="culture">An object that supplies culture-specific comparison information.</param>
+        /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
+        [Bridge.Template("System.String.compare({strA}, {strB}, {ignoreCase}, {culture})")]
+        public static extern int Compare(string strA, string strB, bool ignoreCase, CultureInfo culture);
+
+        /// <summary>
+        /// Compares substrings of two specified String objects using the specified rules, and returns an integer that indicates their relative position in the sort order.
+        /// </summary>
+        /// <param name="strA">The first string to use in the comparison.</param>
+        /// <param name="indexA">The position of the substring within strA.</param>
+        /// <param name="strB">The second string to use in the comparison.</param>
+        /// <param name="indexB">The position of the substring within strB.</param>
+        /// <param name="length">The maximum number of characters in the substrings to compare.</param>
+        /// <param name="comparisonType">One of the enumeration values that specifies the rules to use in the comparison.</param>
+        /// <returns>A 32-bit signed integer that indicates the lexical relationship between the two comparands.</returns>
+        [Bridge.Template("System.String.compare({strA}.substr({indexA}, {length}), {strB}.substr({indexB}, {length}), {comparisonType})")]
+        public static extern int Compare(string strA, int indexA, string strB, int indexB, int length, StringComparison comparisonType);
+
+        /// <summary>
+        /// Compares substrings of two specified String objects, ignoring or honoring their case and using culture-specific information to influence the comparison, and returns an integer that indicates their relative position in the sort order.
+        /// </summary>
+        /// <param name="strA">The first string to use in the comparison.</param>
+        /// <param name="indexA">The position of the substring within strA.</param>
+        /// <param name="strB">The second string to use in the comparison.</param>
+        /// <param name="indexB">The position of the substring within strB.</param>
+        /// <param name="length">The maximum number of characters in the substrings to compare.</param>
+        /// <param name="ignoreCase">true to ignore case during the comparison; otherwise, false.</param>
+        /// <param name="culture">An object that supplies culture-specific comparison information.</param>
+        /// <returns>An integer that indicates the lexical relationship between the two comparands.</returns>
+        [Bridge.Template("System.String.compare({strA}.substr({indexA}, {length}), {strB}.substr({indexB}, {length}), {ignoreCase}, {culture})")]
+        public static extern int Compare(string strA, int indexA, string strB, int indexB, int length, bool ignoreCase, CultureInfo culture);
+
+        /// <summary>
+        /// Reports the zero-based index of the first occurrence of the specified Unicode character in this string.
+        /// </summary>
+        /// <param name="value">A Unicode character to seek.</param>
         /// <returns>The zero-based index position of value if that character is found, or -1 if it is not.</returns>
-        [Template("Bridge.String.indexOf({this}, String.fromCharCode({searchValue}))")]
-        public int IndexOf(char searchValue)
-        {
-            return -1;
-        }
+        [Bridge.Template("System.String.indexOf({this}, String.fromCharCode({value}))")]
+        public extern int IndexOf(char value);
 
         /// <summary>
-        /// The indexOf() method returns the index within the calling String object of the first occurrence of the specified value, starting the search at fromIndex. Returns -1 if the value is not found.
+        /// Reports the zero-based index of the first occurrence of the specified Unicode character in this string. The search starts at a specified character position.
         /// </summary>
-        /// <param name="searchValue">A character to search for.</param>
-        /// <param name="fromIndex">The location within the calling string to start the search from.</param>
-        /// <returns>The zero-based index position of value if that character is found, or -1 if it is not.</returns>
-        [Template("Bridge.String.indexOf({this}, String.fromCharCode({searchValue}), {fromIndex})")]
-        public int IndexOf(char searchValue, int fromIndex)
-        {
-            return -1;
-        }
+        /// <param name="value">A Unicode character to seek.</param>
+        /// <param name="startIndex">The search starting position.</param>
+        /// <returns>The zero-based index position of value from the start of the string if that character is found, or -1 if it is not.</returns>
+        [Bridge.Template("System.String.indexOf({this}, String.fromCharCode({value}), {startIndex})")]
+        public extern int IndexOf(char value, int startIndex);
 
         /// <summary>
-        /// The indexOf() method returns the index within the calling String object of the first occurrence of the specified value. Returns -1 if the value is not found.
+        /// Reports the zero-based index of the first occurrence of the specified string in this instance.
         /// </summary>
-        /// <param name="searchValue">A string representing the value to search for.</param>
+        /// <param name="value">The string to seek.</param>
+        /// <returns>The zero-based index position of value if that string is found, or -1 if it is not. If value is String.Empty, the return value is 0.</returns>
+        [Bridge.Template("System.String.indexOf({this}, {value})")]
+        public extern int IndexOf(string value);
+
+        /// <summary>
+        /// Reports the zero-based index of the first occurrence of the specified string in this instance. The search starts at a specified character position.
+        /// </summary>
+        /// <param name="value">The string to seek.</param>
+        /// <param name="startIndex">The search starting position.</param>
+        /// <returns>The zero-based index position of value from the start of the current instance if that string is found, or -1 if it is not. If value is String.Empty, the return value is startIndex.</returns>
+        [Bridge.Template("System.String.indexOf({this}, {value}, {startIndex})")]
+        public extern int IndexOf(string value, int startIndex);
+
+        /// <summary>
+        /// Reports the zero-based index of the first occurrence of the specified string in this instance. The search starts at a specified character position and examines a specified number of character positions.
+        /// </summary>
+        /// <param name="value">The string to seek.</param>
+        /// <param name="startIndex">The search starting position.</param>
+        /// <param name="count">The number of character positions to examine.</param>
         /// <returns></returns>
-        [Template("Bridge.String.indexOf({this}, {searchValue})")]
-        public int IndexOf(string searchValue)
-        {
-            return -1;
-        }
-
-        /// <summary>
-        /// The indexOf() method returns the index within the calling String object of the first occurrence of the specified value, starting the search at fromIndex. Returns -1 if the value is not found.
-        /// </summary>
-        /// <param name="searchValue">A string representing the value to search for.</param>
-        /// <param name="fromIndex">The location within the calling string to start the search from.</param>
-        /// <returns></returns>
-        [Template("Bridge.String.indexOf({this}, {searchValue}, {fromIndex})")]
-        public int IndexOf(string searchValue, int fromIndex)
-        {
-            return -1;
-        }
+        [Bridge.Template("System.String.indexOf({this}, String.fromCharCode({value}), {startIndex}, {count})")]
+        public extern int IndexOf(char value, int startIndex, int count);
 
         /// <summary>
         /// The indexOf() method returns the index within the calling String object of the first occurrence of the specified value. The search starts at a specified character position and
         /// examines a specified number of character positions. Returns -1 if the value is not found.
         /// </summary>
-        /// <param name="searchValue">A character to search for.</param>
-        /// <param name="fromIndex">The location within the calling string to start the search from.</param>
-        /// <param name="count">The number of character positions to examine.</param>
-        /// <returns></returns>
-        [Template("Bridge.String.indexOf({this}, String.fromCharCode({searchValue}), {fromIndex}, {count})")]
-        public int IndexOf(char searchValue, int fromIndex, int count)
-        {
-            return -1;
-        }
-
-        /// <summary>
-        /// The indexOf() method returns the index within the calling String object of the first occurrence of the specified value. The search starts at a specified character position and
-        /// examines a specified number of character positions. Returns -1 if the value is not found.
-        /// </summary>
         /// <param name="searchValue">A string representing the value to search for.</param>
         /// <param name="fromIndex">The location within the calling string to start the search from.</param>
         /// <param name="count">The number of character positions to examine.</param>
         /// <returns></returns>
-        [Template("Bridge.String.indexOf({this}, {searchValue}, {fromIndex}, {count})")]
-        public int IndexOf(string searchValue, int fromIndex, int count)
-        {
-            return -1;
-        }
+        [Bridge.Template("System.String.indexOf({this}, {searchValue}, {fromIndex}, {count})")]
+        public extern int IndexOf(string searchValue, int fromIndex, int count);
 
         /// <summary>
-        /// Reports the zero-based index of the first occurrence of the specified string in the current System.String object. A parameter specifies the type of search
-        ///  to use for the specified string.
+        /// Reports the zero-based index of the first occurrence of the specified string in the current String object. A parameter specifies the type of search to use for the specified string.
         /// </summary>
-        /// <param name="searchValue">The string to search for.</param>
+        /// <param name="value">The string to seek.</param>
         /// <param name="comparisonType">One of the enumeration values that specifies the rules for the search.</param>
-        /// <returns>The zero-based index position of value if that string is found, or -1 if it is not. If value is System.String.Empty, the return value is 0.</returns>
-        [Template("Bridge.String.indexOf({this}, {searchValue}, 0, {this}.length, {comparisonType})")]
-        public int IndexOf(string searchValue, StringComparison comparisonType)
-        {
-            return -1;
-        }
+        /// <returns>The index position of the value parameter if that string is found, or -1 if it is not. If value is Empty, the return value is 0.</returns>
+        [Bridge.Template("System.String.indexOf({this}, {value}, 0, null, {comparisonType})")]
+        public extern int IndexOf(string value, StringComparison comparisonType);
 
         /// <summary>
-        /// Reports the zero-based index of the first occurrence of the specified string in the current System.String object. Parameters specify the starting search
-        ///  position in the current string and the type of search to use for the specified string.
+        /// Reports the zero-based index of the first occurrence of the specified string in the current String object. Parameters specify the starting search position in the current string and the type of search to use for the specified string.
         /// </summary>
-        /// <param name="searchValue">The string to search for.</param>
-        /// <param name="fromIndex">The search starting position.</param>
+        /// <param name="value">The string to seek.</param>
+        /// <param name="startIndex">The search starting position.</param>
         /// <param name="comparisonType">One of the enumeration values that specifies the rules for the search.</param>
-        /// <returns>The zero-based index position of value if that string is found, or -1 if it is not. If value is System.String.Empty, the return value is 0.</returns>
-        [Template("Bridge.String.indexOf({this}, {searchValue}, {fromIndex}, {this}.length, {comparisonType})")]
-        public int IndexOf(string searchValue, int fromIndex, StringComparison comparisonType)
-        {
-            return -1;
-        }
+        /// <returns>The zero-based index position of the value parameter from the start of the current instance if that string is found, or -1 if it is not. If value is Empty, the return value is startIndex.</returns>
+        [Bridge.Template("System.String.indexOf({this}, {value}, {startIndex}, null, {comparisonType})")]
+        public extern int IndexOf(string value, int startIndex, StringComparison comparisonType);
 
         /// <summary>
-        /// Reports the zero-based index of the first occurrence of the specified string in the current System.String object. Parameters specify the starting search
-        ///  position in the current string, the number of characters in the current string
-        ///  to search, and the type of search to use for the specified string.
+        /// Reports the zero-based index of the first occurrence of the specified string in the current String object. Parameters specify the starting search position in the current string, the number of characters in the current string to search, and the type of search to use for the specified string.
         /// </summary>
-        /// <param name="searchValue">The string to search for.</param>
-        /// <param name="fromIndex">The search starting position.</param>
+        /// <param name="value">The string to seek.</param>
+        /// <param name="startIndex">The search starting position.</param>
         /// <param name="count">The number of character positions to examine.</param>
         /// <param name="comparisonType">One of the enumeration values that specifies the rules for the search.</param>
-        /// <returns>The zero-based index position of value if that string is found, or -1 if it is not. If value is System.String.Empty, the return value is 0.</returns>
-        [Template("Bridge.String.indexOf({this}, {searchValue}, {fromIndex}, {count}, {comparisonType})")]
-        public int IndexOf(string searchValue, int fromIndex, int count, StringComparison comparisonType)
-        {
-            return -1;
-        }
-
-        [Template("{this}.lastIndexOf(String.fromCharCode({ch}))")]
-        public extern int LastIndexOf(char ch);
-
-        public extern int LastIndexOf(string subString);
-
-        public extern int LastIndexOf(string subString, int startIndex);
-
-        [Template("Bridge.String.lastIndexOf({this}, String.fromCharCode({ch}), {startIndex}, {count})")]
-        public extern int LastIndexOf(char ch, int startIndex, int count);
-
-        [Template("Bridge.String.lastIndexOf({this}, {subString}, {startIndex}, {count})")]
-        public extern int LastIndexOf(string subString, int startIndex, int count);
-
-        [Template("{this}.lastIndexOf(String.fromCharCode({ch}), {startIndex})")]
-        public extern int LastIndexOf(char ch, int startIndex);
-
-        [Template("Bridge.String.lastIndexOfAny({this}, {ch:array})")]
-        public extern int LastIndexOfAny(params char[] ch);
-
-        [Template("Bridge.String.lastIndexOfAny({this}, {ch}, {startIndex})")]
-        public extern int LastIndexOfAny(char[] ch, int startIndex);
-
-        [Template("Bridge.String.lastIndexOfAny({this}, {ch}, {startIndex}, {count})")]
-        public extern int LastIndexOfAny(char[] ch, int startIndex, int count);
+        /// <returns>The zero-based index position of the value parameter from the start of the current instance if that string is found, or -1 if it is not. If value is Empty, the return value is startIndex.</returns>
+        [Bridge.Template("System.String.indexOf({this}, {value}, {startIndex}, {count}, {comparisonType})")]
+        public extern int IndexOf(string value, int startIndex, int count, StringComparison comparisonType);
 
         /// <summary>
-        /// The localeCompare() method returns a number indicating whether a reference string comes before or after or is the same as the given string in sort order.
-        /// The new locales and options arguments let applications specify the language whose sort order should be used and customize the behavior of the function. In older implementations, which ignore the locales and options arguments, the locale and sort order used are entirely implementation dependent.
+        /// Reports the zero-based index position of the last occurrence of a specified Unicode character within this instance.
         /// </summary>
-        /// <param name="compareString">The string against which the referring string is comparing</param>
-        /// <returns></returns>
-        public int LocaleCompare(string compareString)
-        {
-            return 0;
-        }
+        /// <param name="value">The Unicode character to seek.</param>
+        /// <returns>The zero-based index position of value if that character is found, or -1 if it is not.</returns>
+        [Bridge.Template("{this}.lastIndexOf(String.fromCharCode({value}))")]
+        public extern int LastIndexOf(char value);
 
         /// <summary>
-        /// The localeCompare() method returns a number indicating whether a reference string comes before or after or is the same as the given string in sort order.
-        /// The new locales and options arguments let applications specify the language whose sort order should be used and customize the behavior of the function. In older implementations, which ignore the locales and options arguments, the locale and sort order used are entirely implementation dependent.
+        /// Reports the zero-based index position of the last occurrence of a specified Unicode character within this instance. The search starts at a specified character position and proceeds backward toward the beginning of the string.
         /// </summary>
-        /// <param name="compareString">The string against which the referring string is comparing</param>
-        /// <param name="locales">A string with a BCP 47 language tag, or an array of such strings. For the general form and interpretation of the locales argument, see the Intl page. The following Unicode extension keys are allowed:</param>
-        /// <returns></returns>
-        public int LocaleCompare(string compareString, string locales)
-        {
-            return 0;
-        }
+        /// <param name="value">The Unicode character to seek.</param>
+        /// <param name="startIndex">The starting position of the search. The search proceeds from startIndex toward the beginning of this instance.</param>
+        /// <returns>The zero-based index position of value if that character is found, or -1 if it is not found or if the current instance equals String.Empty.</returns>
+        [Bridge.Template("{this}.lastIndexOf(String.fromCharCode({value}), {startIndex})")]
+        public extern int LastIndexOf(char value, int startIndex);
 
         /// <summary>
-        /// The localeCompare() method returns a number indicating whether a reference string comes before or after or is the same as the given string in sort order.
-        /// The new locales and options arguments let applications specify the language whose sort order should be used and customize the behavior of the function. In older implementations, which ignore the locales and options arguments, the locale and sort order used are entirely implementation dependent.
+        /// Reports the zero-based index position of the last occurrence of the specified Unicode character in a substring within this instance. The search starts at a specified character position and proceeds backward toward the beginning of the string for a specified number of character positions.
         /// </summary>
-        /// <param name="compareString">The string against which the referring string is comparing</param>
-        /// <param name="locales">A string with a BCP 47 language tag, or an array of such strings. For the general form and interpretation of the locales argument, see the Intl page. The following Unicode extension keys are allowed:</param>
-        /// <param name="options">An object with some or all of the following properties:</param>
-        /// <returns></returns>
-        public int LocaleCompare(string compareString, string locales, LocaleOptions options)
-        {
-            return 0;
-        }
+        /// <param name="value">The Unicode character to seek.</param>
+        /// <param name="startIndex">The starting position of the search. The search proceeds from startIndex toward the beginning of this instance.</param>
+        /// <param name="count">The number of character positions to examine.</param>
+        /// <returns>The zero-based index position of value if that character is found, or -1 if it is not found or if the current instance equals String.Empty.</returns>
+        [Bridge.Template("System.String.lastIndexOf({this}, String.fromCharCode({value}), {startIndex}, {count})")]
+        public extern int LastIndexOf(char value, int startIndex, int count);
 
         /// <summary>
-        /// The match() method retrieves the matches when matching a string against a regular expression.
+        /// Reports the zero-based index position of the last occurrence of a specified string within this instance.
         /// </summary>
-        /// <param name="Regex">A regular expression object. If a non-Regex object obj is passed, it is implicitly converted to a Regex by using new Regex(obj).</param>
-        /// <returns></returns>
-        public string[] Match(Regex Regex)
-        {
-            return null;
-        }
+        /// <param name="value">The string to seek.</param>
+        /// <returns>The zero-based starting index position of value if that string is found, or -1 if it is not. If value is String.Empty, the return value is the last index position in this instance.</returns>
+        public extern int LastIndexOf(string value);
 
         /// <summary>
-        /// The match() method retrieves the matches when matching a string against a regular expression.
+        /// Reports the zero-based index position of the last occurrence of a specified string within this instance. The search starts at a specified character position and proceeds backward toward the beginning of the string.
         /// </summary>
-        /// <param name="Regex">A regular expression object. If a non-Regex object obj is passed, it is implicitly converted to a Regex by using new Regex(obj).</param>
-        /// <returns></returns>
-        public string[] Match(string Regex)
-        {
-            return null;
-        }
+        /// <param name="value">The string to seek.</param>
+        /// <param name="startIndex">The search starting position. The search proceeds from startIndex toward the beginning of this instance.</param>
+        /// <returns>The zero-based starting index position of value if that string is found, or -1 if it is not found or if the current instance equals String.Empty. If value is String.Empty, the return value is the smaller of startIndex and the last index position in this instance.</returns>
+        public extern int LastIndexOf(string value, int startIndex);
 
         /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
+        /// Reports the zero-based index position of the last occurrence of a specified string within this instance. The search starts at a specified character position and proceeds backward toward the beginning of the string for a specified number of character positions.
         /// </summary>
-        /// <param name="Regex">A Regex object. The match is replaced by the return value of parameter #2.</param>
-        /// <param name="newSubStr">The String that replaces the substring received from parameter #1. A number of special replacement patterns are supported; see the "Specifying a string as a parameter" section below.</param>
-        /// <returns></returns>
-        public string Replace(Regex Regex, string newSubStr)
-        {
-            return null;
-        }
+        /// <param name="value">The string to seek.</param>
+        /// <param name="startIndex">The search starting position. The search proceeds from startIndex toward the beginning of this instance.</param>
+        /// <param name="count">The number of character positions to examine.</param>
+        /// <returns>The zero-based starting index position of value if that string is found, or -1 if it is not found or if the current instance equals String.Empty. If value is Empty, the return value is the smaller of startIndex and the last index position in this instance.</returns>
+        [Bridge.Template("System.String.lastIndexOf({this}, {value}, {startIndex}, {count})")]
+        public extern int LastIndexOf(string value, int startIndex, int count);
+
+        // TODO: Missing System.String.LastIndexOf Method overloads #2396
 
         /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
+        /// Reports the zero-based index position of the last occurrence in this instance of one or more characters specified in a Unicode array.
         /// </summary>
-        /// <param name="Regex">A Regex object. The match is replaced by the return value of parameter #2.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public string Replace(Regex Regex, Delegate callback)
-        {
-            return null;
-        }
+        /// <param name="anyOf">A Unicode character array containing one or more characters to seek.</param>
+        /// <returns>The index position of the last occurrence in this instance where any character in anyOf was found; -1 if no character in anyOf was found.</returns>
+        [Bridge.Template("System.String.lastIndexOfAny({this}, {anyOf:array})")]
+        public extern int LastIndexOfAny(params char[] anyOf);
 
         /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
+        /// Reports the zero-based index position of the last occurrence in this instance of one or more characters specified in a Unicode array. The search starts at a specified character position and proceeds backward toward the beginning of the string.
         /// </summary>
-        /// <param name="Regex">A Regex object. The match is replaced by the return value of parameter #2.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public string Replace(Regex Regex, Func<string, string> callback)
-        {
-            return null;
-        }
+        /// <param name="anyOf">A Unicode character array containing one or more characters to seek.</param>
+        /// <param name="startIndex">The search starting position. The search proceeds from startIndex toward the beginning of this instance.</param>
+        /// <returns>The index position of the last occurrence in this instance where any character in anyOf was found; -1 if no character in anyOf was found or if the current instance equals String.Empty.</returns>
+        [Bridge.Template("System.String.lastIndexOfAny({this}, {anyOf}, {startIndex})")]
+        public extern int LastIndexOfAny(char[] anyOf, int startIndex);
 
         /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
+        /// Reports the zero-based index position of the last occurrence in this instance of one or more characters specified in a Unicode array. The search starts at a specified character position and proceeds backward toward the beginning of the string for a specified number of character positions.
         /// </summary>
-        /// <param name="Regex">A Regex object. The match is replaced by the return value of parameter #2.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public string Replace(Regex Regex, Func<string, int, string> callback)
-        {
-            return null;
-        }
+        /// <param name="anyOf">A Unicode character array containing one or more characters to seek.</param>
+        /// <param name="startIndex">The search starting position. The search proceeds from startIndex toward the beginning of this instance.</param>
+        /// <param name="count">The number of character positions to examine.</param>
+        /// <returns>The index position of the last occurrence in this instance where any character in anyOf was found; -1 if no character in anyOf was found or if the current instance equals String.Empty.</returns>
+        [Bridge.Template("System.String.lastIndexOfAny({this}, {anyOf}, {startIndex}, {count})")]
+        public extern int LastIndexOfAny(char[] anyOf, int startIndex, int count);
 
         /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
+        /// Returns a new string in which all occurrences of a specified Unicode character in this instance are replaced with another specified Unicode character.
         /// </summary>
-        /// <param name="Regex">A Regex object. The match is replaced by the return value of parameter #2.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public string Replace(Regex Regex, Func<string, int, string, string> callback)
-        {
-            return null;
-        }
+        /// <param name="oldChar">The Unicode character to be replaced.</param>
+        /// <param name="newChar">The Unicode character to replace all occurrences of oldChar.</param>
+        /// <returns>A string that is equivalent to this instance except that all instances of oldChar are replaced with newChar. If oldChar is not found in the current instance, the method returns the current instance unchanged.</returns>
+        [Bridge.Template("System.String.replaceAll({this}, String.fromCharCode({oldChar}), String.fromCharCode({newChar}))")]
+        public extern string Replace(char oldChar, char newChar);
 
         /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
+        /// Returns a new string in which all occurrences of a specified string in the current instance are replaced with another specified string.
         /// </summary>
-        /// <param name="substr">A String that is to be replaced by newSubStr.</param>
-        /// <param name="newSubStr">The String that replaces the substring received from parameter #1. A number of special replacement patterns are supported; see the "Specifying a string as a parameter" section below.</param>
-        /// <returns></returns>
-        [Template("Bridge.String.replaceAll({this}, {substr}, {newSubStr})")]
-        public string Replace(string substr, string newSubStr)
-        {
-            return null;
-        }
-
-        [Template("Bridge.String.replaceAll({this}, String.fromCharCode({oldChar}), String.fromCharCode({replaceChar}))")]
-        public extern string Replace(char oldChar, char replaceChar);
+        /// <param name="oldValue">The string to be replaced.</param>
+        /// <param name="newValue">The string to replace all occurrences of oldValue.</param>
+        /// <returns>A string that is equivalent to the current string except that all instances of oldValue are replaced with newValue. If oldValue is not found in the current instance, the method returns the current instance unchanged.</returns>
+        [Bridge.Template("System.String.replaceAll({this}, {oldValue}, {newValue})")]
+        public extern string Replace(string oldValue, string newValue);
 
         /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
+        /// Splits a string into substrings that are based on the characters in an array.
         /// </summary>
-        /// <param name="substr">A String that is to be replaced by newSubStr.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        [Template("Bridge.String.replaceAll({this}, {substr}, {callback})")]
-        public string Replace(string substr, Delegate callback)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
-        /// </summary>
-        /// <param name="substr">A String that is to be replaced by newSubStr.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        [Template("Bridge.String.replaceAll({this}, {substr}, {callback})")]
-        public string Replace(string substr, Func<string, string> callback)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
-        /// </summary>
-        /// <param name="substr">A String that is to be replaced by newSubStr.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        [Template("Bridge.String.replaceAll({this}, {substr}, {callback})")]
-        public string Replace(string substr, Func<string, int, string> callback)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The replace() method returns a new string with some or all matches of a pattern replaced by a replacement.  The pattern can be a string or a Regex, and the replacement can be a string or a function to be called for each match.
-        /// </summary>
-        /// <param name="substr">A String that is to be replaced by newSubStr.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        [Template("Bridge.String.replaceAll({this}, {substr}, {callback})")]
-        public string Replace(string substr, Func<string, int, string, string> callback)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The search() method executes a search for a match between a regular expression and this String object.
-        /// </summary>
-        /// <param name="Regex">A regular expression object. If a non-Regex object obj is passed, it is implicitly converted to a Regex by using new Regex(obj).</param>
-        /// <returns></returns>
-        public int Search(Regex Regex)
-        {
-            return 0;
-        }
-
-        /// <summary>
-        /// The search() method executes a search for a match between a regular expression and this String object.
-        /// </summary>
-        /// <param name="Regex">A regular expression object. If a non-Regex object obj is passed, it is implicitly converted to a Regex by using new Regex(obj).</param>
-        /// <returns></returns>
-        public int Search(string Regex)
-        {
-            return 0;
-        }
-
-        /// <summary>
-        /// The slice() method extracts a section of a string and returns a new string.
-        /// </summary>
-        /// <param name="beginSlice">The zero-based index at which to begin extraction. If negative, it is treated as (sourceLength-beginSlice) where sourceLength is the length of the string (for example, if beginSlice is -3 it is treated as sourceLength-3).</param>
-        /// <returns></returns>
-        public string Slice(int beginSlice)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The slice() method extracts a section of a string and returns a new string.
-        /// </summary>
-        /// <param name="beginSlice">The zero-based index at which to begin extraction. If negative, it is treated as (sourceLength-beginSlice) where sourceLength is the length of the string (for example, if beginSlice is -3 it is treated as sourceLength-3).</param>
-        /// <param name="endSlice">The zero-based index at which to end extraction. If omitted, slice extracts to the end of the string. If negative, it is treated as (sourceLength-endSlice) where sourceLength is the length of the string.</param>
-        /// <returns></returns>
-        public string Slice(int beginSlice, int endSlice)
-        {
-            return null;
-        }
-
-        [Template("Bridge.String.split({this}, {separator:array}.map(function(i) {{ return String.fromCharCode(i); }}))")]
+        /// <param name="separator">A character array that delimits the substrings in this string, an empty array that contains no delimiters, or null.</param>
+        /// <returns>An array whose elements contain the substrings from this instance that are delimited by one or more characters in separator. For more information, see the Remarks section.</returns>
+        [Bridge.Template("System.String.split({this}, {separator:array}.map(function (i) {{ return String.fromCharCode(i); }}))")]
         public extern string[] Split(params char[] separator);
 
-        [Template("Bridge.String.split({this}, {separator}.map(function(i) {{ return String.fromCharCode(i); }}), {limit})")]
-        public extern string[] Split(char[] separator, int limit);
+        /// <summary>
+        /// Splits a string into a maximum number of substrings based on the characters in an array. You also specify the maximum number of substrings to return.
+        /// </summary>
+        /// <param name="separator">A character array that delimits the substrings in this string, an empty array that contains no delimiters, or null.</param>
+        /// <param name="count">The maximum number of substrings to return.</param>
+        /// <returns>An array whose elements contain the substrings in this instance that are delimited by one or more characters in separator. For more information, see the Remarks section.</returns>
+        [Bridge.Template("System.String.split({this}, {separator}.map(function (i) {{ return String.fromCharCode(i); }}), {count})")]
+        public extern string[] Split(char[] separator, int count);
 
-        [Template("Bridge.String.split({this}, {separator}.map(function(i) {{ return String.fromCharCode(i); }}), {limit}, {options})")]
-        public extern string[] Split(char[] separator, int limit, StringSplitOptions options);
+        /// <summary>
+        /// Splits a string into a maximum number of substrings based on the characters in an array.
+        /// </summary>
+        /// <param name="separator">A character array that delimits the substrings in this string, an empty array that contains no delimiters, or null.</param>
+        /// <param name="count">The maximum number of substrings to return.</param>
+        /// <param name="options">StringSplitOptions.RemoveEmptyEntries to omit empty array elements from the array returned; or StringSplitOptions.None to include empty array elements in the array returned.</param>
+        /// <returns>An array whose elements contain the substrings in this string that are delimited by one or more characters in separator. For more information, see the Remarks section.</returns>
+        [Bridge.Template("System.String.split({this}, {separator}.map(function (i) {{ return String.fromCharCode(i); }}), {count}, {options})")]
+        public extern string[] Split(char[] separator, int count, StringSplitOptions options);
 
-        [Template("Bridge.String.split({this}, {separator}.map(function(i) {{ return String.fromCharCode(i); }}), null, {options})")]
+        /// <summary>
+        /// Splits a string into substrings based on the characters in an array. You can specify whether the substrings include empty array elements.
+        /// </summary>
+        /// <param name="separator">A character array that delimits the substrings in this string, an empty array that contains no delimiters, or null.</param>
+        /// <param name="options">StringSplitOptions.RemoveEmptyEntries to omit empty array elements from the array returned; or StringSplitOptions.None to include empty array elements in the array returned.</param>
+        /// <returns>An array whose elements contain the substrings in this string that are delimited by one or more characters in separator. For more information, see the Remarks section.</returns>
+        [Bridge.Template("System.String.split({this}, {separator}.map(function (i) {{ return String.fromCharCode(i); }}), null, {options})")]
         public extern string[] Split(char[] separator, StringSplitOptions options);
 
-        [Template("Bridge.String.split({this}, {separator}, null, {options})")]
+        /// <summary>
+        /// Splits a string into a maximum number of substrings based on the strings in an array. You can specify whether the substrings include empty array elements.
+        /// </summary>
+        /// <param name="separator">A string array that delimits the substrings in this string, an empty array that contains no delimiters, or null.</param>
+        /// <param name="count">The maximum number of substrings to return.</param>
+        /// <param name="options">StringSplitOptions.RemoveEmptyEntries to omit empty array elements from the array returned; or StringSplitOptions.None to include empty array elements in the array returned.</param>
+        /// <returns>An array whose elements contain the substrings in this string that are delimited by one or more strings in separator. For more information, see the Remarks section.</returns>
+        [Bridge.Template("System.String.split({this}, {separator}, {count}, {options})")]
+        public extern string[] Split(string[] separator, int count, StringSplitOptions options);
+
+        /// <summary>
+        /// Splits a string into substrings based on the strings in an array. You can specify whether the substrings include empty array elements.
+        /// </summary>
+        /// <param name="separator">A string array that delimits the substrings in this string, an empty array that contains no delimiters, or null.</param>
+        /// <param name="options">StringSplitOptions.RemoveEmptyEntries to omit empty array elements from the array returned; or StringSplitOptions.None to include empty array elements in the array returned.</param>
+        /// <returns>An array whose elements contain the substrings in this string that are delimited by one or more strings in separator. For more information, see the Remarks section.</returns>
+        [Bridge.Template("System.String.split({this}, {separator}, null, {options})")]
         public extern string[] Split(string[] separator, StringSplitOptions options);
 
-        [Template("Bridge.String.split({this}, {separator}, {limit}, {options})")]
-        public extern string[] Split(string[] separator, int limit, StringSplitOptions options);
-
-        public extern string[] Split(string separator);
-
-        [Template("{this}.split(String.fromCharCode({separator}))")]
-        public extern string[] Split(char separator);
-
-        public extern string[] Split(Regex regex);
-
-        [Template("{this}.split(String.fromCharCode({separator}), {limit})")]
-        public extern string[] Split(char separator, int limit);
-
-        public extern string[] Split(Regex regex, int limit);
-
-        public extern string[] Split(string separator, int limit);
+        /// <summary>
+        /// Retrieves a substring from this instance. The substring starts at a specified character position and continues to the end of the string.
+        /// </summary>
+        /// <param name="startIndex">The zero-based starting character position of a substring in this instance.</param>
+        /// <returns>A string that is equivalent to the substring that begins at startIndex in this instance, or Empty if startIndex is equal to the length of this instance.</returns>
+        [Bridge.Name("substr")]
+        public extern string Substring(int startIndex);
 
         /// <summary>
-        /// The substring() method returns a subset of a string between one index and another, or through the end of the string.
+        /// Retrieves a substring from this instance. The substring starts at a specified character position and continues to the end of the string.
         /// </summary>
-        /// <param name="indexA">An integer between 0 and the length of the string.</param>
-        /// <returns></returns>
-        [Name("substring")]
-        public string JsSubstring(int indexA)
-        {
-            return null;
-        }
+        /// <param name="startIndex">The zero-based starting character position of a substring in this instance.</param>
+        /// <param name="length">The number of characters in the substring.</param>
+        /// <returns>A string that is equivalent to the substring of length length that begins at startIndex in this instance, or Empty if startIndex is equal to the length of this instance and length is zero.</returns>
+        [Bridge.Name("substr")]
+        public extern string Substring(int startIndex, int length);
 
         /// <summary>
-        /// The substring() method returns a subset of a string between one index and another, or through the end of the string.
+        /// Returns a copy of this string converted to lowercase.
         /// </summary>
-        /// <param name="indexA">An integer between 0 and the length of the string.</param>
-        /// <param name="indexB">An integer between 0 and the length of the string.</param>
-        /// <returns></returns>
-        [Name("substring")]
-        public string JsSubstring(int indexA, int indexB)
-        {
-            return null;
-        }
+        /// <returns>A string in lowercase.</returns>
+        [Bridge.Template("{this}.toLowerCase()")]
+        public extern string ToLower();
 
         /// <summary>
-        /// The substr() method returns the characters in a string beginning at the specified location through the specified number of characters.
+        /// Returns a copy of this string converted to uppercase.
         /// </summary>
-        /// <param name="start">Location at which to begin extracting characters. If a negative number is given, it is treated as strLength+start where strLength = to the length of the string (for example, if start is -3 it is treated as strLength-3.)</param>
-        /// <returns></returns>
-        public string Substr(int start)
-        {
-            return null;
-        }
+        /// <returns>The uppercase equivalent of the current string.</returns>
+        [Bridge.Template("{this}.toUpperCase()")]
+        public extern string ToUpper();
 
         /// <summary>
-        /// The substr() method returns the characters in a string beginning at the specified location through the specified number of characters.
+        /// Removes all leading and trailing white-space characters from the current String object.
         /// </summary>
-        /// <param name="start">Location at which to begin extracting characters. If a negative number is given, it is treated as strLength+start where strLength = to the length of the string (for example, if start is -3 it is treated as strLength-3.)</param>
-        /// <returns></returns>
-        [Name("substr")]
-        public string Substring(int start)
-        {
-            return null;
-        }
+        /// <returns>The string that remains after all white-space characters are removed from the start and end of the current string. If no characters can be trimmed from the current instance, the method returns the current instance unchanged.</returns>
+        public extern string Trim();
 
         /// <summary>
-        /// The substr() method returns the characters in a string beginning at the specified location through the specified number of characters.
+        /// Removes all leading and trailing occurrences of a set of characters specified in an array from the current String object.
         /// </summary>
-        /// <param name="start">Location at which to begin extracting characters. If a negative number is given, it is treated as strLength+start where strLength = to the length of the string (for example, if start is -3 it is treated as strLength-3.)</param>
-        /// <param name="length">The number of characters to extract.</param>
-        /// <returns></returns>
-        public string Substr(int start, int length)
-        {
-            return null;
-        }
+        /// <param name="trimChars">An array of Unicode characters to remove, or null.</param>
+        /// <returns>The string that remains after all occurrences of the characters in the trimChars parameter are removed from the start and end of the current string. If trimChars is null or an empty array, white-space characters are removed instead. If no characters can be trimmed from the current instance, the method returns the current instance unchanged.</returns>
+        [Bridge.Template("System.String.trim({this}, {trimChars:array})")]
+        public extern string Trim(params char[] trimChars);
 
         /// <summary>
-        /// The substr() method returns the characters in a string beginning at the specified location through the specified number of characters.
+        /// Removes all trailing occurrences of a set of characters specified in an array from the current String object.
         /// </summary>
-        /// <param name="start">Location at which to begin extracting characters. If a negative number is given, it is treated as strLength+start where strLength = to the length of the string (for example, if start is -3 it is treated as strLength-3.)</param>
-        /// <param name="length">The number of characters to extract.</param>
-        /// <returns></returns>
-        [Name("substr")]
-        public string Substring(int start, int length)
-        {
-            return null;
-        }
+        /// <returns>The string that remains after all occurrences of the characters in the trimChars parameter are removed from the end of the current string. If trimChars is null or an empty array, Unicode white-space characters are removed instead. If no characters can be trimmed from the current instance, the method returns the current instance unchanged.</returns>
+        [Bridge.Template("System.String.trimEnd({this})")]
+        public extern string TrimEnd();
 
         /// <summary>
-        /// The toLower() method returns the calling string value converted to lowercase.
+        /// Removes all trailing occurrences of a set of characters specified in an array from the current String object.
         /// </summary>
-        /// <returns></returns>
-        [Template("{this}.toLowerCase()")]
-        public string ToLower()
-        {
-            return null;
-        }
+        /// <param name="trimChars">An array of Unicode characters to remove, or null.</param>
+        /// <returns>The string that remains after all occurrences of the characters in the trimChars parameter are removed from the end of the current string. If trimChars is null or an empty array, Unicode white-space characters are removed instead. If no characters can be trimmed from the current instance, the method returns the current instance unchanged.</returns>
+        [Bridge.Template("System.String.trimEnd({this}, {trimChars:array})")]
+        public extern string TrimEnd(params char[] trimChars);
 
         /// <summary>
-        /// The toUpper() method returns the calling string value converted to uppercase.
+        /// Removes all leading occurrences of whitespaces specified in an array from the current String object.
         /// </summary>
-        /// <returns></returns>
-        [Template("{this}.toUpperCase()")]
-        public string ToUpper()
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// The trim() method removes whitespace from both ends of a string. Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
-        /// </summary>
-        /// <returns>The trimmed string</returns>
-        public string Trim()
-        {
-            return null;
-        }
-
-        [Template("Bridge.String.trim({this}, {values:array})")]
-        public extern string Trim(params char[] values);
-
-        [Template("Bridge.String.trimStart({this}, {values:array})")]
-        public extern string TrimStart(params char[] values);
-
-        [Template("Bridge.String.trimEnd({this}, {values:array})")]
-        public extern string TrimEnd(params char[] values);
-
-        [Template("Bridge.String.trimStart({this})")]
+        /// <returns>The string that remains after all occurrences of characters in the trimChars parameter are removed from the start of the current string. If trimChars is null or an empty array, white-space characters are removed instead.</returns>
+        [Bridge.Template("System.String.trimStart({this})")]
         public extern string TrimStart();
 
-        [Template("Bridge.String.trimEnd({this})")]
-        public extern string TrimEnd();
+        /// <summary>
+        /// Removes all leading occurrences of a set of characters specified in an array from the current String object.
+        /// </summary>
+        /// <param name="trimChars">An array of Unicode characters to remove, or null.</param>
+        /// <returns>The string that remains after all occurrences of characters in the trimChars parameter are removed from the start of the current string. If trimChars is null or an empty array, white-space characters are removed instead.</returns>
+        [Bridge.Template("System.String.trimStart({this}, {trimChars:array})")]
+        public extern string TrimStart(params char[] trimChars);
 
         /// <summary>
         /// Returns a value indicating whether a specified substring occurs within this string.
         /// </summary>
-        /// <param name="value">The string to seek. </param>
+        /// <param name="value">The string to seek.</param>
         /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
-        [Template("Bridge.String.contains({this},{value})")]
-        public bool Contains(string value)
-        {
-            return false;
-        }
+        [Bridge.Template("System.String.contains({this},{value})")]
+        public extern bool Contains(string value);
 
-        [Template("Bridge.String.endsWith({this}, {suffix})")]
-        public bool EndsWith(string suffix)
-        {
-            return false;
-        }
+        /// <summary>
+        /// Determines whether a specified string is a suffix of the current instance.
+        /// </summary>
+        /// <param name="value">The string to compare to the substring at the end of this instance.</param>
+        /// <returns>true if value matches the end of this instance; otherwise, false.</returns>
+        [Bridge.Template("System.String.endsWith({this}, {value})")]
+        public extern bool EndsWith(string value);
 
-        [Template("Bridge.String.startsWith({this}, {prefix})")]
-        public bool StartsWith(string prefix)
-        {
-            return false;
-        }
+        /// <summary>
+        /// Determines whether a specified string is a suffix of the current instance.
+        /// </summary>
+        /// <param name="value">The string to compare to the substring at the end of this instance.</param>
+        /// <param name="comparisonType">The Stringcomparison type.</param>
+        /// <returns>true if value matches the end of this instance; otherwise, false.</returns>
+        [Bridge.Template("System.String.endsWith({this}, {value}, {comparisonType})")]
+        public extern bool EndsWith(string value, StringComparison comparisonType);
 
-        /// Summary:
-        ///     Replaces the format item in a specified string with the string representation
-        ///     of a corresponding object in a specified array.
-        ///
-        /// Parameters:
-        ///   format:
-        ///     A composite format string.
-        ///
-        ///   args:
-        ///     An object array that contains zero or more objects to format.
-        ///
-        /// Returns:
-        ///     A copy of format in which the format items have been replaced by the string representation
-        ///     of the corresponding objects in args.
-        ///
-        [Template("Bridge.String.format({format}, {args})")]
-        public static string Format(string format, params object[] args)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Determines whether the beginning of this string instance matches the specified string.
+        /// </summary>
+        /// <param name="value">The string to compare.</param>
+        /// <returns>true if value matches the beginning of this string; otherwise, false.</returns>
+        [Bridge.Template("System.String.startsWith({this}, {value})")]
+        public extern bool StartsWith(string value);
 
-        ///
-        /// Summary:
-        ///     Replaces one or more format items in a specified string with the string representation
-        ///     of a specified object.
-        ///
-        /// Parameters:
-        ///   format:
-        ///     A composite format string.
-        ///
-        ///   arg0:
-        ///     The object to format.
-        ///
-        /// Returns:
-        ///     A copy of format in which any format items are replaced by the string representation
-        ///     of arg0.
-        [Template("Bridge.String.format({format}, {arg0})")]
-        public static String Format(String format, object arg0)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Determines whether the beginning of this string instance matches the specified string.
+        /// </summary>
+        [Bridge.Template("System.String.startsWith({this}, {value}, {comparisonType})")]
+        public extern bool StartsWith(string value, StringComparison comparisonType);
 
-        ///
-        /// Summary:
-        ///     Replaces the format items in a specified string with the string representations
-        ///     of corresponding objects in a specified array. A parameter supplies culture-specific
-        ///     formatting information.
-        ///
-        /// Parameters:
-        ///   provider:
-        ///     An object that supplies culture-specific formatting information.
-        ///
-        ///   format:
-        ///     A composite format string.
-        ///
-        ///   args:
-        ///     An object array that contains zero or more objects to format.
-        ///
-        /// Returns:
-        ///     A copy of format in which the format items have been replaced by the string representation
-        ///     of the corresponding objects in args.
-        [Template("Bridge.String.format({format}, {args})")]
-        public static String Format(IFormatProvider provider, String format, params object[] args)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Replaces the format item or items in a specified string with the string representation of the corresponding object. A parameter supplies culture-specific formatting information.
+        /// </summary>
+        /// <param name="provider">An object that supplies culture-specific formatting information.</param>
+        /// <param name="format">A composite format string.</param>
+        /// <param name="arg0">The object to format.</param>
+        /// <returns>A copy of format in which the format item or items have been replaced by the string representation of arg0.</returns>
+        [Bridge.Template("System.String.formatProvider({provider}, {format}, [{arg0}])")]
+        [Bridge.Unbox(false)]
+        public static extern String Format(IFormatProvider provider, String format, object arg0);
 
-        ///
-        /// Summary:
-        ///     Replaces the format items in a specified string with the string representation
-        ///     of two specified objects.
-        ///
-        /// Parameters:
-        ///   format:
-        ///     A composite format string.
-        ///
-        ///   arg0:
-        ///     The first object to format.
-        ///
-        ///   arg1:
-        ///     The second object to format.
-        ///
-        /// Returns:
-        ///     A copy of format in which format items are replaced by the string representations
-        ///     of arg0 and arg1.
-        [Template("Bridge.String.format({format}, {arg0}, {arg1})")]
-        public static String Format(String format, object arg0, object arg1)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Replaces the format items in a specified string with the string representation of two specified objects. A parameter supplies culture-specific formatting information.
+        /// </summary>
+        /// <param name="provider">An object that supplies culture-specific formatting information.</param>
+        /// <param name="format">A composite format string.</param>
+        /// <param name="arg0">The first object to format.</param>
+        /// <param name="arg1">The second object to format.</param>
+        /// <returns>A copy of format in which format items are replaced by the string representations of arg0 and arg1.</returns>
+        [Bridge.Template("System.String.formatProvider({provider}, {format}, {arg0}, {arg1})")]
+        [Bridge.Unbox(false)]
+        public static extern String Format(IFormatProvider provider, String format, object arg0, object arg1);
 
-        ///
-        /// Summary:
-        ///     Replaces the format items in a specified string with the string representation
-        ///     of three specified objects.
-        ///
-        /// Parameters:
-        ///   format:
-        ///     A composite format string.
-        ///
-        ///   arg0:
-        ///     The first object to format.
-        ///
-        ///   arg1:
-        ///     The second object to format.
-        ///
-        ///   arg2:
-        ///     The third object to format.
-        ///
-        /// Returns:
-        ///     A copy of format in which the format items have been replaced by the string representations
-        ///     of arg0, arg1, and arg2.
-        [Template("Bridge.String.format({format}, {arg0}, {arg1}, {arg2})")]
-        public static String Format(String format, object arg0, object arg1, object arg2)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Replaces the format items in a specified string with the string representation of three specified objects. An parameter supplies culture-specific formatting information.
+        /// </summary>
+        /// <param name="provider">An object that supplies culture-specific formatting information.</param>
+        /// <param name="format">A composite format string.</param>
+        /// <param name="arg0">The first object to format.</param>
+        /// <param name="arg1">The second object to format.</param>
+        /// <param name="arg2">The third object to format.</param>
+        /// <returns>A copy of format in which the format items have been replaced by the string representations of arg0, arg1, and arg2.</returns>
+        [Bridge.Template("System.String.formatProvider({provider}, {format}, {arg0}, {arg1}, {arg2})")]
+        [Bridge.Unbox(false)]
+        public static extern String Format(IFormatProvider provider, String format, object arg0, object arg1, object arg2);
 
-        [Template("Bridge.String.indexOfAny({this}, {anyOf})")]
-        public int IndexOfAny(char[] anyOf)
-        {
-            return -1;
-        }
+        /// <summary>
+        /// Replaces the format items in a specified string with the string representations of corresponding objects in a specified array. A parameter supplies culture-specific formatting information.
+        /// </summary>
+        /// <param name="provider">An object that supplies culture-specific formatting information.</param>
+        /// <param name="format">A composite format string.</param>
+        /// <param name="args">An object array that contains zero or more objects to format.</param>
+        /// <returns>A copy of format in which the format items have been replaced by the string representation of the corresponding objects in args.</returns>
+        [Bridge.Template("System.String.formatProvider({provider}, {format}, {args})")]
+        [Bridge.Unbox(false)]
+        public static extern String Format(IFormatProvider provider, String format, params object[] args);
 
-        [Template("Bridge.String.indexOfAny({this}, {anyOf}, {startIndex})")]
-        public int IndexOfAny(char[] anyOf, int startIndex)
-        {
-            return -1;
-        }
+        /// <summary>
+        /// Replaces one or more format items in a specified string with the string representation of a specified object.
+        /// </summary>
+        /// <param name="format">A composite format string.</param>
+        /// <param name="arg0">The object to format.</param>
+        /// <returns>A copy of format in which any format items are replaced by the string representation of arg0.</returns>
+        [Bridge.Template("System.String.format({format}, [{arg0}])")]
+        [Bridge.Unbox(false)]
+        public static extern String Format(String format, object arg0);
 
-        [Template("Bridge.String.indexOfAny({this}, {anyOf}, {startIndex}, {count})")]
-        public int IndexOfAny(char[] anyOf, int startIndex, int count)
-        {
-            return -1;
-        }
+        /// <summary>
+        /// Replaces the format items in a specified string with the string representation of two specified objects.
+        /// </summary>
+        /// <param name="format">A composite format string.</param>
+        /// <param name="arg0">The first object to format.</param>
+        /// <param name="arg1">The second object to format.</param>
+        /// <returns>A copy of format in which format items are replaced by the string representations of arg0 and arg1.</returns>
+        [Bridge.Template("System.String.format({format}, {arg0}, {arg1})")]
+        [Bridge.Unbox(false)]
+        public static extern String Format(String format, object arg0, object arg1);
 
-        [Template("Bridge.String.toCharArray({this}, 0, {this}.length)")]
-        public char[] ToCharArray()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Replaces the format items in a specified string with the string representation of three specified objects.
+        /// </summary>
+        /// <param name="format">A composite format string.</param>
+        /// <param name="arg0">The first object to format.</param>
+        /// <param name="arg1">The second object to format.</param>
+        /// <param name="arg2">The third object to format.</param>
+        /// <returns>A copy of format in which the format items have been replaced by the string representations of arg0, arg1, and arg2.</returns>
+        [Bridge.Template("System.String.format({format}, {arg0}, {arg1}, {arg2})")]
+        [Bridge.Unbox(false)]
+        public static extern String Format(String format, object arg0, object arg1, object arg2);
 
-        [Template("Bridge.String.toCharArray({this}, {startIndex}, {count})")]
-        public char[] ToCharArray(int startIndex, int count)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Replaces the format item in a specified string with the string representation of a corresponding object in a specified array.
+        /// </summary>
+        /// <param name="format">A composite format string.</param>
+        /// <param name="args">An object array that contains zero or more objects to format.</param>
+        /// <returns>A copy of format in which the format items have been replaced by the string representation of the corresponding objects in args.</returns>
+        [Bridge.Template("System.String.format({format}, {args})")]
+        [Bridge.Unbox(false)]
+        public static extern string Format(string format, params object[] args);
 
-        public static bool operator ==(string s1, string s2)
-        {
-            return false;
-        }
+        /// <summary>
+        /// Reports the zero-based index of the first occurrence in this instance of any character in a specified array of Unicode characters.
+        /// </summary>
+        /// <param name="anyOf">A Unicode character array containing one or more characters to seek.</param>
+        /// <returns>The zero-based index position of the first occurrence in this instance where any character in anyOf was found; -1 if no character in anyOf was found.</returns>
+        [Bridge.Template("System.String.indexOfAny({this}, {anyOf})")]
+        public extern int IndexOfAny(char[] anyOf);
 
-        public static bool operator !=(string s1, string s2)
-        {
-            return false;
-        }
+        /// <summary>
+        /// Reports the zero-based index of the first occurrence in this instance of any character in a specified array of Unicode characters. The search starts at a specified character position.
+        /// </summary>
+        /// <param name="anyOf">A Unicode character array containing one or more characters to seek.</param>
+        /// <param name="startIndex">The search starting position.</param>
+        /// <returns></returns>
+        [Bridge.Template("System.String.indexOfAny({this}, {anyOf}, {startIndex})")]
+        public extern int IndexOfAny(char[] anyOf, int startIndex);
 
+        /// <summary>
+        /// Reports the zero-based index of the first occurrence in this instance of any character in a specified array of Unicode characters. The search starts at a specified character position and examines a specified number of character positions.
+        /// </summary>
+        /// <param name="anyOf">A Unicode character array containing one or more characters to seek.</param>
+        /// <param name="startIndex">The search starting position.</param>
+        /// <param name="count">The number of character positions to examine.</param>
+        /// <returns>The zero-based index position of the first occurrence in this instance where any character in anyOf was found; -1 if no character in anyOf was found.</returns>
+        [Bridge.Template("System.String.indexOfAny({this}, {anyOf}, {startIndex}, {count})")]
+        public extern int IndexOfAny(char[] anyOf, int startIndex, int count);
+
+        /// <summary>
+        /// Copies the characters in this instance to a Unicode character array.
+        /// </summary>
+        /// <returns>A Unicode character array whose elements are the individual characters of this instance. If this instance is an empty string, the returned array is empty and has a zero length.</returns>
+        [Bridge.Template("System.String.toCharArray({this}, 0, {this}.length)")]
+        public extern char[] ToCharArray();
+
+        /// <summary>
+        /// Copies the characters in a specified substring in this instance to a Unicode character array.
+        /// </summary>
+        /// <param name="startIndex">The starting position of a substring in this instance.</param>
+        /// <param name="length">The length of the substring in this instance.</param>
+        /// <returns>A Unicode character array whose elements are the length number of characters in this instance starting from character position startIndex.</returns>
+        [Bridge.Template("System.String.toCharArray({this}, {startIndex}, {length})")]
+        public extern char[] ToCharArray(int startIndex, int length);
+
+        public static extern bool operator ==(string s1, string s2);
+
+        public static extern bool operator !=(string s1, string s2);
+
+        /// <summary>
+        /// Gets the Char object at a specified position in the current String object.
+        /// </summary>
+        /// <param name="index">A position in the current string.</param>
+        /// <returns>The object at position index.</returns>
         [IndexerName("Chars")]
-        public char this[int index]
+        public extern char this[int index]
         {
-            [External]
-            [Template("charCodeAt({0})")]
-            get
-            {
-                return default(char);
-            }
+            [Bridge.External]
+            [Bridge.Template("charCodeAt({0})")]
+            get;
         }
 
-        [Template("Bridge.getEnumerator({this})")]
-        public CharEnumerator GetEnumerator()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Retrieves an object that can iterate through the individual characters in this string.
+        /// </summary>
+        /// <returns>An enumerator object.</returns>
+        [Bridge.Template("Bridge.getEnumerator({this})")]
+        public extern CharEnumerator GetEnumerator();
 
-        [Template("Bridge.getEnumerator({this})")]
-        IEnumerator<char> IEnumerable<char>.GetEnumerator()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Retrieves an object that can iterate through the individual characters in this string.
+        /// </summary>
+        /// <returns>An enumerator object.</returns>
+        [Bridge.Template("Bridge.getEnumerator({this})")]
+        extern IEnumerator<char> IEnumerable<char>.GetEnumerator();
 
-        [Template("Bridge.getEnumerator({this})")]
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Retrieves an object that can iterate through the individual characters in this string.
+        /// </summary>
+        /// <returns>An enumerator object.</returns>
+        [Bridge.Template("Bridge.getEnumerator({this})")]
+        extern IEnumerator IEnumerable.GetEnumerator();
 
-        [Template("Bridge.String.compare({this}, {other})")]
-        public extern int CompareTo(string other);
+        /// <summary>
+        /// Compares this instance with a specified Object and indicates whether this instance precedes, follows, or appears in the same position in the sort order as the specified Object.
+        /// </summary>
+        /// <param name="value">An object that evaluates to a String.</param>
+        /// <returns>A 32-bit signed integer that indicates whether this instance precedes, follows, or appears in the same position in the sort order as the value parameter.</returns>
+        [Bridge.Template("System.String.compare({this}, {value}.toString())")]
+        public extern int CompareTo(object value);
 
-        [Template("Bridge.String.insert({startIndex}, {this}, {value})")]
+        /// <summary>
+        /// Compares this instance with a specified String object and indicates whether this instance precedes, follows, or appears in the same position in the sort order as the specified string.
+        /// </summary>
+        /// <param name="strB">The string to compare with this instance.</param>
+        /// <returns>A 32-bit signed integer that indicates whether this instance precedes, follows, or appears in the same position in the sort order as the strB parameter.</returns>
+        [Bridge.Template("System.String.compare({this}, {strB})")]
+        public extern int CompareTo(string strB);
+
+        /// <summary>
+        /// Returns a new string in which a specified string is inserted at a specified index position in this instance.
+        /// </summary>
+        /// <param name="startIndex">The zero-based index position of the insertion.</param>
+        /// <param name="value">The string to insert.</param>
+        /// <returns>A new string that is equivalent to this instance, but with value inserted at position startIndex.</returns>
+        [Bridge.Template("System.String.insert({startIndex}, {this}, {value})")]
         public extern string Insert(int startIndex, string value);
 
-        [Template("{args}.join({separator})")]
-        public static extern string Join(string separator, params string[] args);
+        /// <summary>
+        /// Concatenates the members of a constructed IEnumerable&lt;T&gt; collection of type String, using the specified separator between each member.
+        /// </summary>
+        /// <param name="separator">The string to use as a separator.separator is included in the returned string only if values has more than one element.</param>
+        /// <param name="values">A collection that contains the strings to concatenate.</param>
+        /// <returns>A string that consists of the members of values delimited by the separator string. If values has no members, the method returns String.Empty.</returns>
+        [Bridge.Template("Bridge.toArray({values}).join({separator})")]
+        public static extern string Join(string separator, IEnumerable<string> values);
 
-        [Template("{args}.join({separator})")]
-        public static extern string Join(string separator, params object[] args);
+        /// <summary>
+        /// Concatenates the elements of an object array, using the specified separator between each element.
+        /// </summary>
+        /// <param name="separator">The string to use as a separator. separator is included in the returned string only if values has more than one element.</param>
+        /// <param name="values">An array that contains the elements to concatenate.</param>
+        /// <returns>A string that consists of the elements of values delimited by the separator string. If values is an empty array, the method returns String.Empty.</returns>
+        [Bridge.Template("{values:array}.join({separator})")]
+        [Bridge.Unbox(false)]
+        public static extern string Join(string separator, params object[] values);
 
-        [Template("Bridge.toArray({args}).join({separator})")]
-        public static extern string Join(string separator, IEnumerable<string> args);
+        /// <summary>
+        /// Concatenates all the elements of a string array, using the specified separator between each element.
+        /// </summary>
+        /// <param name="separator">The string to use as a separator. separator is included in the returned string only if value has more than one element.</param>
+        /// <param name="value">An array that contains the elements to concatenate.</param>
+        /// <returns>A string that consists of the elements in value delimited by the separator string. If value is an empty array, the method returns String.Empty.</returns>
+        [Bridge.Template("{value:array}.join({separator})")]
+        public static extern string Join(string separator, params string[] value);
 
-        [Template("Bridge.toArray({args}).join({separator})")]
-        public static extern string Join<T>(string separator, IEnumerable<T> args);
+        /// <summary>
+        /// Concatenates the specified elements of a string array, using the specified separator between each element.
+        /// </summary>
+        /// <param name="separator">The string to use as a separator. separator is included in the returned string only if value has more than one element.</param>
+        /// <param name="value">An array that contains the elements to concatenate.</param>
+        /// <param name="startIndex">The first element in value to use.</param>
+        /// <param name="count">The number of elements of value to use.</param>
+        /// <returns>A string that consists of the strings in value delimited by the separator string. -or- String.Empty if count is zero, value has no elements, or separator and all the elements of value are String.Empty.</returns>
+        [Bridge.Template("{value}.slice({startIndex}, {startIndex} + {count}).join({separator})")]
+        public static extern string Join(string separator, string[] value, int startIndex, int count);
 
-        [Template("{args}.slice({startIndex}, {startIndex} + {count}).join({separator})")]
-        public static extern string Join(string separator, string[] args, int startIndex, int count);
+        /// <summary>
+        /// Concatenates the members of a collection, using the specified separator between each member.
+        /// </summary>
+        /// <typeparam name="T">The type of the members of values.</typeparam>
+        /// <param name="separator">The string to use as a separator.separator is included in the returned string only if values has more than one element.</param>
+        /// <param name="values">A collection that contains the objects to concatenate.</param>
+        /// <returns>A string that consists of the members of values delimited by the separator string. If values has no members, the method returns String.Empty.</returns>
+        [Bridge.Template("Bridge.toArray({values}).join({separator})")]
+        [Bridge.Unbox(false)]
+        public static extern string Join<T>(string separator, IEnumerable<T> values);
 
-        [Template("Bridge.String.alignString({this}, {totalWidth})")]
+        /// <summary>
+        /// Returns a new string that right-aligns the characters in this instance by padding them with spaces on the left, for a specified total length.
+        /// </summary>
+        /// <param name="totalWidth">The number of characters in the resulting string, equal to the number of original characters plus any additional padding characters.</param>
+        /// <returns>A new string that is equivalent to this instance, but right-aligned and padded on the left with as many spaces as needed to create a length of totalWidth. However, if totalWidth is less than the length of this instance, the method returns a reference to the existing instance. If totalWidth is equal to the length of this instance, the method returns a new string that is identical to this instance.</returns>
+        [Bridge.Template("System.String.alignString({this}, {totalWidth})")]
         public extern string PadLeft(int totalWidth);
 
-        [Template("Bridge.String.alignString({this}, {totalWidth}, {ch})")]
-        public extern string PadLeft(int totalWidth, char ch);
+        /// <summary>
+        /// Returns a new string that right-aligns the characters in this instance by padding them on the left with a specified Unicode character, for a specified total length.
+        /// </summary>
+        /// <param name="totalWidth">The number of characters in the resulting string, equal to the number of original characters plus any additional padding characters.</param>
+        /// <param name="paddingChar">A Unicode padding character.</param>
+        /// <returns>A new string that is equivalent to this instance, but right-aligned and padded on the left with as many paddingChar characters as needed to create a length of totalWidth. However, if totalWidth is less than the length of this instance, the method returns a reference to the existing instance. If totalWidth is equal to the length of this instance, the method returns a new string that is identical to this instance.</returns>
+        [Bridge.Template("System.String.alignString({this}, {totalWidth}, {paddingChar})")]
+        public extern string PadLeft(int totalWidth, char paddingChar);
 
-        [Template("Bridge.String.alignString({this}, -{totalWidth})")]
+        /// <summary>
+        /// Returns a new string that left-aligns the characters in this string by padding them with spaces on the right, for a specified total length.
+        /// </summary>
+        /// <param name="totalWidth">The number of characters in the resulting string, equal to the number of original characters plus any additional padding characters.</param>
+        /// <returns>A new string that is equivalent to this instance, but left-aligned and padded on the right with as many spaces as needed to create a length of totalWidth. However, if totalWidth is less than the length of this instance, the method returns a reference to the existing instance. If totalWidth is equal to the length of this instance, the method returns a new string that is identical to this instance.</returns>
+        [Bridge.Template("System.String.alignString({this}, -{totalWidth})")]
         public extern string PadRight(int totalWidth);
 
-        [Template("Bridge.String.alignString({this}, -{totalWidth}, {ch})")]
-        public extern string PadRight(int totalWidth, char ch);
+        /// <summary>
+        /// Returns a new string that left-aligns the characters in this string by padding them on the right with a specified Unicode character, for a specified total length.
+        /// </summary>
+        /// <param name="totalWidth">The number of characters in the resulting string, equal to the number of original characters plus any additional padding characters.</param>
+        /// <param name="paddingChar">A Unicode padding character.</param>
+        /// <returns>A new string that is equivalent to this instance, but left-aligned and padded on the right with as many paddingChar characters as needed to create a length of totalWidth. However, if totalWidth is less than the length of this instance, the method returns a reference to the existing instance. If totalWidth is equal to the length of this instance, the method returns a new string that is identical to this instance.</returns>
+        [Bridge.Template("System.String.alignString({this}, -{totalWidth}, {paddingChar})")]
+        public extern string PadRight(int totalWidth, char paddingChar);
 
-        [Template("Bridge.String.remove({this}, {index})")]
-        public extern string Remove(int index);
+        /// <summary>
+        /// Returns a new string in which all the characters in the current instance, beginning at a specified position and continuing through the last position, have been deleted.
+        /// </summary>
+        /// <param name="startIndex">The zero-based position to begin deleting characters.</param>
+        /// <returns>A new string that is equivalent to this string except for the removed characters.</returns>
+        [Bridge.Template("System.String.remove({this}, {startIndex})")]
+        public extern string Remove(int startIndex);
 
-        [Template("Bridge.String.remove({this}, {index}, {count})")]
-        public extern string Remove(int index, int count);
+        /// <summary>
+        /// Returns a new string in which a specified number of characters in the current instance beginning at a specified position have been deleted.
+        /// </summary>
+        /// <param name="startIndex">The zero-based position to begin deleting characters.</param>
+        /// <param name="count">The number of characters to delete.</param>
+        /// <returns>A new string that is equivalent to this instance except for the removed characters.</returns>
+        [Bridge.Template("System.String.remove({this}, {startIndex}, {count})")]
+        public extern string Remove(int startIndex, int count);
+
+        /// <summary>
+        /// Returns a reference to this instance of String.
+        /// </summary>
+        /// <returns>This instance of String.</returns>
+        [Bridge.Template("{this}")]
+        public extern Object Clone();
+
+        /// <summary>
+        /// Copies a specified number of characters from a specified position in this instance to a specified position in an array of Unicode characters.
+        /// </summary>
+        /// <param name="sourceIndex">The index of the first character in this instance to copy.</param>
+        /// <param name="destination">An array of Unicode characters to which characters in this instance are copied.</param>
+        /// <param name="destinationIndex">The index in destination at which the copy operation begins.</param>
+        /// <param name="count">The number of characters in this instance to copy to destination.</param>
+        [Bridge.Template("System.String.copyTo({this}, {sourceIndex}, {destination}, {destinationIndex}, {count})")]
+        public extern void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count);
     }
 }

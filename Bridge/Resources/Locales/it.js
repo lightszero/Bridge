@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("it", true), {
+Bridge.merge(new System.Globalization.CultureInfo("it", true), {
     englishName: "Italian",
     nativeName: "italiano",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "Non un numero",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinito",
-        positiveInfinitySymbol: "+Infinito",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -20,8 +20,8 @@
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
         currencyGroupSeparator: ".",
-        currencyNegativePattern: 9,
-        currencyPositivePattern: 2,
+        currencyNegativePattern: 8,
+        currencyPositivePattern: 3,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["dom","lun","mar","mer","gio","ven","sab"],
         abbreviatedMonthGenitiveNames: ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic",""],
         abbreviatedMonthNames: ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "it-IT",
+        EBCDICCodePage: 20280,
+        IsRightToLeft: false,
+        LCID: 1040,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

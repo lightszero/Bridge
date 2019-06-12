@@ -1,4 +1,5 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.Semantics;
 using ICSharpCode.NRefactory.TypeSystem;
@@ -58,14 +59,32 @@ namespace Bridge.Translator
             }
         }
 
-        public static bool IsReservedStaticName(string name)
+        public static object ConvertConstant(object value, Expression expression, IEmitter emitter)
         {
-            return Emitter.reservedStaticNames.Any(n => String.Equals(name, n, StringComparison.InvariantCultureIgnoreCase));
+            try
+            {
+                if (expression.Parent != null)
+                {
+                    var rr = emitter.Resolver.ResolveNode(expression, emitter);
+                    var conversion = emitter.Resolver.Resolver.GetConversion(expression);
+                    var expectedType = emitter.Resolver.Resolver.GetExpectedType(expression);
+
+                    if (conversion.IsNumericConversion && expectedType.IsKnownType(KnownTypeCode.Double) && rr.Type.IsKnownType(KnownTypeCode.Single))
+                    {
+                        return (double)(float)value;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return value;
         }
 
         public virtual string ToJavaScript(object value)
         {
-            return JsonConvert.SerializeObject(value);
+            return JsonConvert.SerializeObject(value, new JsonSerializerSettings { StringEscapeHandling = StringEscapeHandling.EscapeNonAscii });
         }
 
         protected virtual ICSharpCode.NRefactory.CSharp.Attribute GetAttribute(AstNodeCollection<AttributeSection> attributes, string name)
@@ -122,22 +141,136 @@ namespace Bridge.Translator
             return this.GetAttribute(method.Attributes, "Delegate") != null;
         }
 
+        public virtual Tuple<bool, bool, string> GetInlineCode(MemberReferenceExpression node)
+        {
+            var member = LiftNullableMember(node);
+            var info = GetInlineCodeFromMember(member, node);
+
+            return WrapNullableMember(info, member, node);
+        }
+
         public virtual Tuple<bool, bool, string> GetInlineCode(InvocationExpression node)
         {
-            var resolveResult = this.Resolver.ResolveNode(node, this);
-            var memberResolveResult = resolveResult as MemberResolveResult;
-
-            if (memberResolveResult == null)
+            var target = node.Target as MemberReferenceExpression;
+            IMember member = null;
+            if (target != null)
             {
-                return new Tuple<bool, bool, string>(false, false, null);
+                member = LiftNullableMember(target);
             }
 
-            var member = memberResolveResult.Member;
+            var info = GetInlineCodeFromMember(member, node);
+            return WrapNullableMember(info, member, node.Target);
+        }
+
+        internal Tuple<bool, bool, string> GetInlineCodeFromMember(IMember member, Expression node)
+        {
+            if (member == null)
+            {
+                var resolveResult = this.Resolver.ResolveNode(node, this);
+                var memberResolveResult = resolveResult as MemberResolveResult;
+
+                if (memberResolveResult == null)
+                {
+                    return new Tuple<bool, bool, string>(false, false, null);
+                }
+
+                member = memberResolveResult.Member;
+            }
+
             bool isInlineMethod = this.IsInlineMethod(member);
             var inlineCode = isInlineMethod ? null : this.GetInline(member);
             var isStatic = member.IsStatic;
 
+            if (!string.IsNullOrEmpty(inlineCode) && member is IProperty)
+            {
+                inlineCode = inlineCode.Replace("{value}", "{0}");
+            }
+
             return new Tuple<bool, bool, string>(isStatic, isInlineMethod, inlineCode);
+        }
+
+        private Tuple<bool, bool, string> WrapNullableMember(Tuple<bool, bool, string> info, IMember member, Expression node)
+        {
+            if (member != null && !string.IsNullOrEmpty(info.Item3))
+            {
+                IMethod method = (IMethod)member;
+
+                StringBuilder savedBuilder = this.Output;
+                this.Output = new StringBuilder();
+                var mrr = new MemberResolveResult(null, member);
+                var argsInfo = new ArgumentsInfo(this, node, mrr);
+                argsInfo.ThisArgument = JS.Vars.T;
+                new InlineArgumentsBlock(this, argsInfo, info.Item3, method, mrr).EmitNullableReference();
+                string tpl = this.Output.ToString();
+                this.Output = savedBuilder;
+
+                if (member.Name == CS.Methods.EQUALS)
+                {
+                    tpl = string.Format(JS.Types.SYSTEM_NULLABLE + "." + JS.Funcs.EQUALS + "({{this}}, {{{0}}}, {1})", method.Parameters.First().Name, tpl);
+                }
+                else if (member.Name == CS.Methods.TOSTRING)
+                {
+                    tpl = string.Format(JS.Types.SYSTEM_NULLABLE + "." + JS.Funcs.TOSTIRNG + "({{this}}, {0})", tpl);
+                }
+                else if (member.Name == CS.Methods.GETHASHCODE)
+                {
+                    tpl = string.Format(JS.Types.SYSTEM_NULLABLE + "." + JS.Funcs.GETHASHCODE + "({{this}}, {0})", tpl);
+                }
+
+                info = new Tuple<bool, bool, string>(info.Item1, info.Item2, tpl);
+            }
+            return info;
+        }
+
+        private IMember LiftNullableMember(MemberReferenceExpression target)
+        {
+            var targetrr = this.Resolver.ResolveNode(target.Target, this);
+            IMember member = null;
+            if (targetrr.Type.IsKnownType(KnownTypeCode.NullableOfT))
+            {
+                string name = null;
+                int count = 0;
+                IType typeArg = null;
+                if (target.MemberName == CS.Methods.TOSTRING || target.MemberName == CS.Methods.GETHASHCODE)
+                {
+                    name = target.MemberName;
+                }
+                else if (target.MemberName == CS.Methods.EQUALS)
+                {
+                    if (target.Parent is InvocationExpression)
+                    {
+                        var rr = this.Resolver.ResolveNode(target.Parent, this) as InvocationResolveResult;
+                        if (rr != null)
+                        {
+                            typeArg = rr.Arguments.First().Type;
+                        }
+                    }
+                    name = target.MemberName;
+                    count = 1;
+                }
+
+                if (name != null)
+                {
+                    var type = ((ParameterizedType)targetrr.Type).TypeArguments[0];
+                    var methods = type.GetMethods(null, GetMemberOptions.IgnoreInheritedMembers);
+
+                    if (count == 0)
+                    {
+                        member = methods.FirstOrDefault(m => m.Name == name && m.Parameters.Count == count);
+                    }
+                    else
+                    {
+                        member = methods.FirstOrDefault(m => m.Name == name && m.Parameters.Count == count && m.Parameters.First().Type.Equals(typeArg));
+
+                        if (member == null)
+                        {
+                            var typeDef = typeArg.GetDefinition();
+                            member = methods.FirstOrDefault(m => m.Name == name && m.Parameters.Count == count && m.Parameters.First().Type.GetDefinition().IsDerivedFrom(typeDef));
+                        }
+                    }
+                }
+            }
+            return member;
         }
 
         public virtual bool IsForbiddenInvocation(InvocationExpression node)
@@ -168,9 +301,9 @@ namespace Bridge.Translator
                         var argExpr = attr.PositionalArguments.First();
                         if (argExpr.ConstantValue is int)
                         {
-                            var value = (int)argExpr.ConstantValue;
+                            var value = (InitPosition)argExpr.ConstantValue;
 
-                            if (value == 1 || value == 2)
+                            if (value > 0)
                             {
                                 return true;
                             }
@@ -187,81 +320,6 @@ namespace Bridge.Translator
             var attr = this.GetAttribute(method.Attributes, Bridge.Translator.Translator.Bridge_ASSEMBLY + ".Script");
 
             return this.GetScriptArguments(attr);
-        }
-
-        public virtual string GetDefinitionName(IEmitter emitter, IMemberDefinition member, bool preserveMemberCase = false)
-        {
-            if (!preserveMemberCase)
-            {
-                preserveMemberCase = !this.IsNativeMember(member.FullName) ? this.AssemblyInfo.PreserveMemberCase : false;
-
-                if (member is FieldDefinition && ((FieldDefinition)member).HasConstant && !member.DeclaringType.IsEnum)
-                {
-                    preserveMemberCase = true;
-                }
-            }
-            string attrName = Bridge.Translator.Translator.Bridge_ASSEMBLY + ".NameAttribute";
-            var attr = Helpers.GetInheritedAttribute(emitter, member, attrName);
-
-            bool isIgnore = this.Validator.IsIgnoreType(member.DeclaringType);
-            string name = member.Name;
-            bool isStatic = false;
-
-            if (member is MethodDefinition)
-            {
-                var method = (MethodDefinition)member;
-                isStatic = method.IsStatic;
-                if (method.IsConstructor)
-                {
-                    name = "constructor";
-                }
-            }
-            else if (member is FieldDefinition)
-            {
-                isStatic = ((FieldDefinition)member).IsStatic;
-            }
-            else if (member is PropertyDefinition)
-            {
-                var prop = (PropertyDefinition)member;
-                var accessor = prop.GetMethod ?? prop.SetMethod;
-                isStatic = prop.GetMethod != null ? prop.GetMethod.IsStatic : false;
-            }
-            else if (member is EventDefinition)
-            {
-                var ev = (EventDefinition)member;
-                isStatic = ev.AddMethod != null ? ev.AddMethod.IsStatic : false;
-            }
-            if (attr != null)
-            {
-                var value = attr.ConstructorArguments.First().Value;
-                if (value is string)
-                {
-                    name = value.ToString();
-                    if (!isIgnore &&
-                        ((isStatic && Emitter.IsReservedStaticName(name)) ||
-                        Helpers.IsReservedWord(name)))
-                    {
-                        name = Helpers.ChangeReservedWord(name);
-                    }
-                    return name;
-                }
-
-                preserveMemberCase = !(bool)value;
-            }
-
-            if (name.Contains("."))
-            {
-                name = Object.Net.Utilities.StringUtils.RightOfRightmostOf(name, '.');
-            }
-            name = preserveMemberCase ? name : Object.Net.Utilities.StringUtils.ToLowerCamelCase(name);
-            if (!isIgnore &&
-                ((isStatic && Emitter.IsReservedStaticName(name)) ||
-                Helpers.IsReservedWord(name)))
-            {
-                name = Helpers.ChangeReservedWord(name);
-            }
-
-            return name;
         }
 
         public virtual string GetEntityNameFromAttr(IEntity member, bool setter = false)
@@ -286,7 +344,7 @@ namespace Bridge.Translator
             }
 
             var attr = Helpers.GetInheritedAttribute(member, Bridge.Translator.Translator.Bridge_ASSEMBLY + ".NameAttribute");
-            bool isIgnore = member.DeclaringTypeDefinition != null && this.Validator.IsIgnoreType(member.DeclaringTypeDefinition);
+            bool isIgnore = member.DeclaringTypeDefinition != null && this.Validator.IsExternalType(member.DeclaringTypeDefinition);
             string name;
 
             if (attr != null)
@@ -294,8 +352,8 @@ namespace Bridge.Translator
                 var value = attr.PositionalArguments.First().ConstantValue;
                 if (value is string)
                 {
-                    name = value.ToString();
-                    if (!isIgnore && ((member.IsStatic && Emitter.IsReservedStaticName(name)) || Helpers.IsReservedWord(name)))
+                    name = this.GetEntityName(member);
+                    if (!isIgnore && member.IsStatic && Helpers.IsReservedStaticName(name, false))
                     {
                         name = Helpers.ChangeReservedWord(name);
                     }
@@ -306,60 +364,55 @@ namespace Bridge.Translator
             return null;
         }
 
-        public virtual string GetEntityName(IEntity member, bool forcePreserveMemberCase = false, bool ignoreInterface = false)
+        Dictionary<IEntity, NameSemantic> entityNameCache = new Dictionary<IEntity, NameSemantic>();
+        public virtual NameSemantic GetNameSemantic(IEntity member)
         {
-            bool preserveMemberChange = !this.IsNativeMember(member.FullName) ? this.AssemblyInfo.PreserveMemberCase : false;
-            if (member is IMember && this.IsMemberConst((IMember)member)/* || member.DeclaringType.Kind == TypeKind.Anonymous*/)
+            NameSemantic result;
+            if (this.entityNameCache.TryGetValue(member, out result))
             {
-                preserveMemberChange = true;
-            }
-            var attr = Helpers.GetInheritedAttribute(member, Bridge.Translator.Translator.Bridge_ASSEMBLY + ".NameAttribute");
-            bool isIgnore = member.DeclaringTypeDefinition != null && this.Validator.IsIgnoreType(member.DeclaringTypeDefinition);
-            string name = member.Name;
-            if (member is IMethod && ((IMethod)member).IsConstructor)
-            {
-                name = "constructor";
+                return result;
             }
 
-            if (attr != null)
-            {
-                var value = attr.PositionalArguments.First().ConstantValue;
-                if (value is string)
-                {
-                    name = value.ToString();
-                    if (!isIgnore && ((member.IsStatic && Emitter.IsReservedStaticName(name)) || Helpers.IsReservedWord(name)))
-                    {
-                        name = Helpers.ChangeReservedWord(name);
-                    }
-                    return name;
-                }
+            result = new NameSemantic { Entity = member, Emitter = this };
 
-                preserveMemberChange = !(bool)value;
-            }
-
-            name = !preserveMemberChange && !forcePreserveMemberCase ? Object.Net.Utilities.StringUtils.ToLowerCamelCase(name) : name;
-
-            if (!isIgnore && ((member.IsStatic && Emitter.IsReservedStaticName(name)) || Helpers.IsReservedWord(name)))
-            {
-                name = Helpers.ChangeReservedWord(name);
-            }
-
-            return name;
+            this.entityNameCache.Add(member, result);
+            return result;
         }
 
-        public virtual string GetEntityName(EntityDeclaration entity, bool forcePreserveMemberCase = false, bool ignoreInterface = false)
+        public string GetEntityName(IEntity member)
+        {
+            var semantic = NameSemantic.Create(member, this);
+            semantic.IsObjectLiteral = false;
+            return semantic.Name;
+        }
+
+        public string GetTypeName(ITypeDefinition type, TypeDefinition typeDefinition)
+        {
+            var semantic = NameSemantic.Create(type, this);
+            semantic.TypeDefinition = typeDefinition;
+            return semantic.Name;
+        }
+
+        public string GetLiteralEntityName(ICSharpCode.NRefactory.TypeSystem.IEntity member)
+        {
+            var semantic = NameSemantic.Create(member, this);
+            semantic.IsObjectLiteral = true;
+            return semantic.Name;
+        }
+
+        public virtual string GetEntityName(EntityDeclaration entity)
         {
             var rr = this.Resolver.ResolveNode(entity, this) as MemberResolveResult;
 
             if (rr != null)
             {
-                return this.GetEntityName(rr.Member, forcePreserveMemberCase, ignoreInterface);
+                return this.GetEntityName(rr.Member);
             }
 
             return null;
         }
 
-        public virtual string GetEntityName(ParameterDeclaration entity, bool forcePreserveMemberCase = false)
+        public virtual string GetParameterName(ParameterDeclaration entity)
         {
             var name = entity.Name;
 
@@ -386,7 +439,7 @@ namespace Bridge.Translator
                 }
             }
 
-            if (Helpers.IsReservedWord(name))
+            if (Helpers.IsReservedWord(this, name))
             {
                 name = Helpers.ChangeReservedWord(name);
             }
@@ -431,16 +484,16 @@ namespace Bridge.Translator
             return attr != null ? new Tuple<bool, string>(true, (string)attr.PositionalArguments.First().ConstantValue) : null;
         }
 
-        public virtual string GetInline(ICustomAttributeProvider provider)
-        {
-            var attr = this.GetAttribute(provider.CustomAttributes, Bridge.Translator.Translator.Bridge_ASSEMBLY + ".TemplateAttribute");
-
-            return attr != null && attr.ConstructorArguments.Count > 0 ? ((string)attr.ConstructorArguments.First().Value) : null;
-        }
-
         public virtual string GetInline(EntityDeclaration method)
         {
-            var attr = this.GetAttribute(method.Attributes, Bridge.Translator.Translator.Bridge_ASSEMBLY + ".Template");
+            var mrr = this.Resolver.ResolveNode(method, this) as MemberResolveResult;
+
+            if (mrr != null)
+            {
+                return this.GetInline(mrr.Member);
+            }
+
+            var attr = this.GetAttribute(method.Attributes, Bridge.Translator.Translator.Bridge_ASSEMBLY + ".TemplateAttribute");
 
             return attr != null && attr.Arguments.Count > 0 ? ((string)((PrimitiveExpression)attr.Arguments.First()).Value) : null;
         }
@@ -448,11 +501,20 @@ namespace Bridge.Translator
         public virtual string GetInline(IEntity entity)
         {
             string attrName = Bridge.Translator.Translator.Bridge_ASSEMBLY + ".TemplateAttribute";
+            // Moving these two `is` into the end of the methos (where it's actually used) leads
+            // to incorrect JavaScript being generated
+            bool isProp = entity is IProperty;
+            bool isEvent = entity is IEvent;
 
             if (entity.SymbolKind == SymbolKind.Property)
             {
                 var prop = (IProperty)entity;
                 entity = this.IsAssignment ? prop.Setter : prop.Getter;
+            }
+            else if (entity.SymbolKind == SymbolKind.Event)
+            {
+                var ev = (IEvent)entity;
+                entity = this.IsAssignment ? (this.AssignmentType == AssignmentOperatorType.Add ? ev.AddAccessor : ev.RemoveAccessor) : ev.InvokeAccessor;
             }
 
             if (entity != null)
@@ -462,7 +524,33 @@ namespace Bridge.Translator
                     return a.AttributeType.FullName == attrName;
                 });
 
-                return attr != null && attr.PositionalArguments.Count > 0 ? attr.PositionalArguments[0].ConstantValue.ToString() : null;
+                string inlineCode = null;
+                if (attr != null && entity is IMethod && attr.PositionalArguments.Count == 0 &&
+                    attr.NamedArguments.Count > 0)
+                {
+                    var namedArg = attr.NamedArguments.FirstOrDefault(arg => arg.Key.Name == CS.Attributes.Template.PROPERTY_FN);
+                    if (namedArg.Value != null)
+                    {
+                        inlineCode = namedArg.Value.ConstantValue as string;
+
+                        if (inlineCode != null)
+                        {
+                            inlineCode = Helpers.DelegateToTemplate(inlineCode, (IMethod) entity, this);
+                        }
+                    }
+                }
+
+                if (inlineCode == null)
+                {
+                    inlineCode = attr != null && attr.PositionalArguments.Count > 0 ? attr.PositionalArguments[0].ConstantValue.ToString() : null;
+                }
+
+                if (!string.IsNullOrEmpty(inlineCode) && (isProp || isEvent))
+                {
+                    inlineCode = inlineCode.Replace("{value}", "{0}");
+                }
+
+                return inlineCode;
             }
 
             return null;
@@ -479,7 +567,7 @@ namespace Bridge.Translator
                     return a.AttributeType.FullName == attrName;
                 });
 
-                return attr != null && attr.PositionalArguments.Count == 0;
+                return attr != null && attr.PositionalArguments.Count == 0 && attr.NamedArguments.Count == 0;
             }
 
             return false;
@@ -496,8 +584,22 @@ namespace Bridge.Translator
 
             foreach (var arg in attr.Arguments)
             {
-                PrimitiveExpression expr = (PrimitiveExpression)arg;
-                result.Add((string)expr.Value);
+                string value = "";
+                if (arg is PrimitiveExpression)
+                {
+                    PrimitiveExpression expr = (PrimitiveExpression) arg;
+                    value = (string) expr.Value;
+                }
+                else
+                {
+                    var rr = this.Resolver.ResolveNode(arg, this) as ConstantResolveResult;
+                    if (rr != null && rr.ConstantValue != null)
+                    {
+                        value = rr.ConstantValue.ToString();
+                    }
+                }
+
+                result.Add(value);
             }
 
             return result;
@@ -505,17 +607,23 @@ namespace Bridge.Translator
 
         public virtual bool IsNativeMember(string fullName)
         {
-            return fullName.StartsWith(Bridge.Translator.Translator.Bridge_ASSEMBLY + ".") || fullName.StartsWith("System.");
+            return fullName.StartsWith(Bridge.Translator.Translator.Bridge_ASSEMBLY_DOT, StringComparison.Ordinal) || fullName.StartsWith("System.", StringComparison.Ordinal);
         }
 
         public virtual bool IsMemberConst(IMember member)
         {
-            return (member is DefaultResolvedField) && (((DefaultResolvedField)member).IsConst && member.DeclaringType.Kind != TypeKind.Enum);
+            var field = member as IField;
+            if (field != null)
+            {
+                return field.IsConst && member.DeclaringType.Kind != TypeKind.Enum;
+            }
+
+            return false;
         }
 
         public virtual bool IsInlineConst(IMember member)
         {
-            bool isConst = (member is DefaultResolvedField) && (((DefaultResolvedField)member).IsConst && member.DeclaringType.Kind != TypeKind.Enum);
+            bool isConst = IsMemberConst(member);
 
             if (isConst)
             {
@@ -537,13 +645,113 @@ namespace Bridge.Translator
             this.LocalsStack = null;
             this.IteratorCount = 0;
             this.ThisRefCounter = 0;
-            this.Writers = new Stack<Tuple<string, StringBuilder, bool, Action>>();
+            this.Writers = new Stack<IWriter>();
             this.IsAssignment = false;
-            this.Level = 0;
+            this.ResetLevel();
             this.IsNewLine = true;
             this.EnableSemicolon = true;
             this.Comma = false;
             this.CurrentDependencies = new List<IPluginDependency>();
+        }
+
+        public virtual bool ContainsOnlyOrEmpty(StringBuilder sb, params char[] c)
+        {
+            if (sb == null || sb.Length == 0)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < sb.Length; i++)
+            {
+                if (!c.Contains(sb[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal static bool AddOutputItem(List<TranslatorOutputItem> target, string fileName, TranslatorOutputItemContent content, TranslatorOutputKind outputKind, string location = null, string assembly = null)
+        {
+            var fileHelper = new FileHelper();
+
+            var outputType = fileHelper.GetOutputType(fileName);
+
+            TranslatorOutputItem output = null;
+
+            bool isMinJs = fileHelper.IsMinJS(fileName);
+
+            var searchName = fileName;
+
+            if (isMinJs)
+            {
+                searchName = fileHelper.GetNonMinifiedJSFileName(fileName);
+            }
+
+            output = target.FirstOrDefault(x => string.Compare(x.Name, searchName, StringComparison.InvariantCultureIgnoreCase) == 0);
+
+            if (output != null)
+            {
+                bool isAdded;
+
+                if (isMinJs)
+                {
+                    isAdded = output.MinifiedVersion == null;
+
+                    output.MinifiedVersion = new TranslatorOutputItem
+                    {
+                        Name = fileName,
+                        OutputType = outputType,
+                        OutputKind = outputKind | TranslatorOutputKind.Minified,
+                        Location = location,
+                        Content = content,
+                        IsMinified = true,
+                        Assembly = assembly
+                    };
+                }
+                else
+                {
+                    isAdded = output.IsEmpty;
+                    output.IsEmpty = false;
+                }
+
+                return isAdded;
+            }
+
+            output = new TranslatorOutputItem
+            {
+                Name = searchName,
+                OutputType = outputType,
+                OutputKind = outputKind,
+                Location = location,
+                Content = new TranslatorOutputItemContent((string)null),
+                Assembly = assembly
+            };
+
+            if (isMinJs)
+            {
+                output.IsEmpty = true;
+
+                output.MinifiedVersion = new TranslatorOutputItem
+                {
+                    Name = fileName,
+                    OutputType = outputType,
+                    OutputKind = outputKind | TranslatorOutputKind.Minified,
+                    Location = location,
+                    Content = content,
+                    IsMinified = true,
+                    Assembly = assembly
+                };
+            }
+            else
+            {
+                output.Content = content;
+            }
+
+            target.Add(output);
+
+            return true;
         }
     }
 }

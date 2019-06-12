@@ -1,7 +1,11 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
+
 using ICSharpCode.NRefactory.CSharp;
+
 using System;
 using System.Linq;
+using ICSharpCode.NRefactory.Semantics;
 
 namespace Bridge.Translator
 {
@@ -34,23 +38,7 @@ namespace Bridge.Translator
 
             if (this.ThrowStatement.Expression.IsNull)
             {
-                var tryStatement = this.ThrowStatement.GetParent<TryCatchStatement>();
-                var count = tryStatement.CatchClauses.Count;
-                var firstClause = tryStatement.CatchClauses.Count == 1 ? tryStatement.CatchClauses.First() : null;
-                var exceptionType = (firstClause == null || firstClause.Type.IsNull) ? null : BridgeTypes.ToJsName(firstClause.Type, this.Emitter);
-                var isBaseException = exceptionType == null || exceptionType == "Bridge.Exception";
-
-                string name = "$e";
-                if (count == 1 && isBaseException)
-                {
-                    var clause = tryStatement.CatchClauses.First();
-
-                    if (!String.IsNullOrEmpty(clause.VariableName))
-                    {
-                        name = clause.VariableName;
-                    }
-                }
-
+                string name = this.Emitter.CatchBlockVariable ?? JS.Vars.ASYNC_E;
                 this.Write(name);
             }
             else

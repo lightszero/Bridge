@@ -1,93 +1,57 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Name("Bridge.Int")]
-    [Constructor("Number")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Constructor("Number")]
+    [Bridge.Reflectable]
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     public struct Int32 : IComparable, IComparable<Int32>, IEquatable<Int32>, IFormattable
     {
-        private Int32(int i)
-        {
-        }
+        private extern Int32(int i);
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const int MinValue = -2147483648;
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const int MaxValue = 2147483647;
 
-        [Template("Bridge.Int.parseInt({s}, -2147483648, 2147483647)")]
-        public static int Parse(string s)
-        {
-            return 0;
-        }
+        [Bridge.Template("System.Int32.parse({s})")]
+        public static extern int Parse(string s);
 
-        [Template("Bridge.Int.parseInt({s}, -2147483648, 2147483647, {radix})")]
-        public static int Parse(string s, int radix)
-        {
-            return 0;
-        }
+        [Bridge.Template("System.Int32.parse({s}, {radix})")]
+        public static extern int Parse(string s, int radix);
 
-        [Template("Bridge.Int.tryParseInt({s}, {result}, -2147483648, 2147483647)")]
-        public static bool TryParse(string s, out int result)
-        {
-            result = 0;
-            return false;
-        }
+        [Bridge.Template("System.Int32.tryParse({s}, {result})")]
+        public static extern bool TryParse(string s, out int result);
 
-        [Template("Bridge.Int.tryParseInt({s}, {result}, -2147483648, 2147483647, {radix})")]
-        public static bool TryParse(string s, out int result, int radix)
-        {
-            result = 0;
-            return false;
-        }
+        [Bridge.Template("System.Int32.tryParse({s}, {result}, {radix})")]
+        public static extern bool TryParse(string s, out int result, int radix);
 
-        public string ToString(int radix)
-        {
-            return null;
-        }
+        public extern string ToString(int radix);
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string Format(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Int32.format({this}, {format})")]
+        public extern string Format(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string Format(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Int32.format({this}, {format}, {provider})")]
+        public extern string Format(string format, IFormatProvider provider);
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string ToString(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Int32.format({this}, {format})")]
+        public extern string ToString(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string ToString(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Int32.format({this}, {format}, {provider})")]
+        public extern string ToString(string format, IFormatProvider provider);
 
-        [Template("Bridge.compare({this}, {other})")]
-        public int CompareTo(int other)
-        {
-            return 0;
-        }
+        [Bridge.Template("Bridge.compare({this}, {other})")]
+        public extern int CompareTo(int other);
 
-        [Template("Bridge.compare({this}, {obj})")]
-        public int CompareTo(object obj)
-        {
-            return 0;
-        }
+        [Bridge.Template("Bridge.compare({this}, {obj})")]
+        public extern int CompareTo(object obj);
 
-        [Template("Bridge.equalsT({this}, {other})")]
-        public bool Equals(int other)
-        {
-            return false;
-        }
+        [Bridge.Template("{this} === {other}")]
+        public extern bool Equals(int other);
+
+        [Bridge.Template("System.Int32.equals({this}, {other})")]
+        public override extern bool Equals(object other);
     }
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
 }

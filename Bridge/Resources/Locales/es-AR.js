@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("es-AR", true), {
+Bridge.merge(new System.Globalization.CultureInfo("es-AR", true), {
     englishName: "Spanish (Argentina)",
     nativeName: "español (Argentina)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NuN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinito",
-        positiveInfinitySymbol: "Infinito",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -20,7 +20,7 @@
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
         currencyGroupSeparator: ".",
-        currencyNegativePattern: 2,
+        currencyNegativePattern: 9,
         currencyPositivePattern: 2,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
@@ -29,30 +29,42 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
-        abbreviatedDayNames: ["dom","lun","mar","mié","jue","vie","sáb"],
-        abbreviatedMonthGenitiveNames: ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic",""],
-        abbreviatedMonthNames: ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic",""],
-        amDesignator: "a.m.",
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
+        abbreviatedDayNames: ["dom.","lun.","mar.","mié.","jue.","vie.","sáb."],
+        abbreviatedMonthGenitiveNames: ["ene.","feb.","mar.","abr.","may.","jun.","jul.","ago.","sep.","oct.","nov.","dic.",""],
+        abbreviatedMonthNames: ["ene.","feb.","mar.","abr.","may.","jun.","jul.","ago.","sep.","oct.","nov.","dic.",""],
+        amDesignator: "a. m.",
         dateSeparator: "/",
         dayNames: ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"],
         firstDayOfWeek: 0,
-        fullDateTimePattern: "dddd, dd' de 'MMMM' de 'yyyy hh:mm:ss tt",
-        longDatePattern: "dddd, dd' de 'MMMM' de 'yyyy",
-        longTimePattern: "hh:mm:ss tt",
-        monthDayPattern: "dd' de 'MMMM",
+        fullDateTimePattern: "dddd, d 'de' MMMM 'de' yyyy HH:mm:ss",
+        longDatePattern: "dddd, d 'de' MMMM 'de' yyyy",
+        longTimePattern: "HH:mm:ss",
+        monthDayPattern: "d 'de' MMMM",
         monthGenitiveNames: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre",""],
         monthNames: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre",""],
-        pmDesignator: "p.m.",
+        pmDesignator: "p. m.",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "dd/MM/yyyy",
-        shortestDayNames: ["do","lu","ma","mi","ju","vi","sá"],
-        shortTimePattern: "hh:mm tt",
+        shortDatePattern: "d/M/yyyy",
+        shortestDayNames: ["DO","LU","MA","MI","JU","VI","SA"],
+        shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
-        yearMonthPattern: "MMMM' de 'yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        yearMonthPattern: "MMMM 'de' yyyy",
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "es-AR",
+        EBCDICCodePage: 20284,
+        IsRightToLeft: false,
+        LCID: 11274,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

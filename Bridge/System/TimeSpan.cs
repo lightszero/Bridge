@@ -1,291 +1,190 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Name("Bridge.TimeSpan")]
-    public struct TimeSpan : IComparable, IComparable<TimeSpan>, IEquatable<TimeSpan>, IFormattable, IBridgeClass
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
+    public struct TimeSpan : IComparable, IComparable<TimeSpan>, IEquatable<TimeSpan>, IFormattable, Bridge.IBridgeClass
     {
-        [InlineConst]
+        [Bridge.InlineConst]
         public const long TicksPerDay = 864000000000;
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const long TicksPerHour = 36000000000;
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const long TicksPerMillisecond = 10000;
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const long TicksPerMinute = 600000000;
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const long TicksPerSecond = 10000000;
 
         public static readonly TimeSpan MaxValue;
         public static readonly TimeSpan MinValue;
         public static readonly TimeSpan Zero;
 
-        public TimeSpan(long ticks)
+        public extern TimeSpan(long ticks);
+
+        public extern TimeSpan(int hours, int minutes, int seconds);
+
+        public extern TimeSpan(int days, int hours, int minutes, int seconds);
+
+        public extern TimeSpan(int days, int hours, int minutes, int seconds, int milliseconds);
+
+        [Bridge.Template("System.TimeSpan.neg({t})")]
+        public static extern TimeSpan operator -(TimeSpan t);
+
+        [Bridge.Template("System.TimeSpan.sub({t1}, {t2})")]
+        public static extern TimeSpan operator -(TimeSpan t1, TimeSpan t2);
+
+        [Bridge.Template("System.TimeSpan.neq({t1}, {t2})")]
+        public static extern bool operator !=(TimeSpan t1, TimeSpan t2);
+
+        [Bridge.Template("System.TimeSpan.plus({t})")]
+        public static extern TimeSpan operator +(TimeSpan t);
+
+        [Bridge.Template("System.TimeSpan.add({t1}, {t2})")]
+        public static extern TimeSpan operator +(TimeSpan t1, TimeSpan t2);
+
+        [Bridge.Template("System.TimeSpan.lt({t1}, {t2})")]
+        public static extern bool operator <(TimeSpan t1, TimeSpan t2);
+
+        [Bridge.Template("System.TimeSpan.lte({t1}, {t2})")]
+        public static extern bool operator <=(TimeSpan t1, TimeSpan t2);
+
+        [Bridge.Template("System.TimeSpan.eq({t1}, {t2})")]
+        public static extern bool operator ==(TimeSpan t1, TimeSpan t2);
+
+        [Bridge.Template("System.TimeSpan.gt({t1}, {t2})")]
+        public static extern bool operator >(TimeSpan t1, TimeSpan t2);
+
+        [Bridge.Template("System.TimeSpan.gte({t1}, {t2})")]
+        public static extern bool operator >=(TimeSpan t1, TimeSpan t2);
+
+        public extern int Days
         {
+            [Bridge.Template("getDays()")]
+            get;
         }
 
-        public TimeSpan(int hours, int minutes, int seconds)
+        public extern int Hours
         {
+            [Bridge.Template("getHours()")]
+            get;
         }
 
-        public TimeSpan(int days, int hours, int minutes, int seconds)
+        public extern int Milliseconds
         {
+            [Bridge.Template("getMilliseconds()")]
+            get;
         }
 
-        public TimeSpan(int days, int hours, int minutes, int seconds, int milliseconds)
+        public extern int Minutes
         {
+            [Bridge.Template("getMinutes()")]
+            get;
         }
 
-        [Template("new Bridge.TimeSpan(-{t}.ticks)")]
-        public static TimeSpan operator -(TimeSpan t)
+        public extern int Seconds
         {
-            return new TimeSpan();
+            [Bridge.Template("getSeconds()")]
+            get;
         }
 
-        [Template("new Bridge.TimeSpan({t1}.ticks - {t2}.ticks)")]
-        public static TimeSpan operator -(TimeSpan t1, TimeSpan t2)
+        [Bridge.Template("TimeToTicks({0}, {1}, {2})")]
+        internal extern static long TimeToTicks(int hour, int minute, int second);
+
+        // internal so that DateTime doesn't have to call an extra get
+        // method for some arithmetic operations.
+        [Bridge.Template("getTicks()")]
+        internal long _ticks;
+
+        public extern long Ticks
         {
-            return new TimeSpan();
+            [Bridge.Template("getTicks()")]
+            get;
         }
 
-        [Template("{t1}.ticks !== {t2}.ticks")]
-        public static bool operator !=(TimeSpan t1, TimeSpan t2)
+        public extern double TotalDays
         {
-            return false;
+            [Bridge.Template("getTotalDays()")]
+            get;
         }
 
-        [Template("new Bridge.TimeSpan({t}.ticks)")]
-        public static TimeSpan operator +(TimeSpan t)
+        public extern double TotalHours
         {
-            return new TimeSpan();
+            [Bridge.Template("getTotalHours()")]
+            get;
         }
 
-        [Template("new Bridge.TimeSpan({t1}.ticks + {t2}.ticks)")]
-        public static TimeSpan operator +(TimeSpan t1, TimeSpan t2)
+        public extern double TotalMilliseconds
         {
-            return new TimeSpan();
+            [Bridge.Template("getTotalMilliseconds()")]
+            get;
         }
 
-        [Template("{t1}.ticks < {t2}.ticks")]
-        public static bool operator <(TimeSpan t1, TimeSpan t2)
+        public extern double TotalMinutes
         {
-            return false;
+            [Bridge.Template("getTotalMinutes()")]
+            get;
         }
 
-        [Template("{t1}.ticks <= {t2}.ticks")]
-        public static bool operator <=(TimeSpan t1, TimeSpan t2)
+        public extern double TotalSeconds
         {
-            return false;
+            [Bridge.Template("getTotalSeconds()")]
+            get;
         }
 
-        [Template("{t1}.ticks === {t2}.ticks")]
-        public static bool operator ==(TimeSpan t1, TimeSpan t2)
-        {
-            return false;
-        }
+        public extern TimeSpan Add(TimeSpan ts);
 
-        [Template("{t1}.ticks > {t2}.ticks")]
-        public static bool operator >(TimeSpan t1, TimeSpan t2)
-        {
-            return false;
-        }
+        [Bridge.Template("{t1}.compareTo({t2})")]
+        public static extern int Compare(TimeSpan t1, TimeSpan t2);
 
-        [Template("{t1}.ticks >= {t2}.ticks")]
-        public static bool operator >=(TimeSpan t1, TimeSpan t2)
-        {
-            return false;
-        }
+        public extern int CompareTo(object value);
 
-        public int Days
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public extern int CompareTo(TimeSpan value);
 
-        public int Hours
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public extern TimeSpan Duration();
 
-        public int Milliseconds
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public extern bool Equals(TimeSpan obj);
 
-        public int Minutes
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("({t1}).ticks.eq(({t2}).ticks)")]
+        public static extern bool Equals(TimeSpan t1, TimeSpan t2);
 
-        public int Seconds
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public static extern TimeSpan FromDays(double value);
 
-        public long Ticks
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public static extern TimeSpan FromHours(double value);
 
-        public double TotalDays
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public static extern TimeSpan FromMilliseconds(double value);
 
-        public double TotalHours
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public static extern TimeSpan FromMinutes(double value);
 
-        public double TotalMilliseconds
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public static extern TimeSpan FromSeconds(double value);
 
-        public double TotalMinutes
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public static extern TimeSpan FromTicks(long value);
 
-        public double TotalSeconds
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public extern TimeSpan Negate();
 
-        public TimeSpan Add(TimeSpan ts)
-        {
-            return new TimeSpan();
-        }
+        public extern TimeSpan Subtract(TimeSpan ts);
 
-        [Template("{t1}.compareTo({t2})")]
-        public static int Compare(TimeSpan t1, TimeSpan t2)
-        {
-            return 0;
-        }
+        public extern string ToString(string format);
 
-        public int CompareTo(object value)
-        {
-            return 0;
-        }
+        public extern string ToString(string format, IFormatProvider provider);
 
-        public int CompareTo(TimeSpan value)
-        {
-            return 0;
-        }
+        [Bridge.Name("toString")]
+        public extern string Format(string format);
 
-        public TimeSpan Duration()
-        {
-            return new TimeSpan();
-        }
+        [Bridge.Name("toString")]
+        public extern string Format(string format, IFormatProvider provider);
 
-        public bool Equals(TimeSpan obj)
-        {
-            return false;
-        }
+        public static extern TimeSpan Parse(string s);
+        public static extern TimeSpan Parse(string s, IFormatProvider provider);
 
-        [Template("{t1}.ticks === {t2}.ticks")]
-        public static bool Equals(TimeSpan t1, TimeSpan t2)
-        {
-            return false;
-        }
+        [Bridge.Template("System.TimeSpan.tryParse({s}, null, {result})")]
+        public static extern bool TryParse(string s, out TimeSpan result);
 
-        public static TimeSpan FromDays(double value)
-        {
-            return new TimeSpan();
-        }
-
-        public static TimeSpan FromHours(double value)
-        {
-            return new TimeSpan();
-        }
-
-        public static TimeSpan FromMilliseconds(double value)
-        {
-            return new TimeSpan();
-        }
-
-        public static TimeSpan FromMinutes(double value)
-        {
-            return new TimeSpan();
-        }
-
-        public static TimeSpan FromSeconds(double value)
-        {
-            return new TimeSpan();
-        }
-
-        public static TimeSpan FromTicks(long value)
-        {
-            return new TimeSpan();
-        }
-
-        public TimeSpan Negate()
-        {
-            return new TimeSpan();
-        }
-
-        public TimeSpan Subtract(TimeSpan ts)
-        {
-            return new TimeSpan();
-        }
-
-        public string ToString(string format)
-        {
-            return null;
-        }
-
-        public string ToString(string format, IFormatProvider provider)
-        {
-            return null;
-        }
-
-        [Name("toString")]
-        public string Format(string format)
-        {
-            return null;
-        }
-
-        [Name("toString")]
-        public string Format(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.TimeSpan.tryParse({s}, {provider}, {result})")]
+        public static extern bool TryParse(string s, IFormatProvider provider, out TimeSpan result);
     }
 }

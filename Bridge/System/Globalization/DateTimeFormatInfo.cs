@@ -1,240 +1,316 @@
-using Bridge;
-
 namespace System.Globalization
 {
-    [External]
-    [Namespace("Bridge")]
-    public sealed class DateTimeFormatInfo : IFormatProvider, ICloneable, IBridgeClass
+    /// <summary>
+    /// Provides culture-specific information about the format of date and time values.
+    /// </summary>
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
+    public sealed class DateTimeFormatInfo : IFormatProvider, ICloneable, Bridge.IBridgeClass
     {
-        public DateTimeFormatInfo()
+        /// <summary>
+        /// Initializes a new writable instance of the DateTimeFormatInfo class that is culture-independent (invariant).
+        /// </summary>
+        public extern DateTimeFormatInfo();
+
+        /// <summary>
+        /// Gets the default read-only DateTimeFormatInfo object that is culture-independent (invariant).
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public static extern DateTimeFormatInfo InvariantInfo
         {
+            get;
         }
 
-        [FieldProperty]
-        public static DateTimeFormatInfo InvariantInfo
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        [FieldProperty]
-        [Name("amDesignator")]
-        public string AMDesignator
+        /// <summary>
+        /// Gets or sets the string designator for hours that are "ante meridiem" (before noon).
+        /// </summary>
+        [Bridge.Name("amDesignator")]
+        public extern string AMDesignator
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        [Name("pmDesignator")]
-        public string PMDesignator
+        /// <summary>
+        /// Gets or sets the string designator for hours that are "post meridiem" (after noon).
+        /// </summary>
+        [Bridge.Name("pmDesignator")]
+        public extern string PMDesignator
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string DateSeparator
+        /// <summary>
+        /// Gets or sets the string that separates the components of a date, that is, the year, month, and day.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string DateSeparator
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string TimeSeparator
+        /// <summary>
+        /// Gets or sets the string that separates the components of time, that is, the hour, minutes, and seconds.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string TimeSeparator
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string UniversalSortableDateTimePattern
+        /// <summary>
+        /// Gets the custom format string for a universal, sortable date and time string.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string UniversalSortableDateTimePattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string SortableDateTimePattern
+        /// <summary>
+        /// Gets the custom format string for a sortable date and time value.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string SortableDateTimePattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string FullDateTimePattern
+        /// <summary>
+        /// Gets or sets the custom format string for a long date and long time value.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string FullDateTimePattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string LongDatePattern
+        /// <summary>
+        /// Gets or sets the custom format string for a long date value.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string LongDatePattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string ShortDatePattern
+        /// <summary>
+        /// Gets or sets the custom format string for a short date value.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string ShortDatePattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string LongTimePattern
+        /// <summary>
+        /// Gets or sets the custom format string for a long time value.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string LongTimePattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string ShortTimePattern
+        /// <summary>
+        /// Gets or sets the custom format string for a short time value.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string ShortTimePattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public int FirstDayOfWeek
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern DayOfWeek FirstDayOfWeek
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string[] DayNames
+        /// <summary>
+        /// Gets or sets a one-dimensional string array that contains the culture-specific full names of the days of the week.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string[] DayNames
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string[] AbbreviatedDayNames
+        /// <summary>
+        /// Gets or sets a one-dimensional array of type String containing the culture-specific abbreviated names of the days of the week.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string[] AbbreviatedDayNames
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string[] ShortestDayNames
+        /// <summary>
+        /// Gets or sets a string array of the shortest unique abbreviated day names associated with the current DateTimeFormatInfo object.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string[] ShortestDayNames
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string[] MonthNames
+        /// <summary>
+        /// Gets or sets a one-dimensional array of type String containing the culture-specific full names of the months.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string[] MonthNames
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string[] MonthGenitiveNames
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string[] MonthGenitiveNames
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string[] AbbreviatedMonthNames
+        /// <summary>
+        /// Gets or sets a one-dimensional string array that contains the culture-specific abbreviated names of the months.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string[] AbbreviatedMonthNames
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string[] AbbreviatedMonthGenitiveNames
+        /// <summary>
+        /// Gets or sets a string array of abbreviated month names associated with the current DateTimeFormatInfo object.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string[] AbbreviatedMonthGenitiveNames
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string MonthDayPattern
+        /// <summary>
+        /// Gets or sets the custom format string for a month and day value.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string MonthDayPattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        [Name("rfc1123Pattern")]
-        public string RFC1123Pattern
+        /// <summary>
+        /// Gets the custom format string for a time value that is based on the Internet Engineering Task Force (IETF) Request for Comments (RFC) 1123 specification.
+        /// </summary>
+        [Bridge.Name("rfc1123Pattern")]
+        public extern string RFC1123Pattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string YearMonthPattern
+        /// <summary>
+        /// Gets or sets the custom format string for a year and month value.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string YearMonthPattern
         {
             get;
             set;
         }
 
-        [FieldProperty]
-        public string RoundtripFormat
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public extern string RoundtripFormat
         {
             get;
             set;
         }
 
-        public object GetFormat(Type formatType)
+        /// <summary>
+        /// Returns an object of the specified type that provides a date and time formatting service.
+        /// </summary>
+        /// <param name="formatType">The type of the required formatting service.</param>
+        /// <returns>The current object, if formatType is the same as the type of the current DateTimeFormatInfo; otherwise, null.</returns>
+        public extern object GetFormat(Type formatType);
+
+        /// <summary>
+        /// Creates a shallow copy of the DateTimeFormatInfo.
+        /// </summary>
+        /// <returns>A new DateTimeFormatInfo object copied from the original DateTimeFormatInfo.</returns>
+        public extern object Clone();
+
+        /// <summary>
+        /// Gets a read-only DateTimeFormatInfo object that formats values based on the current culture.
+        /// </summary>
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public static extern DateTimeFormatInfo CurrentInfo
         {
-            return null;
+            get;
         }
 
-        public object Clone()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Returns the culture-specific abbreviated name of the specified day of the week based on the culture associated with the current DateTimeFormatInfo object.
+        /// </summary>
+        /// <param name="dayofweek">A System.DayOfWeek value.</param>
+        /// <returns>The culture-specific abbreviated name of the day of the week represented by dayofweek.</returns>
+        public extern string GetAbbreviatedDayName(DayOfWeek dayofweek);
 
-        [FieldProperty]
-        public static DateTimeFormatInfo CurrentInfo
-        {
-            get
-            {
-                return null;
-            }
-        }
+        /// <summary>
+        /// Returns the culture-specific abbreviated name of the specified month based on the culture associated with the current DateTimeFormatInfo object.
+        /// </summary>
+        /// <param name="month">An integer from 1 through 13 representing the name of the month to retrieve.</param>
+        /// <returns>The culture-specific abbreviated name of the month represented by month.</returns>
+        public extern string GetAbbreviatedMonthName(int month);
 
-        public string GetAbbreviatedDayName(DayOfWeek dayofweek)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Returns all the standard patterns in which date and time values can be formatted.
+        /// </summary>
+        /// <returns>An array that contains the standard patterns in which date and time values can be formatted.</returns>
+        public extern string[] GetAllDateTimePatterns();
 
-        public string GetAbbreviatedMonthName(int month)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Returns all the patterns in which date and time values can be formatted using the specified standard format string.
+        /// </summary>
+        /// <param name="format">A standard format string.</param>
+        /// <returns>An array containing the standard patterns in which date and time values can be formatted using the specified format string.</returns>
+        public extern string[] GetAllDateTimePatterns(char format);
 
-        public string[] GetAllDateTimePatterns()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Returns the culture-specific full name of the specified day of the week based on the culture associated with the current DateTimeFormatInfo object.
+        /// </summary>
+        /// <param name="dayofweek">A System.DayOfWeek value.</param>
+        /// <returns>The culture-specific full name of the day of the week represented by dayofweek.</returns>
+        public extern string GetDayName(DayOfWeek dayofweek);
 
-        public string[] GetAllDateTimePatterns(string format)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Returns the culture-specific full name of the specified month based on the culture associated with the current DateTimeFormatInfo object.
+        /// </summary>
+        /// <param name="month">An integer from 1 through 13 representing the name of the month to retrieve.</param>
+        /// <returns>The culture-specific full name of the month represented by month.</returns>
+        public extern string GetMonthName(int month);
 
-        public string GetDayName(DayOfWeek dayofweek)
-        {
-            return null;
-        }
-
-        public string GetMonthName(int month)
-        {
-            return null;
-        }
-
-        public string GetShortestDayName(DayOfWeek dayOfWeek)
-        {
-            return null;
-        }
+        /// <summary>
+        /// Obtains the shortest abbreviated day name for a specified day of the week associated with the current DateTimeFormatInfo object.
+        /// </summary>
+        /// <param name="dayOfWeek">One of the DayOfWeek values.</param>
+        /// <returns>The abbreviated name of the week that corresponds to the dayOfWeek parameter.</returns>
+        public extern string GetShortestDayName(DayOfWeek dayOfWeek);
     }
 }

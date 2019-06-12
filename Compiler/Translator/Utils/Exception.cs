@@ -3,21 +3,30 @@ using System;
 
 namespace Bridge.Translator
 {
-    public class Exception : System.Exception, IVisitorException
+    public class TranslatorException : System.Exception, IVisitorException
     {
-        public Exception(string message)
+        public TranslatorException()
+        {
+        }
+
+        public TranslatorException(string message)
             : base(message)
+        {
+        }
+
+        public TranslatorException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
 
         public static IVisitorException Create(string format, params object[] args)
         {
-            return new Bridge.Translator.Exception(String.Format(format, args));
+            return new Bridge.Translator.TranslatorException(String.Format(format, args));
         }
 
         public static void Throw(string format, params object[] args)
         {
-            throw (Exception)Bridge.Translator.Exception.Create(format, args);
+            throw (TranslatorException)Bridge.Translator.TranslatorException.Create(format, args);
         }
     }
 }

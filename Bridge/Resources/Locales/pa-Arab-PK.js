@@ -1,20 +1,20 @@
-﻿Bridge.merge(new Bridge.CultureInfo("pa-Arab-PK", true), {
+Bridge.merge(new System.Globalization.CultureInfo("pa-Arab-PK", true), {
     englishName: "Punjabi (Pakistan)",
     nativeName: "پنجابی (پاکستان)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "Nan",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinity",
-        positiveInfinitySymbol: "Infinity",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
-        percentPositivePattern: 3,
-        percentNegativePattern: 9,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "Rs",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 2
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["پير","منگل","بدھ","جمعرات","جمعه","هفته","اتوار"],
         abbreviatedMonthGenitiveNames: ["جنوری","فروری","مارچ","اپریل","مئی","جون","جولائی","اگست","ستمبر","اکتوبر","نومبر","دسمبر",""],
         abbreviatedMonthNames: ["جنوری","فروری","مارچ","اپریل","مئی","جون","جولائی","اگست","ستمبر","اکتوبر","نومبر","دسمبر",""],
@@ -53,6 +53,18 @@
         timeSeparator: ".",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1256,
+        CultureName: "pa-Arab-PK",
+        EBCDICCodePage: 20420,
+        IsRightToLeft: true,
+        LCID: 2118,
+        listSeparator: ";",
+        MacCodePage: 10004,
+        OEMCodePage: 720,
+        IsReadOnly: true
     })
 });

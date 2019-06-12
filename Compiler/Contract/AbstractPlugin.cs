@@ -4,9 +4,19 @@ namespace Bridge.Contract
 {
     public abstract class AbstractPlugin : IPlugin
     {
+        public virtual ILogger Logger { get; set; }
+
         public virtual IEnumerable<string> GetConstructorInjectors(IConstructorBlock constructorBlock)
         {
             return null;
+        }
+
+        public virtual void OnInvocation(IInvocationInterceptor interceptor)
+        {
+        }
+
+        public virtual void OnReference(IReferenceInterceptor interceptor)
+        {
         }
 
         public virtual bool HasConstructorInjectors(IConstructorBlock constructorBlock)

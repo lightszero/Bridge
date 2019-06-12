@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("sd", true), {
+Bridge.merge(new System.Globalization.CultureInfo("sd", true), {
     englishName: "Sindhi",
     nativeName: "سنڌي",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "Infinity-",
@@ -29,7 +29,7 @@
         numberNegativePattern: 3
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["سو","اڱ","ار","خم","جمعو","ڇن","آچ"],
         abbreviatedMonthGenitiveNames: ["جنوري","فروري","مارچ","اپريل","مٔي","جون","جولاءِ","آگست","ستمبر","آکتوبر","نومبر","ڊسمبر",""],
         abbreviatedMonthNames: ["جنوري","فروري","مارچ","اپريل","مٔي","جون","جولاءِ","آگست","ستمبر","آکتوبر","نومبر","ڊسمبر",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1256,
+        CultureName: "sd-Arab-PK",
+        EBCDICCodePage: 20420,
+        IsRightToLeft: true,
+        LCID: 2137,
+        listSeparator: ";",
+        MacCodePage: 10004,
+        OEMCodePage: 720,
+        IsReadOnly: true
     })
 });

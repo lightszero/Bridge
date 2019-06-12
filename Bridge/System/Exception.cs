@@ -1,66 +1,61 @@
-using Bridge;
 using System.Collections.Generic;
 
 namespace System
 {
-    [External]
-    [Name("Bridge.Exception")]
-    public class Exception : IBridgeClass
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
+    public class Exception : Bridge.IBridgeClass
     {
         /// <summary>
         /// Gets a collection of key/value pairs that provide additional user-defined information about the exception.
         /// </summary>
-        public virtual IDictionary<object, object> Data
+        public virtual extern IDictionary<object, object> Data
         {
-            get
-            {
-                return null;
-            }
+            get;
         }
 
         /// <summary>
         /// Gets a message that describes the current exception.
         /// </summary>
-        public virtual string Message
+        public virtual extern string Message
         {
-            get
-            {
-                return null;
-            }
+            get;
         }
 
         /// <summary>
         /// Gets the Exception instance that caused the current exception.
         /// </summary>
-        public virtual Exception InnerException
+        public virtual extern Exception InnerException
         {
-            get
-            {
-                return null;
-            }
+            get;
         }
+
+        /// <summary>
+        /// Retrieves the lowest exception (inner most) for the given Exception.
+        /// This will traverse exceptions using the innerException property.
+        /// </summary>
+        /// <returns>The first exception thrown in a chain of exceptions. If the InnerException property of the current exception is a null reference</returns>
+        public virtual extern Exception GetBaseException();
 
         /// <summary>
         /// Gets a string representation of the immediate frames on the call stack.
         /// </summary>
-        public virtual string StackTrace
+        public virtual extern string StackTrace
         {
-            get
-            {
-                return null;
-            }
+            get;
         }
 
-        public Exception()
+        public extern int HResult
         {
+            get;
+            protected set;
         }
 
-        public Exception(string message)
-        {
-        }
+        public extern Exception();
 
-        public Exception(string message, Exception innerException)
-        {
-        }
+        public extern Exception(string message);
+
+        public extern Exception(string message, Exception innerException);
     }
 }

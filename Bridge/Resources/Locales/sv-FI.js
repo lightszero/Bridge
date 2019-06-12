@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("sv-FI", true), {
+Bridge.merge(new System.Globalization.CultureInfo("sv-FI", true), {
     englishName: "Swedish (Finland)",
     nativeName: "svenska (Finland)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "¤¤¤",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-INF",
-        positiveInfinitySymbol: "INF",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,23 +29,23 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
-        abbreviatedDayNames: ["sö","må","ti","on","to","fr","lö"],
-        abbreviatedMonthGenitiveNames: ["jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec",""],
-        abbreviatedMonthNames: ["jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec",""],
-        amDesignator: "",
-        dateSeparator: ".",
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
+        abbreviatedDayNames: ["sön","mån","tis","ons","tors","fre","lör"],
+        abbreviatedMonthGenitiveNames: ["jan.","feb.","mars","apr.","maj","juni","juli","aug.","sep.","okt.","nov.","dec.",""],
+        abbreviatedMonthNames: ["jan.","feb.","mars","apr.","maj","juni","juli","aug.","sep.","okt.","nov.","dec.",""],
+        amDesignator: "fm",
+        dateSeparator: "-",
         dayNames: ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"],
         firstDayOfWeek: 1,
-        fullDateTimePattern: "'den 'd MMMM yyyy HH:mm:ss",
-        longDatePattern: "'den 'd MMMM yyyy",
+        fullDateTimePattern: "dddd d MMMM yyyy HH:mm:ss",
+        longDatePattern: "dddd d MMMM yyyy",
         longTimePattern: "HH:mm:ss",
-        monthDayPattern: "'den 'd MMMM",
+        monthDayPattern: "d MMMM",
         monthGenitiveNames: ["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december",""],
         monthNames: ["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december",""],
-        pmDesignator: "",
+        pmDesignator: "em",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "d.M.yyyy",
+        shortDatePattern: "dd-MM-yyyy",
         shortestDayNames: ["sö","må","ti","on","to","fr","lö"],
         shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "sv-FI",
+        EBCDICCodePage: 20278,
+        IsRightToLeft: false,
+        LCID: 2077,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

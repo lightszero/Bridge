@@ -1,12 +1,12 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Namespace("Bridge")]
-    public interface IFormattable : IBridgeClass
+    [Bridge.External]
+    [Bridge.Convention(Target = Bridge.ConventionTarget.Member, Member = Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.Reflectable]
+    public interface IFormattable : Bridge.IBridgeClass
     {
-        [Template("Bridge.format({this}, {format}, {formatProvider})")]
-        string Format(string format, IFormatProvider formatProvider);
+        [Bridge.Name("format")]
+        [Bridge.Template("Bridge.format({this}, {format}, {formatProvider})")]
+        string ToString(string format, IFormatProvider formatProvider);
     }
 }

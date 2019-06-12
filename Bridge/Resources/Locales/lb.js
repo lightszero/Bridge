@@ -1,15 +1,15 @@
-﻿Bridge.merge(new Bridge.CultureInfo("lb", true), {
+Bridge.merge(new System.Globalization.CultureInfo("lb", true), {
     englishName: "Luxembourgish",
     nativeName: "Lëtzebuergesch",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-onendlech",
-        positiveInfinitySymbol: "+onendlech",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
-        percentGroupSizes: [3,0],
+        percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: " ",
@@ -22,14 +22,14 @@
         currencyGroupSeparator: " ",
         currencyNegativePattern: 8,
         currencyPositivePattern: 3,
-        numberGroupSizes: [3,0],
+        numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
         numberGroupSeparator: " ",
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Son","Méi","Dën","Mët","Don","Fre","Sam"],
         abbreviatedMonthGenitiveNames: ["Jan","Feb","Mäe","Abr","Mee","Jun","Jul","Aug","Sep","Okt","Nov","Dez",""],
         abbreviatedMonthNames: ["Jan","Feb","Mäe","Abr","Mee","Jun","Jul","Aug","Sep","Okt","Nov","Dez",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "lb-LU",
+        EBCDICCodePage: 20297,
+        IsRightToLeft: false,
+        LCID: 1134,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

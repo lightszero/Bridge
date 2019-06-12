@@ -1,35 +1,35 @@
-﻿Bridge.merge(new Bridge.CultureInfo("fr-CI", true), {
-    englishName: "French (Ivory Coast)",
+Bridge.merge(new System.Globalization.CultureInfo("fr-CI", true), {
+    englishName: "French (Côte d’Ivoire)",
     nativeName: "français (Côte d’Ivoire)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
         positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
-        percentDecimalDigits: 0,
+        percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: " ",
-        percentPositivePattern: 2,
-        percentNegativePattern: 1,
+        percentPositivePattern: 0,
+        percentNegativePattern: 0,
         currencySymbol: "CFA",
         currencyGroupSizes: [3],
-        currencyDecimalDigits: 2,
+        currencyDecimalDigits: 0,
         currencyDecimalSeparator: ",",
         currencyGroupSeparator: " ",
-        currencyNegativePattern: 4,
-        currencyPositivePattern: 1,
+        currencyNegativePattern: 8,
+        currencyPositivePattern: 3,
         numberGroupSizes: [3],
-        numberDecimalDigits: 0,
+        numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
         numberGroupSeparator: " ",
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["dim.","lun.","mar.","mer.","jeu.","ven.","sam."],
         abbreviatedMonthGenitiveNames: ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc.",""],
         abbreviatedMonthNames: ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc.",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "fr-CI",
+        EBCDICCodePage: 20297,
+        IsRightToLeft: false,
+        LCID: 12300,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

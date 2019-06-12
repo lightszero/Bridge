@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("tzm-Latn-DZ", true), {
+Bridge.merge(new System.Globalization.CultureInfo("tzm-Latn-DZ", true), {
     englishName: "Central Atlas Tamazight (Latin, Algeria)",
-    nativeName: "Tamazight (Djazaïr)",
+    nativeName: "Tamaziɣt n laṭlaṣ (Djazaïr)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "war amdhan",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "war amdhan",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-ifedh",
@@ -12,24 +12,24 @@
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
-        percentGroupSeparator: " ",
+        percentGroupSeparator: " ",
         percentPositivePattern: 0,
         percentNegativePattern: 0,
         currencySymbol: "DA",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
-        currencyGroupSeparator: " ",
+        currencyGroupSeparator: " ",
         currencyNegativePattern: 8,
         currencyPositivePattern: 3,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
-        numberGroupSeparator: " ",
+        numberGroupSeparator: " ",
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["lh'd","let","ttl","lar","lex","ldj","sse"],
         abbreviatedMonthGenitiveNames: ["Yen","Fur","Megh","Yeb","May","Yun","Yul","Ghu","Cut","Tub","Nun","Duj",""],
         abbreviatedMonthNames: ["Yen","Fur","Megh","Yeb","May","Yun","Yul","Ghu","Cut","Tub","Nun","Duj",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "tzm-Latn-DZ",
+        EBCDICCodePage: 20297,
+        IsRightToLeft: false,
+        LCID: 2143,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

@@ -1,12 +1,10 @@
-using Bridge;
-
 namespace System.Collections.Generic
 {
-    [External]
-    [Namespace("Bridge")]
-    public interface IEnumerable<out T> : IEnumerable, IBridgeClass
+    [Bridge.External]
+    [Bridge.Reflectable]
+    public interface IEnumerable<out T> : IEnumerable, Bridge.IBridgeClass
     {
-        [Template("Bridge.getEnumerator({this}, \"$1\")")]
+        [Bridge.Template("Bridge.getEnumerator({this}, {T})")]
         new IEnumerator<T> GetEnumerator();
     }
 }

@@ -1,20 +1,20 @@
-﻿Bridge.merge(new Bridge.CultureInfo("vi-VN", true), {
+Bridge.merge(new System.Globalization.CultureInfo("vi-VN", true), {
     englishName: "Vietnamese (Vietnam)",
     nativeName: "Tiếng Việt (Việt Nam)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinity",
-        positiveInfinitySymbol: "Infinity",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: ".",
-        percentPositivePattern: 0,
-        percentNegativePattern: 0,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "₫",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
@@ -29,8 +29,8 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
-        abbreviatedDayNames: ["CN","T2","T3","Tư","Năm","Sáu","Bảy"],
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
+        abbreviatedDayNames: ["CN","T2","T3","T4","T5","T6","T7"],
         abbreviatedMonthGenitiveNames: ["Thg1","Thg2","Thg3","Thg4","Thg5","Thg6","Thg7","Thg8","Thg9","Thg10","Thg11","Thg12",""],
         abbreviatedMonthNames: ["Thg1","Thg2","Thg3","Thg4","Thg5","Thg6","Thg7","Thg8","Thg9","Thg10","Thg11","Thg12",""],
         amDesignator: "SA",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1258,
+        CultureName: "vi-VN",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1066,
+        listSeparator: ",",
+        MacCodePage: 10000,
+        OEMCodePage: 1258,
+        IsReadOnly: true
     })
 });

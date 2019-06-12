@@ -1,10 +1,12 @@
 ﻿using Bridge.Contract;
 using ICSharpCode.NRefactory.CSharp;
+using ICSharpCode.NRefactory.Semantics;
+using ICSharpCode.NRefactory.TypeSystem;
 using System.Collections.Generic;
 
 namespace Bridge.Translator.TypeScript
 {
-    public class IndexerBlock : AbstractMethodBlock
+    public class IndexerBlock : TypeScriptBlock
     {
         public IndexerBlock(IEmitter emitter, IndexerDeclaration indexerDeclaration)
             : base(emitter, indexerDeclaration)
@@ -29,44 +31,57 @@ namespace Bridge.Translator.TypeScript
         {
             if (!accessor.IsNull && this.Emitter.GetInline(accessor) == null)
             {
-                XmlToJsDoc.EmitComment(this, this.IndexerDeclaration);
-                var overloads = OverloadsCollection.Create(this.Emitter, indexerDeclaration, setter);
+                var memberResult = this.Emitter.Resolver.ResolveNode(this.IndexerDeclaration, this.Emitter) as MemberResolveResult;
+                var isInterface = memberResult.Member.DeclaringType.Kind == TypeKind.Interface;
+                var ignoreInterface = isInterface &&
+                                      memberResult.Member.DeclaringType.TypeParameterCount > 0;
 
-                string name = overloads.GetOverloadName();
-                this.Write((setter ? "set" : "get") + name);
+                this.WriteAccessor(indexerDeclaration, setter, ignoreInterface);
 
-                this.EmitMethodParameters(indexerDeclaration.Parameters, indexerDeclaration, setter);
-
-                if (setter)
+                if (!ignoreInterface && isInterface)
                 {
-                    this.Write(", value");
-                    this.WriteColon();
-                    name = BridgeTypes.ToTypeScriptName(indexerDeclaration.ReturnType, this.Emitter);
-                    this.Write(name);
-                    this.WriteCloseParentheses();
-                    this.WriteColon();
-                    this.Write("void");
+                    this.WriteAccessor(indexerDeclaration, setter, true);
                 }
-                else
-                {
-                    this.WriteColon();
-                    name = BridgeTypes.ToTypeScriptName(indexerDeclaration.ReturnType, this.Emitter);
-                    this.Write(name);
-                }
-
-                this.WriteSemiColon();
-                this.WriteNewLine();
             }
         }
 
-        protected override void EmitMethodParameters(IEnumerable<ParameterDeclaration> declarations, AstNode context, bool skipClose)
+        private void WriteAccessor(IndexerDeclaration indexerDeclaration, bool setter, bool ignoreInterface)
+        {
+            XmlToJsDoc.EmitComment(this, this.IndexerDeclaration, !setter);
+            string name = Helpers.GetPropertyRef(this.IndexerDeclaration, this.Emitter, setter, false, ignoreInterface);
+            this.Write(name);
+
+            this.EmitMethodParameters(indexerDeclaration.Parameters, null, indexerDeclaration, setter);
+
+            if (setter)
+            {
+                this.Write(", value");
+                this.WriteColon();
+                name = BridgeTypes.ToTypeScriptName(indexerDeclaration.ReturnType, this.Emitter);
+                this.Write(name);
+                this.WriteCloseParentheses();
+                this.WriteColon();
+                this.Write("void");
+            }
+            else
+            {
+                this.WriteColon();
+                name = BridgeTypes.ToTypeScriptName(indexerDeclaration.ReturnType, this.Emitter);
+                this.Write(name);
+            }
+
+            this.WriteSemiColon();
+            this.WriteNewLine();
+        }
+
+        protected virtual void EmitMethodParameters(IEnumerable<ParameterDeclaration> declarations, IEnumerable<TypeParameterDeclaration> typeParamsdeclarations, AstNode context, bool skipClose)
         {
             this.WriteOpenParentheses();
             bool needComma = false;
 
             foreach (var p in declarations)
             {
-                var name = this.Emitter.GetEntityName(p);
+                var name = this.Emitter.GetParameterName(p);
 
                 if (needComma)
                 {

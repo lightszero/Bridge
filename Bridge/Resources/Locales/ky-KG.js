@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ky-KG", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ky-KG", true), {
     englishName: "Kyrgyz (Kyrgyzstan)",
     nativeName: "Кыргыз (Кыргызстан)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "сан эмес",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "терс чексиздик",
-        positiveInfinitySymbol: "оң чексиздик",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,20 +29,20 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Жш","Дш","Шш","Шр","Бш","Жм","Иш"],
-        abbreviatedMonthGenitiveNames: ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек",""],
+        abbreviatedMonthGenitiveNames: ["янв.","фев.","мар.","апр.","май","июн.","июл.","авг.","сен.","окт.","ноя.","дек.",""],
         abbreviatedMonthNames: ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек",""],
         amDesignator: "",
         dateSeparator: "-",
         dayNames: ["жекшемби","дүйшөмбү","шейшемби","шаршемби","бейшемби","жума","ишемби"],
         firstDayOfWeek: 1,
-        fullDateTimePattern: "dd'-'MMMM yyyy'-ж.' HH:mm:ss",
-        longDatePattern: "dd'-'MMMM yyyy'-ж.'",
+        fullDateTimePattern: "dd-MMMM yyyy'-ж.' HH:mm:ss",
+        longDatePattern: "dd-MMMM yyyy'-ж.'",
         longTimePattern: "HH:mm:ss",
-        monthDayPattern: "d'-'MMMM",
+        monthDayPattern: "d-MMMM",
         monthGenitiveNames: ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь",""],
-        monthNames: ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь",""],
+        monthNames: ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь",""],
         pmDesignator: "",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
         shortDatePattern: "d-MMM yy",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy'-ж.'",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1251,
+        CultureName: "ky-KG",
+        EBCDICCodePage: 20880,
+        IsRightToLeft: false,
+        LCID: 1088,
+        listSeparator: ";",
+        MacCodePage: 10007,
+        OEMCodePage: 866,
+        IsReadOnly: true
     })
 });

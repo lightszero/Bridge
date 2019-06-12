@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("prs-AF", true), {
+Bridge.merge(new System.Globalization.CultureInfo("prs-AF", true), {
     englishName: "Dari (Afghanistan)",
     nativeName: "درى (افغانستان)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "غ ع",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "ناعدد",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
@@ -13,8 +13,8 @@
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: ".",
-        percentPositivePattern: 2,
-        percentNegativePattern: 4,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "؋",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
@@ -29,20 +29,20 @@
         numberNegativePattern: 3
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["یکشنبه","دوشنبه","سه‌ شنبه","چهار شنبه","پنجشنبه","جمعه","شنبه"],
-        abbreviatedMonthGenitiveNames: ["محرّم","صفر","ربيع الأوّل","ربيع الثاني","جمادى الأول","جمادى الثاني","رجب","شعبان","رمضان","شوّال","ذو القعدة","ذو الحجّة",""],
-        abbreviatedMonthNames: ["محرّم","صفر","ربيع الأوّل","ربيع الثاني","جمادى الأول","جمادى الثاني","رجب","شعبان","رمضان","شوّال","ذو القعدة","ذو الحجّة",""],
+        abbreviatedMonthGenitiveNames: ["حمل","ثور","جوزا","سرطان","اسد","سنبله","میزان","عقرب","قوس","جدی","دلو","حوت",""],
+        abbreviatedMonthNames: ["حمل","ثور","جوزا","سرطان","اسد","سنبله","میزان","عقرب","قوس","جدی","دلو","حوت",""],
         amDesignator: "غ.م",
         dateSeparator: "/",
         dayNames: ["یکشنبه","دوشنبه","سه‌ شنبه","چهار شنبه","پنجشنبه","جمعه","شنبه"],
         firstDayOfWeek: 6,
-        fullDateTimePattern: "yyyy, dd, MMMM, dddd h:mm:ss tt",
-        longDatePattern: "yyyy, dd, MMMM, dddd",
+        fullDateTimePattern: "dddd, d MMMM yyyy h:mm:ss tt",
+        longDatePattern: "dddd, d MMMM yyyy",
         longTimePattern: "h:mm:ss tt",
         monthDayPattern: "d MMMM",
-        monthGenitiveNames: ["محرّم","صفر","ربيع الأوّل","ربيع الثاني","جمادى الأول","جمادى الثاني","رجب","شعبان","رمضان","شوّال","ذو القعدة","ذو الحجّة",""],
-        monthNames: ["محرّم","صفر","ربيع الأوّل","ربيع الثاني","جمادى الأول","جمادى الثاني","رجب","شعبان","رمضان","شوّال","ذو القعدة","ذو الحجّة",""],
+        monthGenitiveNames: ["حمل","ثور","جوزا","سرطان","اسد","سنبله","میزان","عقرب","قوس","جدی","دلو","حوت",""],
+        monthNames: ["حمل","ثور","جوزا","سرطان","اسد","سنبله","میزان","عقرب","قوس","جدی","دلو","حوت",""],
         pmDesignator: "غ.و",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
         shortDatePattern: "yyyy/M/d",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1256,
+        CultureName: "prs-AF",
+        EBCDICCodePage: 20420,
+        IsRightToLeft: true,
+        LCID: 1164,
+        listSeparator: ";",
+        MacCodePage: 10004,
+        OEMCodePage: 720,
+        IsReadOnly: true
     })
 });

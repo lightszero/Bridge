@@ -1,6 +1,5 @@
 using ICSharpCode.NRefactory.CSharp;
 using Mono.Cecil;
-using System;
 using System.Collections.Generic;
 
 namespace Bridge.Contract
@@ -30,14 +29,24 @@ namespace Bridge.Contract
             set;
         }
 
-        string GetCode();
+        ProjectProperties ProjectProperties
+        {
+            get;
+            set;
+        }
+
+        string DefaultNamespace
+        {
+            get;
+            set;
+        }
 
         string Location
         {
             get;
         }
 
-        Action<string, string> Log
+        ILogger Log
         {
             get;
             set;
@@ -49,7 +58,7 @@ namespace Bridge.Contract
             set;
         }
 
-        System.Collections.Generic.Dictionary<string, string> Outputs
+        TranslatorOutput Outputs
         {
             get;
         }
@@ -60,14 +69,14 @@ namespace Bridge.Contract
             set;
         }
 
-        void SaveTo(string path, string defaultFileName);
+        void Save(string path, string defaultFileName);
 
         System.Collections.Generic.IList<string> SourceFiles
         {
             get;
         }
 
-        System.Collections.Generic.Dictionary<string, string> Translate();
+        void Translate();
 
         System.Collections.Generic.Dictionary<string, ITypeInfo> TypeInfoDefinitions
         {
@@ -123,12 +132,6 @@ namespace Bridge.Contract
             set;
         }
 
-        string Configuration
-        {
-            get;
-            set;
-        }
-
         List<string> DefineConstants
         {
             get;
@@ -141,6 +144,15 @@ namespace Bridge.Contract
             set;
         }
 
-        void Flush(string outputPath, string fileName);
+        /// <summary>
+        /// Indicates whether strict mode will be added to generated script files
+        /// </summary>
+        bool NoStrictMode
+        {
+            get;
+            set;
+        }
+
+        VersionContext GetVersionContext();
     }
 }

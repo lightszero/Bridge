@@ -1,20 +1,20 @@
-﻿Bridge.merge(new Bridge.CultureInfo("kok", true), {
+Bridge.merge(new System.Globalization.CultureInfo("kok", true), {
     englishName: "Konkani",
     nativeName: "कोंकणी",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinity",
-        positiveInfinitySymbol: "Infinity",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3,2],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
-        percentPositivePattern: 0,
-        percentNegativePattern: 0,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "₹",
         currencyGroupSizes: [3,2],
         currencyDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["आय.","सोम.","मंगळ.","बुध.","बिरे.","सुक्र.","शेन."],
         abbreviatedMonthGenitiveNames: ["जाने","फेब्रु","मार्च","एप्रिल","मे","जून","जुलै","ऑग.","सप्टें.","ऑक्टो.","नोवे.","डिसें",""],
         abbreviatedMonthNames: ["जाने","फेब्रु","मार्च","एप्रिल","मे","जून","जुलै","ऑग.","सप्टें.","ऑक्टो.","नोवे.","डिसें",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 0,
+        CultureName: "kok-IN",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1111,
+        listSeparator: ",",
+        MacCodePage: 2,
+        OEMCodePage: 1,
+        IsReadOnly: true
     })
 });

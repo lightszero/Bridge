@@ -1,35 +1,35 @@
-﻿Bridge.merge(new Bridge.CultureInfo("en-HK", true), {
-    englishName: "English (Hong Kong)",
-    nativeName: "English (Hong Kong)",
+Bridge.merge(new System.Globalization.CultureInfo("en-HK", true), {
+    englishName: "English (Hong Kong SAR)",
+    nativeName: "English (Hong Kong SAR)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
         positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
-        percentDecimalDigits: 0,
+        percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
-        percentPositivePattern: 2,
+        percentPositivePattern: 1,
         percentNegativePattern: 1,
         currencySymbol: "$",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ".",
         currencyGroupSeparator: ",",
-        currencyNegativePattern: 0,
+        currencyNegativePattern: 1,
         currencyPositivePattern: 0,
         numberGroupSizes: [3],
-        numberDecimalDigits: 0,
+        numberDecimalDigits: 2,
         numberDecimalSeparator: ".",
         numberGroupSeparator: ",",
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
         abbreviatedMonthGenitiveNames: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec",""],
         abbreviatedMonthNames: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec",""],
@@ -37,15 +37,15 @@
         dateSeparator: "/",
         dayNames: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
         firstDayOfWeek: 0,
-        fullDateTimePattern: "dddd, d MMMM, yyyy h:mm:ss tt",
-        longDatePattern: "dddd, d MMMM, yyyy",
+        fullDateTimePattern: "dddd, d MMMM yyyy h:mm:ss tt",
+        longDatePattern: "dddd, d MMMM yyyy",
         longTimePattern: "h:mm:ss tt",
         monthDayPattern: "d MMMM",
         monthGenitiveNames: ["January","February","March","April","May","June","July","August","September","October","November","December",""],
         monthNames: ["January","February","March","April","May","June","July","August","September","October","November","December",""],
         pmDesignator: "PM",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "d/M/yy",
+        shortDatePattern: "d/M/yyyy",
         shortestDayNames: ["Su","Mo","Tu","We","Th","Fr","Sa"],
         shortTimePattern: "h:mm tt",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "en-HK",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 15369,
+        listSeparator: ",",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

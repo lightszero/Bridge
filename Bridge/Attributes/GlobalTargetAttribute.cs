@@ -2,7 +2,7 @@
 
 namespace Bridge
 {
-    [External]
+    [NonScriptable]
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
     public class GlobalTargetAttribute : Attribute
     {

@@ -1,20 +1,20 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Namespace("Bridge")]
-    public interface IComparable : IBridgeClass
+    [Bridge.External]
+    [Bridge.Convention(Target = Bridge.ConventionTarget.Member, Member = Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.Reflectable]
+    public interface IComparable : Bridge.IBridgeClass
     {
-        [Template("Bridge.compare({this}, {obj})")]
+        [Bridge.Template("Bridge.compare({this}, {obj})")]
         int CompareTo(Object obj);
     }
 
-    [External]
-    [Namespace("Bridge")]
-    public interface IComparable<in T> : IBridgeClass
+    [Bridge.External]
+    [Bridge.Convention(Target = Bridge.ConventionTarget.Member, Member = Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.Reflectable]
+    public interface IComparable<in T> : Bridge.IBridgeClass
     {
-        [Template("Bridge.compare({this}, {other})")]
+        [Bridge.Template("Bridge.compare({this}, {other}, false, {T})")]
         int CompareTo(T other);
     }
 }

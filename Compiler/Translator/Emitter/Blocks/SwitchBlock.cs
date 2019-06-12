@@ -1,8 +1,13 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
+
 using ICSharpCode.NRefactory.CSharp;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ICSharpCode.NRefactory.Semantics;
+using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Bridge.Translator
 {
@@ -116,7 +121,7 @@ namespace Bridge.Translator
             }
             else
             {
-                key = this.AddLocal(this.GetTempVarName(), AstType.Null);
+                key = this.AddLocal(this.GetTempVarName(), null, AstType.Null);
                 this.Write(key);
                 this.Write(" = ");
                 switchStatement.Expression.AcceptVisitor(this.Emitter);
@@ -151,9 +156,12 @@ namespace Bridge.Translator
             bool writeElse = false;
             var thisStep = this.Emitter.AsyncBlock.Steps.Last();
 
+            var rr = this.Emitter.Resolver.ResolveNode(switchStatement.Expression, this.Emitter);
+            bool is64Bit = Helpers.Is64Type(rr.Type, this.Emitter.Resolver);
+
             foreach (var switchSection in list)
             {
-                this.VisitAsyncSwitchSection(switchSection, writeElse, key);
+                this.VisitAsyncSwitchSection(switchSection, writeElse, key, is64Bit);
                 writeElse = true;
             }
 
@@ -180,7 +188,7 @@ namespace Bridge.Translator
             this.Emitter.AsyncSwitch = this.ParentAsyncSwitch;
         }
 
-        protected void VisitAsyncSwitchSection(SwitchSection switchSection, bool writeElse, string switchKey)
+        protected void VisitAsyncSwitchSection(SwitchSection switchSection, bool writeElse, string switchKey, bool is64Bit)
         {
             var list = switchSection.CaseLabels.ToList();
 
@@ -229,8 +237,33 @@ namespace Bridge.Translator
                         this.WriteSpace();
                     }
 
-                    this.Write(switchKey + " === ");
+                    this.Write(switchKey);
+                    if (is64Bit)
+                    {
+                        this.WriteDot();
+                        this.Write(JS.Funcs.Math.EQ);
+                        this.WriteOpenParentheses();
+                    }
+                    else
+                    {
+                        this.Write(" === ");
+                    }
+
                     label.Expression.AcceptVisitor(this.Emitter);
+
+                    if (is64Bit)
+                    {
+                        this.Write(")");
+                    }
+
+                    if (label.Expression is NullReferenceExpression)
+                    {
+                        this.WriteSpace();
+                        this.Write("||");
+                        this.WriteSpace();
+                        this.Write(switchKey);
+                        this.Write(" === undefined");
+                    }
 
                     writeOr = true;
                 }
@@ -239,26 +272,32 @@ namespace Bridge.Translator
                 this.Emitter.ReplaceAwaiterByVar = oldValue;
             }
 
-            if (switchSection.Statements.Count() == 1 && switchSection.Statements.First() is BlockStatement)
+            var isBlock = false;
+            if (switchSection.Statements.Count == 1 && switchSection.Statements.First() is BlockStatement)
             {
+                isBlock = true;
                 this.Emitter.IgnoreBlock = switchSection.Statements.First();
             }
 
-            int startCount = this.Emitter.AsyncBlock.Steps.Count;
-            IAsyncStep thisStep = null;
             this.WriteSpace();
             this.BeginBlock();
-            this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+            this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
             this.WriteNewLine();
             this.Write("continue;");
             var writer = this.SaveWriter();
-            var bodyStep = this.Emitter.AsyncBlock.AddAsyncStep();
+            var step = this.Emitter.AsyncBlock.AddAsyncStep();
+            step.Node = switchSection;
+
+            if (!isBlock)
+            {
+                this.PushLocals();
+            }
 
             switchSection.Statements.AcceptVisitor(this.Emitter);
 
-            if (this.Emitter.AsyncBlock.Steps.Count > startCount)
+            if (!isBlock)
             {
-                thisStep = this.Emitter.AsyncBlock.Steps.Last();
+                this.PopLocals();
             }
 
             if (this.RestoreWriter(writer) && !this.IsOnlyWhitespaceOnPenultimateLine(true))
@@ -273,11 +312,42 @@ namespace Bridge.Translator
         protected void VisitSwitchStatement()
         {
             SwitchStatement switchStatement = this.SwitchStatement;
+            this.ParentAsyncSwitch = this.Emitter.AsyncSwitch;
+            this.Emitter.AsyncSwitch = null;
+
+            var jumpStatements = this.Emitter.JumpStatements;
+            this.Emitter.JumpStatements = null;
 
             this.WriteSwitch();
             this.WriteOpenParentheses();
+            var rr = this.Emitter.Resolver.ResolveNode(switchStatement.Expression, this.Emitter);
+            bool is64Bit = false;
+            bool wrap = true;
+
+            if (Helpers.Is64Type(rr.Type, this.Emitter.Resolver))
+            {
+                is64Bit = true;
+                wrap = !(rr is LocalResolveResult || rr is MemberResolveResult);
+            }
+
+            if (is64Bit && wrap)
+            {
+                this.WriteOpenParentheses();
+            }
 
             switchStatement.Expression.AcceptVisitor(this.Emitter);
+
+            if (is64Bit)
+            {
+                if (wrap)
+                {
+                    this.WriteCloseParentheses();
+                }
+
+                this.WriteDot();
+                this.Write(JS.Funcs.TOSTIRNG);
+                this.WriteOpenCloseParentheses();
+            }
 
             this.WriteCloseParentheses();
             this.WriteSpace();
@@ -286,6 +356,8 @@ namespace Bridge.Translator
             switchStatement.SwitchSections.ToList().ForEach(s => s.AcceptVisitor(this.Emitter));
             this.EndBlock();
             this.WriteNewLine();
+            this.Emitter.JumpStatements = jumpStatements;
+            this.Emitter.AsyncSwitch = this.ParentAsyncSwitch;
         }
 
         protected void VisitSwitchSection()
@@ -294,7 +366,20 @@ namespace Bridge.Translator
 
             switchSection.CaseLabels.ToList().ForEach(l => l.AcceptVisitor(this.Emitter));
             this.Indent();
-            switchSection.Statements.ToList().ForEach(s => s.AcceptVisitor(this.Emitter));
+
+            var isBlock = switchSection.Statements.Count == 1 && switchSection.Statements.First() is BlockStatement;
+            if (!isBlock)
+            {
+                this.PushLocals();
+            }
+            var children = switchSection.Children.Where(c => c.Role == Roles.EmbeddedStatement || c.Role == Roles.Comment);
+            children.ToList().ForEach(s => s.AcceptVisitor(this.Emitter));
+
+            if (!isBlock)
+            {
+                this.PopLocals();
+            }
+
             this.Outdent();
         }
 
@@ -309,7 +394,35 @@ namespace Bridge.Translator
             else
             {
                 this.Write("case ");
-                caseLabel.Expression.AcceptVisitor(this.Emitter);
+
+                var rr = this.Emitter.Resolver.ResolveNode(caseLabel.Expression.GetParent<SwitchStatement>().Expression, this.Emitter);
+                var caserr = this.Emitter.Resolver.ResolveNode(caseLabel.Expression, this.Emitter);
+
+                if (Helpers.Is64Type(rr.Type, this.Emitter.Resolver))
+                {
+                    if (caserr is ConstantResolveResult)
+                    {
+                        this.WriteScript(caserr.ConstantValue.ToString());
+                    }
+                    else
+                    {
+                        caseLabel.Expression.AcceptVisitor(this.Emitter);
+                        this.WriteDot();
+                        this.Write(JS.Funcs.TOSTIRNG);
+                        this.WriteOpenCloseParentheses();
+                    }
+                }
+                else
+                {
+                    caseLabel.Expression.AcceptVisitor(this.Emitter);
+                }
+
+                if (caserr.Type.Kind == TypeKind.Null)
+                {
+                    this.WriteColon();
+                    this.WriteNewLine();
+                    this.Write("case undefined");
+                }
             }
 
             this.WriteColon();

@@ -1,6 +1,11 @@
+using System;
 using Bridge.Contract;
 using ICSharpCode.NRefactory.CSharp;
 using System.Linq;
+using System.Xml.Schema;
+using Bridge.Contract.Constants;
+using ICSharpCode.NRefactory.Semantics;
+using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Bridge.Translator
 {
@@ -18,6 +23,26 @@ namespace Bridge.Translator
             get;
             set;
         }
+        public CompilerRule OldRules { get; private set; }
+
+        protected override void BeginEmit()
+        {
+            base.BeginEmit();
+            this.OldRules = this.Emitter.Rules;
+
+            var rr = this.Emitter.Resolver.ResolveNode(this.MethodDeclaration, this.Emitter) as MemberResolveResult;
+
+            if (rr != null)
+            {
+                this.Emitter.Rules = Rules.Get(this.Emitter, rr.Member);
+            }
+        }
+
+        protected override void EndEmit()
+        {
+            base.EndEmit();
+            this.Emitter.Rules = this.OldRules;
+        }
 
         protected override void DoEmit()
         {
@@ -31,13 +56,13 @@ namespace Bridge.Translator
                 foreach (var attr in attrSection.Attributes)
                 {
                     var rr = this.Emitter.Resolver.ResolveNode(attr.Type, this.Emitter);
-                    if (rr.Type.FullName == "Bridge.ExternalAttribute" || rr.Type.FullName == "Bridge.IgnoreAttribute")
+                    if (rr.Type.FullName == "Bridge.ExternalAttribute")
                     {
                         return;
                     }
                     else if (rr.Type.FullName == "Bridge.InitAttribute")
                     {
-                        int initPosition = 0;
+                        InitPosition initPosition = InitPosition.After;
 
                         if (attr.HasArgumentList)
                         {
@@ -47,12 +72,12 @@ namespace Bridge.Translator
                                 var argrr = this.Emitter.Resolver.ResolveNode(argExpr, this.Emitter);
                                 if (argrr.ConstantValue is int)
                                 {
-                                    initPosition = (int)argrr.ConstantValue;
+                                    initPosition = (InitPosition)argrr.ConstantValue;
                                 }
                             }
                         }
 
-                        if (initPosition == 1) // Before
+                        if (initPosition > 0)
                         {
                             return;
                         }
@@ -68,35 +93,42 @@ namespace Bridge.Translator
 
             this.AddLocals(methodDeclaration.Parameters, methodDeclaration.Body);
 
-            var typeDef = this.Emitter.GetTypeDefinition();
             var overloads = OverloadsCollection.Create(this.Emitter, methodDeclaration);
             XmlToJsDoc.EmitComment(this, this.MethodDeclaration);
+            var isEntryPoint = Helpers.IsEntryPointMethod(this.Emitter, this.MethodDeclaration);
+            var member_rr = (MemberResolveResult)this.Emitter.Resolver.ResolveNode(this.MethodDeclaration, this.Emitter);
 
-            if (overloads.HasOverloads)
+            string name = overloads.GetOverloadName(false, null, excludeTypeOnly: OverloadsCollection.ExcludeTypeParameterForDefinition(member_rr));
+
+            if (isEntryPoint)
             {
-                string name = overloads.GetOverloadName();
-                this.Write(name);
+                this.Write(JS.Funcs.ENTRY_POINT_NAME);
             }
             else
             {
-                this.Write(this.Emitter.GetEntityName(methodDeclaration));
+                this.Write(name);
             }
 
             this.WriteColon();
 
-            if (methodDeclaration.TypeParameters.Count > 0)
-            {
-                this.WriteFunction();
-                this.EmitTypeParameters(methodDeclaration.TypeParameters, methodDeclaration);
-                this.WriteSpace();
-                this.BeginBlock();
-                this.WriteReturn(true);
-                this.Write("Bridge.fn.bind(this, ");
-            }
-
             this.WriteFunction();
 
-            this.EmitMethodParameters(methodDeclaration.Parameters, methodDeclaration);
+            if (isEntryPoint)
+            {
+                this.Write(name);
+                this.WriteSpace();
+            }
+            else
+            {
+                var nm = Helpers.GetFunctionName(this.Emitter.AssemblyInfo.NamedFunctions, member_rr.Member, this.Emitter);
+                if (nm != null)
+                {
+                    this.Write(nm);
+                    this.WriteSpace();
+                }
+            }
+
+            this.EmitMethodParameters(methodDeclaration.Parameters, methodDeclaration.TypeParameters.Count > 0 && Helpers.IsIgnoreGeneric(methodDeclaration, this.Emitter) ? null : methodDeclaration.TypeParameters, methodDeclaration);
 
             this.WriteSpace();
 
@@ -104,7 +136,11 @@ namespace Bridge.Translator
 
             if (script == null)
             {
-                if (methodDeclaration.HasModifier(Modifiers.Async))
+                if (YieldBlock.HasYield(methodDeclaration.Body))
+                {
+                    new GeneratorBlock(this.Emitter, methodDeclaration).Emit();
+                }
+                else if (methodDeclaration.HasModifier(Modifiers.Async) || AsyncBlock.HasGoto(methodDeclaration.Body))
                 {
                     new AsyncBlock(this.Emitter, methodDeclaration).Emit();
                 }
@@ -117,19 +153,8 @@ namespace Bridge.Translator
             {
                 this.BeginBlock();
 
-                foreach (var line in script)
-                {
-                    this.Write(line);
-                    this.WriteNewLine();
-                }
+                this.WriteLines(script);
 
-                this.EndBlock();
-            }
-
-            if (methodDeclaration.TypeParameters.Count > 0)
-            {
-                this.Write(");");
-                this.WriteNewLine();
                 this.EndBlock();
             }
 

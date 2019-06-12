@@ -1,0 +1,29 @@
+{
+  "name": "Bridge.NET",
+  "description": "Write modern mobile and web apps in C#. Run them anywhere in JavaScript with Bridge.NET. http://bridge.net",
+  "homepage": "https://github.com/bridgedotnet/Bridge",
+  "keywords": [
+    "Bridge.NET",
+    "JavaScript",
+    "Compiler"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bridgedotnet/Bridge/bridge.git"
+  },
+  "engines": ["node"],
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "~1.0.1",
+    "grunt-cli": "~1.2.0",
+    "grunt-saucelabs": "*",
+    "grunt-contrib-connect": "^1.0.2",
+    "grunt-contrib-watch": "~1.0.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "directories": {
+    "test": "./spec"
+  }
+}

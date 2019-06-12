@@ -1,5 +1,12 @@
 {
   "output": "Bridge\\output",
-  "cleanOutputFolderBeforeBuild": true,
-  "fileNameCasing": "None"
+  "outputBy": "Namespace",
+  "cleanOutputFolderBeforeBuildPattern": "*.*",
+  "fileNameCasing": "None",
+  "outputFormatting": "Formatted",
+  "generateDocumentation": "Basic",
+  "logging": {
+    "level":  "None"
+  },
+  "report": true
 }

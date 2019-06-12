@@ -1,726 +1,503 @@
-using Bridge;
+using System.Runtime.CompilerServices;
 
 namespace System
 {
-    [External]
-    [Name("Date")]
+    /// <summary>
+    /// Represents an instant in time, typically expressed as a date and time of day.
+    /// </summary>
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
     public struct DateTime : IComparable, IComparable<DateTime>, IEquatable<DateTime>, IFormattable
     {
-        [Template("new Date(864e13)")]
-        public static readonly DateTime MaxValue = new DateTime(123);
 
-        [Template("new Date(-864e13)")]
-        public static readonly DateTime MinValue = new DateTime(0);
+        [Bridge.Template("System.DateTime.TicksPerDay")]
+        private const long TicksPerDay = 864000000000;
+
+        [Bridge.Template("System.DateTime.DaysTo1970")]
+        internal const int DaysTo1970 = 719162;
+
+        [Bridge.Template("System.DateTime.getMinTicks()")]
+        internal const long MinTicks = 0;
+
+        [Bridge.Template("System.DateTime.getMaxTicks()")]
+        internal const long MaxTicks = 3652059 * 864000000000 - 1;
 
         /// <summary>
-        /// Double value representing the number of milliseconds since 1 January 1970 00:00:00 UTC (Unix Epoch).
+        /// Represents the largest possible value of DateTime. This field is read-only.
         /// </summary>
-        /// <param name="value">The numberof milliseconds since 1 January 1970 00:00:00 UTC (Unix Epoch)</param>
-        public DateTime(long value)
+        [Bridge.Template("System.DateTime.getMaxValue()")]
+        public static readonly DateTime MaxValue;
+
+        /// <summary>
+        /// Represents the smallest possible value of DateTime. This field is read-only.
+        /// </summary>
+        [Bridge.Template("System.DateTime.getMinValue()")]
+        public static readonly DateTime MinValue;
+
+        /// <summary>
+        /// Initializes a new instance of the DateTime structure.
+        /// </summary>
+        [Bridge.Template("System.DateTime.getDefaultValue()")]
+        private extern DateTime(DummyTypeUsedToAddAttributeToDefaultValueTypeConstructor _);
+
+        /// <summary>
+        /// Initializes a new instance of the DateTime structure to a specified number of ticks.
+        /// </summary>
+        /// <param name="ticks">A date and time expressed in the number of 100-nanosecond intervals that have elapsed since January 1, 0001 at 00:00:00.000 in the Gregorian calendar.</param>
+        [Bridge.Template("System.DateTime.create$2({0})")]
+        public extern DateTime(long ticks);
+
+        /// <summary>
+        /// Initializes a new instance of the DateTime structure to a specified number of ticks and to Coordinated Universal Time (UTC) or local time.
+        /// </summary>
+        /// <param name="ticks">A date and time expressed in the number of 100-nanosecond intervals that have elapsed since January 1, 0001 at 00:00:00.000 in the Gregorian calendar.</param>
+        /// <param name="kind">One of the enumeration values that indicates whether ticks specifies a local time, Coordinated Universal Time (UTC), or neither.</param>
+        [Bridge.Template("System.DateTime.create$2({0}, {1})")]
+        public extern DateTime(long ticks, DateTimeKind kind);
+
+        /// <summary>
+        /// Initializes a new instance of the DateTime structure to the specified year, month, and day.
+        /// </summary>
+        /// <param name="year">The year (1 through 9999).</param>
+        /// <param name="month">The month (1 through 12).</param>
+        /// <param name="day">The day (1 through the number of days in month).</param>
+        [Bridge.Template("System.DateTime.create({0}, {1}, {2})")]
+        public extern DateTime(int year, int month, int day);
+
+        /// <summary>
+        /// Initializes a new instance of the DateTime structure to the specified year, month, day, hour, minute, and second.
+        /// </summary>
+        /// <param name="year">The year (1 through 9999).</param>
+        /// <param name="month">The month (1 through 12).</param>
+        /// <param name="day">The day (1 through the number of days in month).</param>
+        /// <param name="hour">The hours (0 through 23).</param>
+        /// <param name="minute">The minutes (0 through 59).</param>
+        /// <param name="second">The seconds (0 through 59).</param>
+        [Bridge.Template("System.DateTime.create({0}, {1}, {2}, {3}, {4}, {5})")]
+        public extern DateTime(int year, int month, int day, int hour, int minute, int second);
+
+        /// <summary>
+        /// Initializes a new instance of the DateTime structure to the specified year, month, day, hour, minute, second, and Coordinated Universal Time (UTC) or local time.
+        /// </summary>
+        /// <param name="year">The year (1 through 9999).</param>
+        /// <param name="month">The month (1 through 12).</param>
+        /// <param name="day">The day (1 through the number of days in month).</param>
+        /// <param name="hour">The hours (0 through 23).</param>
+        /// <param name="minute">The minutes (0 through 59).</param>
+        /// <param name="second">The seconds (0 through 59).</param>
+        /// <param name="kind">One of the enumeration values that indicates whether year, month, day, hour, minute, second, and millisecond specify a local time, Coordinated Universal Time (UTC), or neither.</param>
+        [Bridge.Template("System.DateTime.create({0}, {1}, {2}, {3}, {4}, {5}, 0, {6})")]
+        public extern DateTime(int year, int month, int day, int hour, int minute, int second, DateTimeKind kind);
+
+        /// <summary>
+        /// Initializes a new instance of the DateTime structure to the specified year, month, day, hour, minute, second, and millisecond.
+        /// </summary>
+        /// <param name="year">The year (1 through 9999).</param>
+        /// <param name="month">The month (1 through 12).</param>
+        /// <param name="day">The day (1 through the number of days in month).</param>
+        /// <param name="hour">The hours (0 through 23).</param>
+        /// <param name="minute">The minutes (0 through 59).</param>
+        /// <param name="second">The seconds (0 through 59).</param>
+        /// <param name="millisecond">The milliseconds (0 through 999).</param>
+        [Bridge.Template("System.DateTime.create({0}, {1}, {2}, {3}, {4}, {5}, {6})")]
+        public extern DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond);
+
+        /// <summary>
+        /// Initializes a new instance of the DateTime structure to the specified year, month, day, hour, minute, second, millisecond, and Coordinated Universal Time (UTC) or local time.
+        /// </summary>
+        /// <param name="year">The year (1 through 9999).</param>
+        /// <param name="month">The month (1 through 12).</param>
+        /// <param name="day">The day (1 through the number of days in month).</param>
+        /// <param name="hour">The hours (0 through 23).</param>
+        /// <param name="minute">The minutes (0 through 59).</param>
+        /// <param name="second">The seconds (0 through 59).</param>
+        /// <param name="millisecond">The milliseconds (0 through 999).</param>
+        /// <param name="kind">One of the enumeration values that indicates whether year, month, day, hour, minute, second, and millisecond specify a local time, Coordinated Universal Time (UTC), or neither.</param>
+        [Bridge.Template("System.DateTime.create({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})")]
+        public extern DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond, DateTimeKind kind);
+
+        /// <summary>
+        /// Gets the current date.
+        /// </summary>
+        public static extern DateTime Today
         {
+            [Bridge.Template("System.DateTime.getToday()")]
+            get;
         }
 
         /// <summary>
-        /// String value representing a date. The string should be in a format recognized by the Date.parse() method (IETF-compliant RFC 2822 timestamps and also a version of ISO8601).
+        /// Gets a DateTime object that is set to the current date and time on this computer, expressed as the local time.
         /// </summary>
-        /// <param name="dateString"></param>
-        public DateTime(string dateString)
+        public static extern DateTime Now
         {
+            [Bridge.Template("System.DateTime.getNow()")]
+            get;
         }
 
-        [Template("new Date({year}, {month} - 1)")]
-        public DateTime(int year, int month)
+        /// <summary>
+        /// Gets a DateTime object that is set to the current date and time on this computer, expressed as the Coordinated Universal Time (UTC).
+        /// </summary>
+        public static extern DateTime UtcNow
         {
+            [Bridge.Template("System.DateTime.getUtcNow()")]
+            get;
         }
 
-        [Template("new Date({year}, {month} - 1, {day})")]
-        public DateTime(int year, int month, int day)
+        /// <summary>
+        /// Gets a value that indicates whether the time represented by this instance is based on local time, Coordinated Universal Time (UTC), or neither.
+        /// </summary>
+        public DateTimeKind Kind
         {
+            [Bridge.Template("System.DateTime.getKind({this})")]
+            get;
         }
 
-        [Template("new Date({year}, {month} - 1, {day}, {hours})")]
-        public DateTime(int year, int month, int day, int hours)
-        {
-        }
-
-        [Template("new Date({year}, {month} - 1, {day}, {hours}, {minutes})")]
-        public DateTime(int year, int month, int day, int hours, int minutes)
-        {
-        }
-
-        [Template("new Date({year}, {month} - 1, {day}, {hours}, {minutes}, {seconds})")]
-        public DateTime(int year, int month, int day, int hours, int minutes, int seconds)
-        {
-        }
-
-        [Template("new Date({year}, {month} - 1, {day}, {hours}, {minutes}, {seconds}, {milliseconds})")]
-        public DateTime(int year, int month, int day, int hours, int minutes, int seconds, int milliseconds)
-        {
-        }
-
-        [Template("Date.UTC({year}, {month} - 1, {day}, {hours}, {minutes}, {seconds}, {ms})")]
-        public static long Utc(int year, int month, int day, int hours, int minutes, int seconds, int ms)
-        {
-            return 0;
-        }
-
-        [Template("Date.UTC({year}, {month} - 1, {day}, {hours}, {minutes}, {seconds})")]
-        public static long Utc(int year, int month, int day, int hours, int minutes, int seconds)
-        {
-            return 0;
-        }
-
-        [Template("Date.UTC({year}, {month} - 1, {day}, {hours}, {minutes})")]
-        public static long Utc(int year, int month, int day, int hours, int minutes)
-        {
-            return 0;
-        }
-
-        [Template("Date.UTC({year}, {month} - 1, {day}, {hours})")]
-        public static long Utc(int year, int month, int day, int hours)
-        {
-            return 0;
-        }
-
-        [Template("Date.UTC({year}, {month} - 1, {day})")]
-        public static long Utc(int year, int month, int day)
-        {
-            return 0;
-        }
-
-        [Template("Date.UTC({year}, {month} - 1)")]
-        public static long Utc(int year, int month)
-        {
-            return 0;
-        }
-
-        public static DateTime Now
-        {
-            [Template("new Date()")]
-            get
-            {
-                return default(DateTime);
-            }
-        }
-
-        public static DateTime UtcNow
-        {
-            [Template("Bridge.Date.utcNow()")]
-            get
-            {
-                return default(DateTime);
-            }
-        }
-
-        public static DateTime Today
-        {
-            [Template("Bridge.Date.today()")]
-            get
-            {
-                return default(DateTime);
-            }
-        }
-
-        [Template("Bridge.Date.format({this}, {format})")]
-        public string Format(string format)
-        {
-            return null;
-        }
-
-        [Template("Bridge.Date.format({this}, {format}, {provider})")]
-        public string Format(string format, IFormatProvider provider)
-        {
-            return null;
-        }
-
-        [Template("Bridge.Date.format({this})")]
-        public override string ToString()
-        {
-            return null;
-        }
-
-        [Template("Bridge.Date.format({this}, {format})")]
-        public string ToString(string format)
-        {
-            return null;
-        }
-
-        [Template("Bridge.Date.format({this}, {format}, {provider})")]
-        public string ToString(string format, IFormatProvider provider)
-        {
-            return null;
-        }
-
-        public int GetDate()
-        {
-            return 0;
-        }
-
-        public int GetDay()
-        {
-            return 0;
-        }
-
-        public int GetFullYear()
-        {
-            return 0;
-        }
-
-        public int GetHours()
-        {
-            return 0;
-        }
-
-        public int GetMilliseconds()
-        {
-            return 0;
-        }
-
-        public int GetMinutes()
-        {
-            return 0;
-        }
-
-        [Template("({this}.getMonth() + 1)")]
-        public int GetMonth()
-        {
-            return 0;
-        }
-
-        public int GetSeconds()
-        {
-            return 0;
-        }
-
-        public long GetTime()
-        {
-            return 0;
-        }
-
-        public int GetTimezoneOffset()
-        {
-            return 0;
-        }
-
-        [Name("getUTCDate")]
-        public int GetUtcDate()
-        {
-            return 0;
-        }
-
-        [Name("getUTCDay")]
-        public int GetUtcDay()
-        {
-            return 0;
-        }
-
-        [Name("getUTCFullYear")]
-        public int GetUtcFullYear()
-        {
-            return 0;
-        }
-
-        [Name("getUTCHours")]
-        public int GetUtcHours()
-        {
-            return 0;
-        }
-
-        [Name("getUTCMilliseconds")]
-        public int GetUtcMilliseconds()
-        {
-            return 0;
-        }
-
-        [Name("getUTCMinutes")]
-        public int GetUtcMinutes()
-        {
-            return 0;
-        }
-
-        [Template("({this}.getUTCMonth() + 1)")]
-        public int GetUtcMonth()
-        {
-            return 0;
-        }
-
-        [Name("getUTCSeconds")]
-        public int GetUtcSeconds()
-        {
-            return 0;
-        }
-
-        [Template("Bridge.Date.parse({value})")]
-        public static DateTime Parse(string value)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parse({value}, {provider})")]
-        public static DateTime Parse(string value, IFormatProvider provider)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parse({value}, {provider}, {utc})")]
-        public static DateTime Parse(string value, IFormatProvider provider, bool utc)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parse({value}, null, {utc})")]
-        public static DateTime Parse(string value, bool utc)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.tryParse({value}, null, {result})")]
-        public static bool TryParse(string value, out DateTime result)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParse({value}, null, {result}, {utc})")]
-        public static bool TryParse(string value, out DateTime result, bool utc)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParse({value}, {provider}, {result})")]
-        public static bool TryParse(string value, IFormatProvider provider, out DateTime result)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParse({value}, {provider}, {result}, {utc})")]
-        public static bool TryParse(string value, IFormatProvider provider, out DateTime result, bool utc)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.parseExact({value}, {format})")]
-        public static DateTime ParseExact(string value, string format)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parseExact({value}, {format}, null, {utc})")]
-        public static DateTime ParseExact(string value, string format, bool utc)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parseExact({value}, {formats})")]
-        public static DateTime ParseExact(string value, string[] formats)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parseExact({value}, {formats}, null, {utc})")]
-        public static DateTime ParseExact(string value, string[] formats, bool utc)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parseExact({value}, {format}, {provider})")]
-        public static DateTime ParseExact(string value, string format, IFormatProvider provider)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parseExact({value}, {format}, {provider}, {utc})")]
-        public static DateTime ParseExact(string value, string format, IFormatProvider provider, bool utc)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parseExact({value}, {formats}, {provider})")]
-        public static DateTime ParseExact(string value, string[] formats, IFormatProvider provider)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.parseExact({value}, {formats}, {provider}, {utc})")]
-        public static DateTime ParseExact(string value, string[] formats, IFormatProvider provider, bool utc)
-        {
-            return default(DateTime);
-        }
-
-        [Template("Bridge.Date.tryParseExact({value}, {format}, null, {result})")]
-        public static bool TryParseExact(string value, string format, out DateTime result)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParseExact({value}, {format}, null, {result}, {utc})")]
-        public static bool TryParseExact(string value, string format, out DateTime result, bool utc)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParseExact({value}, {formats}, null, {result})")]
-        public static bool TryParseExact(string value, string[] formats, out DateTime result)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParseExact({value}, {formats}, null, {result}, {utc})")]
-        public static bool TryParseExact(string value, string[] formats, out DateTime result, bool utc)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParseExact({value}, {format}, {provider}, {result})")]
-        public static bool TryParseExact(string value, string format, IFormatProvider provider, out DateTime result)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParseExact({value}, {format}, {provider}, {result}, {utc})")]
-        public static bool TryParseExact(string value, string format, IFormatProvider provider, out DateTime result, bool utc)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParseExact({value}, {formats}, {provider}, {result})")]
-        public static bool TryParseExact(string value, string[] formats, IFormatProvider provider, out DateTime result)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        [Template("Bridge.Date.tryParseExact({value}, {formats}, {provider}, {result}, {utc})")]
-        public static bool TryParseExact(string value, string[] formats, IFormatProvider provider, out DateTime result, bool utc)
-        {
-            result = default(DateTime);
-            return false;
-        }
-
-        public string ToDateString()
-        {
-            return null;
-        }
-
-        public string ToLocaleDateString()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Creates a new DateTime object that has the same number of ticks as the specified DateTime, but is designated as either local time, Coordinated Universal Time (UTC), or neither, as indicated by the specified DateTimeKind value.
+        /// </summary>
+        /// <param name="value">A date and time.</param>
+        /// <param name="kind">One of the enumeration values that indicates whether the new object represents local time, UTC, or neither.</param>
+        /// <returns>A new object that has the same number of ticks as the object represented by the value parameter and the DateTimeKind value specified by the kind parameter.</returns>
+        [Bridge.Template("System.DateTime.specifyKind({0}, {1})")]
+        public extern static DateTime SpecifyKind(DateTime value, DateTimeKind kind);
 
-        public string ToLocaleTimeString()
-        {
-            return null;
-        }
-
-        public string ToTimeString()
-        {
-            return null;
-        }
-
-        [Name("toUTCString")]
-        public string ToUtcString()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Creates a DateTime from a Windows filetime. A Windows filetime is a long representing the date and time as the number of 100-nanosecond intervals that have elapsed since 1/1/1601 12:00am.
+        /// </summary>
+        /// <param name="fileTime">Ticks</param>
+        /// <returns>DateTime</returns>
+        [Bridge.Template("System.DateTime.FromFileTime({0})")]
+        public extern static DateTime FromFileTime(long fileTime);
 
-        [Template("new Date({d} - new Date(({t}).ticks / 10000))")]
-        public static DateTime operator -(DateTime d, TimeSpan t)
-        {
-            return default(DateTime);
-        }
+        /// <summary>
+        /// Creates a DateTime from a Windows filetime. A Windows filetime is a long representing the date and time as the number of 100-nanosecond intervals that have elapsed since 1/1/1601 12:00am UTC.
+        /// </summary>
+        /// <param name="fileTime">Ticks</param>
+        /// <returns>DateTime</returns>
+        [Bridge.Template("System.DateTime.FromFileTimeUtc({0})")]
+        public extern static DateTime FromFileTimeUtc(long fileTime);
 
-        [Template("new Date({d}.getTime() + (({t}).ticks / 10000))")]
-        public static DateTime operator +(DateTime d, TimeSpan t)
-        {
-            return default(DateTime);
-        }
+        [Bridge.Template("System.DateTime.ToFileTime({this})")]
+        public extern long ToFileTime();
 
-        [Template("new Bridge.TimeSpan(({a} - {b}) * 10000)")]
-        public static TimeSpan operator -(DateTime a, DateTime b)
-        {
-            return default(TimeSpan);
-        }
+        [Bridge.Template("System.DateTime.ToFileTimeUtc({this})")]
+        public extern long ToFileTimeUtc();
 
-        [Template("new Bridge.TimeSpan(({this} - {value}) * 10000)")]
-        public TimeSpan Subtract(DateTime value)
-        {
-            return default(TimeSpan);
-        }
+        [Bridge.Template(Fn = "System.DateTime.format")]
+        public override extern string ToString();
 
-        [Template("Bridge.equals({a}, {b})")]
-        public static bool operator ==(DateTime a, DateTime b)
-        {
-            return false;
-        }
+        [Bridge.Template("System.DateTime.format({this}, {0})")]
+        public extern string ToString(string format);
 
-        [Template("!Bridge.equals({a}, {b})")]
-        public static bool operator !=(DateTime a, DateTime b)
-        {
-            return false;
-        }
+        [Bridge.Template("System.DateTime.format({this}, {0}, {1})")]
+        public extern string ToString(string format, IFormatProvider provider);
 
-        [Template("{a} < {b}")]
-        public static bool operator <(DateTime a, DateTime b)
-        {
-            return false;
-        }
+        [Bridge.Template("System.DateTime.parse({0})")]
+        public static extern DateTime Parse(string s);
 
-        [Template("{a} > {b}")]
-        public static bool operator >(DateTime a, DateTime b)
-        {
-            return false;
-        }
+        [Bridge.Template("System.DateTime.parse({0}, {1})")]
+        public static extern DateTime Parse(string s, IFormatProvider provider);
 
-        [Template("{a} <= {b}")]
-        public static bool operator <=(DateTime a, DateTime b)
-        {
-            return false;
-        }
+        [Bridge.Template("System.DateTime.tryParse({0}, null, {1})")]
+        public static extern bool TryParse(string s, out DateTime result);
 
-        [Template("{a} >= {b}")]
-        public static bool operator >=(DateTime a, DateTime b)
-        {
-            return false;
-        }
+        [Bridge.Template("System.DateTime.parseExact({0}, {1}, {2})")]
+        public static extern DateTime ParseExact(string s, string format, IFormatProvider provider);
 
-        [Template("new Date({this}.valueOf())")]
-        public static explicit operator DateTime(Date dt)
-        {
-            return default(DateTime);
-        }
+        [Bridge.Template("System.DateTime.tryParseExact({0}, {1}, {2}, {3})")]
+        public static extern bool TryParseExact(string s, string format, IFormatProvider provider, out DateTime result);
 
-        [Template("new Date({this}.valueOf())")]
-        public static explicit operator Date(DateTime dt)
-        {
-            return null;
-        }
+        [Bridge.Template("System.DateTime.subdt({0}, {1})")]
+        public static extern DateTime operator -(DateTime d, TimeSpan t);
 
-        public DateTime Date
-        {
-            [Template("new Date({this}.getFullYear(), {this}.getMonth(), {this}.getDate())")]
-            get
-            {
-                return default(DateTime);
-            }
-        }
+        [Bridge.Template("System.DateTime.adddt({0}, {1})")]
+        public static extern DateTime operator +(DateTime d, TimeSpan t);
 
-        public int Day
-        {
-            [Template("{this}.getDate()")]
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("System.DateTime.subdd({0}, {1})")]
+        public static extern TimeSpan operator -(DateTime a, DateTime b);
 
-        public DayOfWeek DayOfWeek
-        {
-            [Template("{this}.getDay()")]
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("System.DateTime.subdd({this}, {0})")]
+        public extern TimeSpan Subtract(DateTime value);
 
-        public int DayOfYear
-        {
-            [Template("Math.ceil(({this} - new Date({this}.getFullYear(), 0, 1)) / 864e5)")]
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("Bridge.equals({0}, {1})")]
+        public static extern bool operator ==(DateTime a, DateTime b);
 
-        public int Hour
-        {
-            [Template("{this}.getHours()")]
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("!Bridge.equals({0}, {1})")]
+        public static extern bool operator !=(DateTime a, DateTime b);
 
-        public int Millisecond
-        {
-            [Template("{this}.getMilliseconds()")]
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("System.DateTime.lt({0}, {1})")]
+        public static extern bool operator <(DateTime a, DateTime b);
 
-        public int Minute
-        {
-            [Template("{this}.getMinutes()")]
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("System.DateTime.gt({0}, {1})")]
+        public static extern bool operator >(DateTime a, DateTime b);
 
-        public int Month
-        {
-            [Template("({this}.getMonth() + 1)")]
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("System.DateTime.lte({0}, {1})")]
+        public static extern bool operator <=(DateTime a, DateTime b);
 
-        public int Second
-        {
-            [Template("{this}.getSeconds()")]
-            get
-            {
-                return 0;
-            }
-        }
+        [Bridge.Template("System.DateTime.gte({0}, {1})")]
+        public static extern bool operator >=(DateTime a, DateTime b);
 
-        public int Year
+        /// <summary>
+        /// Gets the date component of this instance.
+        /// </summary>
+        public extern DateTime Date
         {
-            [Template("{this}.getFullYear()")]
-            get
-            {
-                return 0;
-            }
+            [Bridge.Template("System.DateTime.getDate({this})")]
+            get;
         }
 
-        [Template("new Date({this}.valueOf() + Math.round(({value}) * 864e5))")]
-        public DateTime AddDays(double value)
+        /// <summary>
+        /// Gets the day of the year represented by this instance.
+        /// </summary>
+        public extern int DayOfYear
         {
-            return default(DateTime);
+            [Bridge.Template("System.DateTime.getDayOfYear({this})")]
+            get;
         }
 
-        [Template("new Date({this}.valueOf() + Math.round(({value}) * 36e5))")]
-        public DateTime AddHours(double value)
+        /// <summary>
+        /// Gets the day of the week represented by this instance.
+        /// </summary>
+        public extern DayOfWeek DayOfWeek
         {
-            return default(DateTime);
+            [Bridge.Template("System.DateTime.getDayOfWeek({this})")]
+            get;
         }
 
-        [Template("new Date({this}.valueOf() + Math.round({value}))")]
-        public DateTime AddMilliseconds(double value)
+        /// <summary>
+        /// Gets the year component of the date represented by this instance.
+        /// </summary>
+        public extern int Year
         {
-            return default(DateTime);
+            [Bridge.Template("System.DateTime.getYear({this})")]
+            get;
         }
 
-        [Template("new Date({this}.valueOf() + Math.round(({value}) * 6e4))")]
-        public DateTime AddMinutes(double value)
+        /// <summary>
+        /// Gets the month component of the date represented by this instance.
+        /// </summary>
+        public extern int Month
         {
-            return default(DateTime);
+            [Bridge.Template("System.DateTime.getMonth({this})")]
+            get;
         }
 
-        [Template("new Date({this}.getFullYear(), {this}.getMonth() + {months}, {this}.getDate(), {this}.getHours(), {this}.getMinutes(), {this}.getSeconds(), {this}.getMilliseconds())")]
-        public DateTime AddMonths(int months)
+        /// <summary>
+        /// Gets the day of the month represented by this instance.
+        /// </summary>
+        public extern int Day
         {
-            return default(DateTime);
+            [Bridge.Template("System.DateTime.getDay({this})")]
+            get;
         }
 
-        [Template("new Date({this}.valueOf() + Math.round(({value}) * 1e3))")]
-        public DateTime AddSeconds(double value)
+        /// <summary>
+        /// Gets the hour component of the date represented by this instance.
+        /// </summary>
+        public extern int Hour
         {
-            return default(DateTime);
+            [Bridge.Template("System.DateTime.getHour({this})")]
+            get;
         }
 
-        [Template("new Date({this}.getFullYear() + {value}, {this}.getMonth(), {this}.getDate(), {this}.getHours(), {this}.getMinutes(), {this}.getSeconds(), {this}.getMilliseconds())")]
-        public DateTime AddYears(int value)
+        /// <summary>
+        /// Gets the milliseconds component of the date represented by this instance.
+        /// </summary>
+        public extern int Millisecond
         {
-            return default(DateTime);
+            [Bridge.Template("System.DateTime.getMillisecond({this})")]
+            get;
         }
 
-        [Template("(new Date({year}, {month}, -1).getDate() + 1)")]
-        public static int DaysInMonth(int year, int month)
+        /// <summary>
+        /// Gets the minute component of the date represented by this instance.
+        /// </summary>
+        public extern int Minute
         {
-            return 0;
+            [Bridge.Template("System.DateTime.getMinute({this})")]
+            get;
         }
 
-        [Template("(new Date({year}, 2, -1).getDate() === 28)")]
-        public static bool IsLeapYear(int year)
+        /// <summary>
+        /// Gets the seconds component of the date represented by this instance.
+        /// </summary>
+        public extern int Second
         {
-            return false;
+            [Bridge.Template("System.DateTime.getSecond({this})")]
+            get;
         }
 
-        [Template("Bridge.compare({this}, {other})")]
-        public int CompareTo(DateTime other)
+        /// <summary>
+        /// Gets the time of day for this instance.
+        /// </summary>
+        public extern TimeSpan TimeOfDay
         {
-            return 0;
+            [Bridge.Template("System.DateTime.getTimeOfDay({this})")]
+            get;
         }
 
-        [Template("Bridge.compare({this}, {other})")]
-        public int CompareTo(object other)
+        /// <summary>
+        /// Gets the number of ticks that represent the date and time of this instance.
+        /// </summary>
+        public extern long Ticks
         {
-            return 0;
+            [Bridge.Template("System.DateTime.getTicks({this})")]
+            get;
         }
 
-        [Template("Bridge.compare({t1}, {t2})")]
-        public static int Compare(DateTime t1, DateTime t2)
-        {
-            return 0;
-        }
+        /// <summary>
+        /// Returns a new DateTime that adds the specified number of years to the value of this instance.
+        /// </summary>
+        /// <param name="value">A number of years. The value parameter can be negative or positive.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and the number of years represented by value.</returns>
+        [Bridge.Template("System.DateTime.addYears({this}, {0})")]
+        public extern DateTime AddYears(int value);
 
-        [Template("Bridge.equalsT({this}, {other})")]
-        public bool Equals(DateTime other)
-        {
-            return false;
-        }
+        /// <summary>
+        /// Returns a new DateTime that adds the specified number of months to the value of this instance.
+        /// </summary>
+        /// <param name="months">A number of months. The months parameter can be negative or positive.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and months.</returns>
+        [Bridge.Template("System.DateTime.addMonths({this}, {0})")]
+        public extern DateTime AddMonths(int months);
 
-        [Template("Bridge.equalsT({t1}, {t2})")]
-        public static bool Equals(DateTime t1, DateTime t2)
-        {
-            return false;
-        }
+        /// <summary>
+        /// Returns a new DateTime that adds the specified number of days to the value of this instance.
+        /// </summary>
+        /// <param name="value">A number of whole and fractional days. The value parameter can be negative or positive.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and the number of days represented by value.</returns>
+        [Bridge.Template("System.DateTime.addDays({this}, {0})")]
+        public extern DateTime AddDays(double value);
 
-        [Template("Bridge.Date.isDaylightSavingTime({this})")]
-        public bool IsDaylightSavingTime()
-        {
-            return false;
-        }
+        /// <summary>
+        /// Returns a new DateTime that adds the specified number of hours to the value of this instance.
+        /// </summary>
+        /// <param name="value">A number of whole and fractional hours. The value parameter can be negative or positive.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and the number of hours represented by value.</returns>
+        [Bridge.Template("System.DateTime.addHours({this}, {0})")]
+        public extern DateTime AddHours(double value);
 
-        [Template("Bridge.Date.toUTC({this})")]
-        public DateTime ToUniversalTime()
-        {
-            return default(DateTime);
-        }
+        /// <summary>
+        /// Returns a new DateTime that adds the specified number of minutes to the value of this instance.
+        /// </summary>
+        /// <param name="value">A number of whole and fractional minutes. The value parameter can be negative or positive.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and the number of minutes represented by value.</returns>
+        [Bridge.Template("System.DateTime.addMinutes({this}, {0})")]
+        public extern DateTime AddMinutes(double value);
 
-        [Template("Bridge.Date.toLocal({this})")]
-        public DateTime ToLocalTime()
-        {
-            return default(DateTime);
-        }
+        /// <summary>
+        /// Returns a new DateTime that adds the specified number of seconds to the value of this instance.
+        /// </summary>
+        /// <param name="value">A number of whole and fractional seconds. The value parameter can be negative or positive.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and the number of seconds represented by value.</returns>
+        [Bridge.Template("System.DateTime.addSeconds({this}, {0})")]
+        public extern DateTime AddSeconds(double value);
 
-        [Template("new Date(({this}).getTime() + (({value}).ticks / 10000))")]
-        public extern DateTime Add(TimeSpan value);
+        /// <summary>
+        /// Returns a new DateTime that adds the specified number of milliseconds to the value of this instance.
+        /// </summary>
+        /// <param name="value">A number of whole and fractional milliseconds. The value parameter can be negative or positive. Note that this value is rounded to the nearest integer.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and the number of milliseconds represented by value.</returns>
+        [Bridge.Template("System.DateTime.addMilliseconds({this}, {0})")]
+        public extern DateTime AddMilliseconds(double value);
 
-        [Template("new Date(({this}).getTime() + (({value}) / 10000))")]
+        /// <summary>
+        /// Returns a new DateTime that adds the specified number of ticks to the value of this instance.
+        /// </summary>
+        /// <param name="value">A number of 100-nanosecond ticks. The value parameter can be positive or negative.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and the time represented by value.</returns>
+        [Bridge.Template("System.DateTime.addTicks({this}, {0})")]
         public extern DateTime AddTicks(long value);
 
-        [Template("new Date({this} - new Date(({value}).ticks / 10000))")]
+        /// <summary>
+        /// Returns a new DateTime that adds the value of the specified TimeSpan to the value of this instance.
+        /// </summary>
+        /// <param name="value">A positive or negative time interval.</param>
+        /// <returns>An object whose value is the sum of the date and time represented by this instance and the time interval represented by value.</returns>
+        [Bridge.Template("System.DateTime.add({this}, {0})")]
+        public extern DateTime Add(TimeSpan value);
+
+        /// <summary>
+        /// Subtracts the specified time or duration from this instance.
+        /// </summary>
+        /// <param name="value">The time interval to subtract.</param>
+        /// <returns>An object that is equal to the date and time represented by this instance minus the time interval represented by value.</returns>
+        [Bridge.Template("System.DateTime.subtract({this}, {0})")]
         public extern DateTime Subtract(TimeSpan value);
 
-        public TimeSpan TimeOfDay
-        {
-            [Template("Bridge.Date.timeOfDay({this})")]
-            get
-            {
-                return default(TimeSpan);
-            }
-        }
+        /// <summary>
+        /// Returns the number of days in the specified month and year.
+        /// </summary>
+        /// <param name="year">The year.</param>
+        /// <param name="month">The month (a number ranging from 1 to 12).</param>
+        /// <returns>The number of days in month for the specified year.</returns>
+        [Bridge.Template("System.DateTime.getDaysInMonth({0}, {1})")]
+        public static extern int DaysInMonth(int year, int month);
 
-        public long Ticks
-        {
-            [Template("{this}.getTime() * 10000")]
-            get
-            {
-                return 0;
-            }
-        }
+        /// <summary>
+        /// Returns an indication whether the specified year is a leap year.
+        /// </summary>
+        /// <param name="year">A 4-digit year.</param>
+        /// <returns>true if year is a leap year; otherwise, false.</returns>
+        [Bridge.Template("System.DateTime.getIsLeapYear({0})")]
+        public static extern bool IsLeapYear(int year);
+
+        [Bridge.Template("Bridge.compare({this}, {0})")]
+        public extern int CompareTo(DateTime other);
+
+        [Bridge.Template("Bridge.compare({this}, {0})")]
+        public extern int CompareTo(object other);
+
+        [Bridge.Template("Bridge.compare({t1}, {t2})")]
+        public static extern int Compare(DateTime t1, DateTime t2);
+
+        [Bridge.Template("Bridge.equalsT({this}, {0})")]
+        public extern bool Equals(DateTime other);
+
+        [Bridge.Template("Bridge.equalsT({0}, {1})")]
+        public static extern bool Equals(DateTime t1, DateTime t2);
+
+        /// <summary>
+        /// Indicates whether this instance of DateTime is within the daylight saving time range for the current time zone.
+        /// </summary>
+        /// <returns>true if the value of the Kind property is Local or Unspecified and the value of this instance of DateTime is within the daylight saving time range for the local time zone; false if Kind is Utc.</returns>
+        [Bridge.Template("System.DateTime.isDaylightSavingTime({this})")]
+        public extern bool IsDaylightSavingTime();
+
+        /// <summary>
+        /// Converts the value of the current DateTime object to Coordinated Universal Time (UTC).
+        /// </summary>
+        /// <returns>An object whose Kind property is Utc, and whose value is the UTC equivalent to the value of the current DateTime object, or MaxValue if the converted value is too large to be represented by a DateTime object, or MinValue if the converted value is too small to be represented by a DateTime object.</returns>
+        [Bridge.Template("System.DateTime.toUniversalTime({this})")]
+        public extern DateTime ToUniversalTime();
+
+        /// <summary>
+        /// Converts the value of the current DateTime object to local time.
+        /// </summary>
+        /// <returns>An object whose Kind property is Local, and whose value is the local time equivalent to the value of the current DateTime object, or MaxValue if the converted value is too large to be represented by a DateTime object, or MinValue if the converted value is too small to be represented as a DateTime object.</returns>
+        [Bridge.Template("System.DateTime.toLocalTime({this})")]
+        public extern DateTime ToLocalTime();
+
+        /// <summary>
+        /// Converts the value of the current DateTime object to local time.
+        /// </summary>
+        /// <returns>An object whose Kind property is Local, and whose value is the local time equivalent to the value of the current DateTime object, or MaxValue if the converted value is too large to be represented by a DateTime object, or MinValue if the converted value is too small to be represented as a DateTime object.</returns>
+        [Bridge.Template("System.DateTime.toLocalTime({this}, {0})")]
+        public extern DateTime ToLocalTime(bool throwOnOverflow);
+
+        /// <summary>
+        /// Converts the value of the current DateTime object to its equivalent short date string representation.
+        /// </summary>
+        /// <returns>A string that contains the short date string representation of the current DateTime object.</returns>
+        [Bridge.Template("System.DateTime.format({this}, \"d\")")]
+        public extern string ToShortDateString();
+
+        /// <summary>
+        /// Converts the value of the current DateTime object to its equivalent short time string representation.
+        /// </summary>
+        /// <returns>A string that contains the short time string representation of the current DateTime object.</returns>
+        [Bridge.Template("System.DateTime.format({this}, \"t\")")]
+        public extern string ToShortTimeString();
     }
 }

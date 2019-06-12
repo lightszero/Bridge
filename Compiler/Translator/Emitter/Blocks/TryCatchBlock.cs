@@ -1,9 +1,11 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 using Object.Net.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICSharpCode.NRefactory.Semantics;
 
 namespace Bridge.Translator
 {
@@ -56,27 +58,28 @@ namespace Bridge.Translator
             foreach (var clause in tryCatchStatement.CatchClauses)
             {
                 var catchStep = this.Emitter.AsyncBlock.AddAsyncStep();
-                catchSteps.Add(catchStep);
 
                 this.PushLocals();
                 var varName = clause.VariableName;
 
                 if (!String.IsNullOrEmpty(varName) && !this.Emitter.Locals.ContainsKey(varName))
                 {
-                    varName = this.AddLocal(varName, clause.Type);
+                    varName = this.AddLocal(varName, clause.VariableNameToken, clause.Type);
                 }
-
-                tryInfo.CatchBlocks.Add(new Tuple<string, string, int>(varName, clause.Type.IsNull ? "Bridge.Exception" : BridgeTypes.ToJsName(clause.Type, this.Emitter), catchStep.Step));
 
                 this.Emitter.IgnoreBlock = clause.Body;
                 clause.Body.AcceptVisitor(this.Emitter);
+                Write(JS.Vars.ASYNC_E + " = null;");
                 this.PopLocals();
                 this.WriteNewLine();
+
+                tryInfo.CatchBlocks.Add(new Tuple<string, string, int, int>(varName, clause.Type.IsNull ? JS.Types.System.Exception.NAME : BridgeTypes.ToJsName(clause.Type, this.Emitter), catchStep.Step, Emitter.AsyncBlock.Steps.Last().Step));
+                catchSteps.Add(Emitter.AsyncBlock.Steps.Last());
             }
 
-            if (/*tryCatchStatement.CatchClauses.Count == 0 && */!this.Emitter.Locals.ContainsKey("$e"))
+            if (!this.Emitter.Locals.ContainsKey(JS.Vars.ASYNC_E))
             {
-                this.AddLocal("$e", AstType.Null);
+                this.AddLocal(JS.Vars.ASYNC_E, null, AstType.Null);
             }
 
             IAsyncStep finalyStep = null;
@@ -92,7 +95,7 @@ namespace Bridge.Translator
 
                 this.WriteIf();
                 this.WriteOpenParentheses();
-                this.Write("$jumpFromFinally > -1");
+                this.Write(JS.Vars.ASYNC_JUMP + " > -1");
                 this.WriteCloseParentheses();
                 this.WriteSpace();
                 this.BeginBlock();
@@ -104,15 +107,15 @@ namespace Bridge.Translator
                         Node = finallyNode,
                         Output = this.Emitter.Output
                     });
-                    this.Write("$step = ${" + hashcode + "};");
+                    this.Write(JS.Vars.ASYNC_STEP + " = " + Helpers.PrefixDollar("{", hashcode, "};"));
                     this.WriteNewLine();
                     this.Write("continue;");
                 }
                 else
                 {
-                    this.Write("$step = $jumpFromFinally;");
+                    this.Write(JS.Vars.ASYNC_STEP + " = " + JS.Vars.ASYNC_JUMP + ";");
                     this.WriteNewLine();
-                    this.Write("$jumpFromFinally = null;");
+                    this.Write(JS.Vars.ASYNC_JUMP + " = null;");
                 }
 
                 this.WriteNewLine();
@@ -122,11 +125,20 @@ namespace Bridge.Translator
                 this.WriteElse();
                 this.WriteIf();
                 this.WriteOpenParentheses();
-                this.Write("$e");
+                this.Write(JS.Vars.ASYNC_E);
                 this.WriteCloseParentheses();
                 this.WriteSpace();
                 this.BeginBlock();
-                this.Write("$returnTask.setError($e);");
+
+                if (this.Emitter.AsyncBlock.IsTaskReturn)
+                {
+                    this.Write(JS.Vars.ASYNC_TCS + "." + JS.Funcs.SET_EXCEPTION + "(" + JS.Vars.ASYNC_E + ");");
+                }
+                else
+                {
+                    this.Write("throw " + JS.Vars.ASYNC_E + ";");
+                }
+
                 this.WriteNewLine();
                 this.WriteReturn(false);
                 this.WriteSemiColon();
@@ -137,7 +149,10 @@ namespace Bridge.Translator
                 this.WriteElse();
                 this.WriteIf();
                 this.WriteOpenParentheses();
-                this.Write("Bridge.isDefined($returnValue)");
+                this.Write(JS.Funcs.BRIDGE_IS_DEFINED);
+                this.WriteOpenParentheses();
+                this.Write(JS.Vars.ASYNC_RETURN_VALUE);
+                this.WriteCloseParentheses();
                 this.WriteCloseParentheses();
                 this.WriteSpace();
                 this.BeginBlock();
@@ -150,13 +165,13 @@ namespace Bridge.Translator
                         Node = finallyNode,
                         Output = this.Emitter.Output
                     });
-                    this.Write("$step = ${" + hashcode + "};");
+                    this.Write(JS.Vars.ASYNC_STEP + " = " + Helpers.PrefixDollar("{", hashcode, "};"));
                     this.WriteNewLine();
                     this.Write("continue;");
                 }
                 else
                 {
-                    this.Write("$returnTask.setResult($returnValue);");
+                    this.Write(JS.Vars.ASYNC_TCS + "." + JS.Funcs.SET_RESULT + "(" + JS.Vars.ASYNC_RETURN_VALUE + ");");
                     this.WriteNewLine();
                     this.WriteReturn(false);
                     this.WriteSemiColon();
@@ -165,21 +180,19 @@ namespace Bridge.Translator
                 this.WriteNewLine();
                 this.EndBlock();
 
-                if (!this.Emitter.Locals.ContainsKey("$e"))
+                if (!this.Emitter.Locals.ContainsKey(JS.Vars.ASYNC_E))
                 {
-                    this.AddLocal("$e", AstType.Null);
+                    this.AddLocal(JS.Vars.ASYNC_E, null, AstType.Null);
                 }
             }
+
+            var lastFinallyStep = Emitter.AsyncBlock.Steps.Last();
 
             var nextStep = this.Emitter.AsyncBlock.AddAsyncStep();
             if (finalyStep != null)
             {
                 tryInfo.FinallyStep = finalyStep.Step;
-            }
-
-            if (finalyStep != null)
-            {
-                finalyStep.JumpToStep = nextStep.Step;
+                lastFinallyStep.JumpToStep = nextStep.Step;
             }
 
             tryStep.JumpToStep = finalyStep != null ? finalyStep.Step : nextStep.Step;
@@ -202,7 +215,7 @@ namespace Bridge.Translator
             {
                 var firstClause = this.TryCatchStatement.CatchClauses.Count == 1 ? this.TryCatchStatement.CatchClauses.First() : null;
                 var exceptionType = (firstClause == null || firstClause.Type.IsNull) ? null : BridgeTypes.ToJsName(firstClause.Type, this.Emitter);
-                var isBaseException = exceptionType == null || exceptionType == "Bridge.Exception";
+                var isBaseException = exceptionType == null || exceptionType == JS.Types.System.Exception.NAME;
 
                 if (count == 1 && isBaseException)
                 {
@@ -232,6 +245,7 @@ namespace Bridge.Translator
 
             if (!tryCatchStatement.FinallyBlock.IsNull)
             {
+                this.WriteSpace();
                 this.WriteFinally();
                 tryCatchStatement.FinallyBlock.AcceptVisitor(this.Emitter);
             }
@@ -249,13 +263,17 @@ namespace Bridge.Translator
 
                 if (String.IsNullOrEmpty(varName))
                 {
-                    varName = this.AddLocal("$e", AstType.Null);
+                    varName = this.AddLocal(this.GetUniqueName(JS.Vars.E), null, AstType.Null);
                 }
                 else
                 {
-                    varName = this.AddLocal(varName, clause.Type);
+                    varName = this.AddLocal(varName, clause.VariableNameToken, clause.Type);
                 }
 
+                var oldVar = this.Emitter.CatchBlockVariable;
+                this.Emitter.CatchBlockVariable = varName;
+
+                this.WriteSpace();
                 this.WriteCatch();
                 this.WriteOpenParentheses();
                 this.Write(varName);
@@ -263,7 +281,8 @@ namespace Bridge.Translator
                 this.WriteSpace();
 
                 this.BeginBlock();
-                this.Write(string.Format("{0} = Bridge.Exception.create({0});", varName));
+                this.Write(string.Format("{0} = " + JS.Types.System.Exception.CREATE + "({0});", varName));
+
                 this.WriteNewLine();
                 this.Emitter.NoBraceBlock = clause.Body;
                 clause.Body.AcceptVisitor(this.Emitter);
@@ -273,9 +292,14 @@ namespace Bridge.Translator
                 }
 
                 this.EndBlock();
-                this.WriteNewLine();
+
+                if (tryCatchStatement.FinallyBlock.IsNull)
+                {
+                    this.WriteNewLine();
+                }
 
                 this.PopLocals();
+                this.Emitter.CatchBlockVariable = oldVar;
             }
         }
 
@@ -283,13 +307,19 @@ namespace Bridge.Translator
         {
             TryCatchStatement tryCatchStatement = this.TryCatchStatement;
 
+            this.WriteSpace();
             this.WriteCatch();
             this.WriteOpenParentheses();
-            this.Write("$e");
+            var varName = this.AddLocal(this.GetUniqueName(JS.Vars.E), null, AstType.Null);
+
+            var oldVar = this.Emitter.CatchBlockVariable;
+            this.Emitter.CatchBlockVariable = varName;
+
+            this.Write(varName);
             this.WriteCloseParentheses();
             this.WriteSpace();
             this.BeginBlock();
-            this.Write("$e = Bridge.Exception.create($e);");
+            this.Write(string.Format("{0} = " + JS.Types.System.Exception.CREATE + "({0});", varName));
             this.WriteNewLine();
 
             var catchVars = new Dictionary<string, string>();
@@ -320,14 +350,16 @@ namespace Bridge.Translator
 
             var firstClause = true;
             var writeElse = true;
+            var needNewLine = false;
 
             foreach (var clause in tryCatchStatement.CatchClauses)
             {
                 var exceptionType = clause.Type.IsNull ? null : BridgeTypes.ToJsName(clause.Type, this.Emitter);
-                var isBaseException = exceptionType == null || exceptionType == "Bridge.Exception";
+                var isBaseException = exceptionType == null || exceptionType == JS.Types.System.Exception.NAME;
 
                 if (!firstClause)
                 {
+                    this.WriteSpace();
                     this.WriteElse();
                 }
 
@@ -339,7 +371,7 @@ namespace Bridge.Translator
                 {
                     this.WriteIf();
                     this.WriteOpenParentheses();
-                    this.Write("Bridge.is($e, " + exceptionType + ")");
+                    this.Write(string.Format(JS.Types.Bridge.IS + "({0}, {1})", varName, exceptionType));
                     this.WriteCloseParentheses();
                     this.WriteSpace();
                 }
@@ -351,7 +383,8 @@ namespace Bridge.Translator
 
                 if (clause.VariableName.IsNotEmpty())
                 {
-                    this.Write(clause.VariableName + " = $e;");
+                    this.Write(clause.VariableName + " = " + varName);
+                    this.WriteSemiColon();
                     this.WriteNewLine();
                 }
 
@@ -359,23 +392,36 @@ namespace Bridge.Translator
                 clause.Body.AcceptVisitor(this.Emitter);
                 this.Emitter.NoBraceBlock = null;
                 this.EndBlock();
-                this.WriteNewLine();
+
+                needNewLine = true;
 
                 this.PopLocals();
             }
 
             if (writeElse)
             {
+                this.WriteSpace();
                 this.WriteElse();
                 this.BeginBlock();
-                this.Write("throw $e;");
+                this.Write("throw " + varName);
+                this.WriteSemiColon();
                 this.WriteNewLine();
                 this.EndBlock();
+                needNewLine = true;
+            }
+
+            if (needNewLine)
+            {
                 this.WriteNewLine();
+                needNewLine = false;
             }
 
             this.EndBlock();
-            this.WriteNewLine();
+            if (tryCatchStatement.FinallyBlock.IsNull)
+            {
+                this.WriteNewLine();
+            }
+            this.Emitter.CatchBlockVariable = oldVar;
         }
     }
 
@@ -399,15 +445,15 @@ namespace Bridge.Translator
             set;
         }
 
-        private List<Tuple<string, string, int>> catchBlocks;
+        private List<Tuple<string, string, int, int>> catchBlocks;
 
-        public List<Tuple<string, string, int>> CatchBlocks
+        public List<Tuple<string, string, int, int>> CatchBlocks
         {
             get
             {
                 if (this.catchBlocks == null)
                 {
-                    this.catchBlocks = new List<Tuple<string, string, int>>();
+                    this.catchBlocks = new List<Tuple<string, string, int, int>>();
                 }
                 return this.catchBlocks;
             }

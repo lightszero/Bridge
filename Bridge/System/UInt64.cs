@@ -1,93 +1,96 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Name("Bridge.Int")]
-    [Constructor("Number")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
     public struct UInt64 : IComparable, IComparable<UInt64>, IEquatable<UInt64>, IFormattable
     {
-        private UInt64(int i)
-        {
-        }
+        private extern UInt64(int i);
 
-        [InlineConst]
+        [CLSCompliant(false)]
         public const ulong MinValue = 0;
 
-        [InlineConst]
-        public const ulong MaxValue = 9007199254740991;
+        [CLSCompliant(false)]
+        public const ulong MaxValue = 18446744073709551615;
 
-        [Template("Bridge.Int.parseInt({s}, 0, 9007199254740991)")]
-        public static ulong Parse(string s)
-        {
-            return 0;
-        }
+        [Bridge.Template("System.UInt64.parse({s})")]
+        [CLSCompliant(false)]
+        public static extern ulong Parse(string s);
 
-        [Template("Bridge.Int.parseInt({s}, 0, 9007199254740991, {radix})")]
-        public static ulong Parse(string s, int radix)
-        {
-            return 0;
-        }
+        [Bridge.Template("System.UInt64.tryParse({s}, {result})")]
+        [CLSCompliant(false)]
+        public static extern bool TryParse(string s, out ulong result);
 
-        [Template("Bridge.Int.tryParseInt({s}, {result}, 0, 9007199254740991)")]
-        public static bool TryParse(string s, out ulong result)
-        {
-            result = 0;
-            return false;
-        }
+        public extern string ToString(int radix);
 
-        [Template("Bridge.Int.tryParseInt({s}, {result}, 0, 9007199254740991, {radix})")]
-        public static bool TryParse(string s, out ulong result, int radix)
-        {
-            result = 0;
-            return false;
-        }
+        public extern string Format(string format);
 
-        public string ToString(int radix)
-        {
-            return null;
-        }
+        public extern string Format(string format, IFormatProvider provider);
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string Format(string format)
-        {
-            return null;
-        }
+        public extern string ToString(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string Format(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        public extern string ToString(string format, IFormatProvider provider);
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string ToString(string format)
-        {
-            return null;
-        }
+        [CLSCompliant(false)]
+        public extern int CompareTo(ulong other);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string ToString(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        public extern int CompareTo(object obj);
 
-        [Template("Bridge.compare({this}, {other})")]
-        public int CompareTo(ulong other)
-        {
-            return 0;
-        }
+        [CLSCompliant(false)]
+        public extern bool Equals(ulong other);
 
-        [Template("Bridge.compare({this}, {obj})")]
-        public int CompareTo(object obj)
-        {
-            return 0;
-        }
+        [CLSCompliant(false)]
+        public static extern implicit operator ulong (byte value);
 
-        [Template("Bridge.equalsT({this}, {other})")]
-        public bool Equals(ulong other)
-        {
-            return false;
-        }
+        [CLSCompliant(false)]
+        public static extern implicit operator ulong (sbyte value);
+
+        [CLSCompliant(false)]
+        public static extern implicit operator ulong (short value);
+
+        [CLSCompliant(false)]
+        public static extern implicit operator ulong (ushort value);
+
+        [CLSCompliant(false)]
+        public static extern implicit operator ulong (char value);
+
+        [CLSCompliant(false)]
+        public static extern implicit operator ulong (int value);
+
+        [CLSCompliant(false)]
+        public static extern implicit operator ulong (uint value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator ulong (float value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator ulong (double value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator byte (ulong value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator sbyte (ulong value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator char (ulong value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator short (ulong value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator ushort (ulong value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator int (ulong value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator uint (ulong value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator float (ulong value);
+
+        [CLSCompliant(false)]
+        public static extern explicit operator double (ulong value);
     }
 }

@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("dv-MV", true), {
+Bridge.merge(new System.Globalization.CultureInfo("dv-MV", true), {
     englishName: "Divehi (Maldives)",
     nativeName: "ދިވެހިބަސް (ދިވެހި ރާއްޖެ)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-Infinity",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["އާދީއްތަ","ހޯމަ","އަންގާރަ","ބުދަ","ބުރާސްފަތި","ހުކުރު","ހޮނިހިރު"],
         abbreviatedMonthGenitiveNames: ["ޖަނަވަރީ","ފެބްރުއަރީ","މާރޗް","އޭޕްރިލް","މެއި","ޖޫން","ޖުލައި","އޮގަސްޓް","ސެޕްޓެމްބަރ","އޮކްޓޯބަރ","ނޮވެމްބަރ","ޑިސެމްބަރ",""],
         abbreviatedMonthNames: ["ޖަނަވަރީ","ފެބްރުއަރީ","މާރޗް","އޭޕްރިލް","މެއި","ޖޫން","ޖުލައި","އޮގަސްޓް","ސެޕްޓެމްބަރ","އޮކްޓޯބަރ","ނޮވެމްބަރ","ޑިސެމްބަރ",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "yyyy, MMMM",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 0,
+        CultureName: "dv-MV",
+        EBCDICCodePage: 500,
+        IsRightToLeft: true,
+        LCID: 1125,
+        listSeparator: "،",
+        MacCodePage: 2,
+        OEMCodePage: 1,
+        IsReadOnly: true
     })
 });

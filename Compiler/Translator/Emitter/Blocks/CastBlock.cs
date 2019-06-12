@@ -1,9 +1,11 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.Semantics;
 using ICSharpCode.NRefactory.TypeSystem;
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Bridge.Translator
 {
@@ -96,15 +98,15 @@ namespace Bridge.Translator
         {
             if (this.CastExpression != null)
             {
-                this.EmitCastExpression(this.CastExpression.Expression, this.CastExpression.Type, Bridge.Translator.Emitter.CAST);
+                this.EmitCastExpression(this.CastExpression.Expression, this.CastExpression.Type, CS.Ops.CAST);
             }
             else if (this.AsExpression != null)
             {
-                this.EmitCastExpression(this.AsExpression.Expression, this.AsExpression.Type, Bridge.Translator.Emitter.AS);
+                this.EmitCastExpression(this.AsExpression.Expression, this.AsExpression.Type, CS.Ops.AS);
             }
             else if (this.IsExpression != null)
             {
-                this.EmitCastExpression(this.IsExpression.Expression, this.IsExpression.Type, Bridge.Translator.Emitter.IS);
+                this.EmitCastExpression(this.IsExpression.Expression, this.IsExpression.Type, CS.Ops.IS);
             }
             else if (this.IType != null)
             {
@@ -118,83 +120,128 @@ namespace Bridge.Translator
 
         protected virtual void EmitCastExpression(Expression expression, AstType type, string method)
         {
-            var castToEnum = this.Emitter.BridgeTypes.ToType(type).Kind == TypeKind.Enum;
+            var itype = this.Emitter.BridgeTypes.ToType(type);
+            bool isCastAttr;
+            string castCode = this.GetCastCode(expression, type, method, out isCastAttr);
 
-            if (method != Bridge.Translator.Emitter.IS && (Helpers.IsIgnoreCast(type, this.Emitter) || castToEnum))
+            var enumType = itype;
+            if (NullableType.IsNullable(enumType))
             {
-                expression.AcceptVisitor(this.Emitter);
-                return;
+                enumType = NullableType.GetUnderlyingType(enumType);
             }
 
-            if (method == Bridge.Translator.Emitter.IS && castToEnum)
+            var castToEnum = enumType.Kind == TypeKind.Enum;
+
+            if (castToEnum)
             {
-                this.Write("Bridge.hasValue(");
+                itype = enumType.GetDefinition().EnumUnderlyingType;
+                var enumMode = Helpers.EnumEmitMode(enumType);
+                if (enumMode >= 3 && enumMode < 7)
+                {
+                    itype = this.Emitter.Resolver.Compilation.FindType(KnownTypeCode.String);
+                }
+            }
+
+            if (expression is NullReferenceExpression || (method != CS.Ops.IS && Helpers.IsIgnoreCast(type, this.Emitter)) || this.IsExternalCast(itype))
+            {
+                if (expression is ParenthesizedExpression)
+                {
+                    expression = ((ParenthesizedExpression) expression).Expression;
+                }
+
                 expression.AcceptVisitor(this.Emitter);
-                this.Write(")");
                 return;
             }
 
             var expressionrr = this.Emitter.Resolver.ResolveNode(expression, this.Emitter);
             var typerr = this.Emitter.Resolver.ResolveNode(type, this.Emitter);
 
-            if (expressionrr.Type.Equals(typerr.Type))
+            if (expressionrr.Type.Kind == TypeKind.Enum)
             {
-                if (method == Bridge.Translator.Emitter.IS)
+                var enumMode = Helpers.EnumEmitMode(expressionrr.Type);
+                if (enumMode >= 3 && enumMode < 7 && Helpers.IsIntegerType(itype, this.Emitter.Resolver))
                 {
-                    this.WriteScript(true);
+                   throw new EmitterException(this.CastExpression, "Enum underlying type is string and cannot be casted to number");
+                }
+            }
+
+            if (method == CS.Ops.CAST && expressionrr.Type.Kind != TypeKind.Enum)
+            {
+                var cast_rr = this.Emitter.Resolver.ResolveNode(this.CastExpression, this.Emitter);
+
+                if (cast_rr is ConstantResolveResult)
+                {
+                    var expectedType = this.Emitter.Resolver.Resolver.GetExpectedType(this.CastExpression);
+                    var value = ((ConstantResolveResult)cast_rr).ConstantValue;
+
+                    this.WriteCastValue(value, expectedType);
+                    return;
                 }
                 else
                 {
-                    expression.AcceptVisitor(this.Emitter);
-                }
-
-                return;
-            }
-
-            bool isInlineCast;
-            string castCode = this.GetCastCode(expression, type, out isInlineCast);
-            bool isNullable = NullableType.IsNullable(expressionrr.Type);
-            bool isResultNullable = NullableType.IsNullable(typerr.Type);
-
-            if (isInlineCast)
-            {
-                if (isNullable)
-                {
-                    isNullable = !NullableType.GetUnderlyingType(expressionrr.Type).Equals(typerr.Type);
-                }
-
-                this.EmitInlineCast(expression, type, castCode, isNullable, isResultNullable);
-                return;
-            }
-
-            if (method == Bridge.Translator.Emitter.CAST)
-            {
-                if (Helpers.IsIntegerType(typerr.Type, this.Emitter.Resolver))
-                {
-                    if (expressionrr.Type != null && Helpers.IsFloatType(expressionrr.Type, this.Emitter.Resolver))
+                    var conv_rr = cast_rr as ConversionResolveResult;
+                    if (conv_rr != null && conv_rr.Input is ConstantResolveResult && !conv_rr.Conversion.IsUserDefined)
                     {
-                        this.Write("Bridge.Int.trunc(");
-                        if (isNullable && !isResultNullable)
-                        {
-                            this.Write("Bridge.Nullable.getValue(");
-                        }
-                        expression.AcceptVisitor(this.Emitter);
-                        if (isNullable && !isResultNullable)
-                        {
-                            this.WriteCloseParentheses();
-                        }
-                        this.Write(")");
-
+                        var expectedType = this.Emitter.Resolver.Resolver.GetExpectedType(this.CastExpression);
+                        var value = ((ConstantResolveResult)conv_rr.Input).ConstantValue;
+                        this.WriteCastValue(value, expectedType);
                         return;
                     }
                 }
+            }
 
-                if (ConversionBlock.IsUserDefinedConversion(this, this.CastExpression.Expression))
+            if (method == CS.Ops.IS && castToEnum)
+            {
+                this.Write(JS.Types.Bridge.IS);
+                this.WriteOpenParentheses();
+                expression.AcceptVisitor(this.Emitter);
+                this.Write(", ");
+                this.Write(BridgeTypes.ToJsName(itype, this.Emitter));
+                this.Write(")");
+                return;
+            }
+
+            if (expressionrr.Type.Equals(itype))
+            {
+                if (method == CS.Ops.IS)
+                {
+                    this.Write(JS.Funcs.BRIDGE_HASVALUE);
+                    this.WriteOpenParentheses();
+                }
+                expression.AcceptVisitor(this.Emitter);
+                if (method == CS.Ops.IS)
+                {
+                    this.Write(")");
+                }
+
+                return;
+            }
+
+            bool isResultNullable = NullableType.IsNullable(typerr.Type);
+
+            if (castCode != null)
+            {
+                this.EmitInlineCast(expressionrr, expression, type, castCode, isCastAttr, method);
+                return;
+            }
+
+            bool isCast = method == CS.Ops.CAST;
+            if (isCast)
+            {
+                if (ConversionBlock.IsUserDefinedConversion(this, this.CastExpression.Expression) || ConversionBlock.IsUserDefinedConversion(this, this.CastExpression))
                 {
                     expression.AcceptVisitor(this.Emitter);
 
                     return;
                 }
+            }
+
+            var conversion = this.Emitter.Resolver.Resolver.GetConversion(expression);
+
+            if (conversion.IsNumericConversion || conversion.IsEnumerationConversion || (isCast && conversion.IsIdentityConversion))
+            {
+                expression.AcceptVisitor(this.Emitter);
+                return;
             }
 
             var simpleType = type as SimpleType;
@@ -202,53 +249,115 @@ namespace Bridge.Translator
 
             if (simpleType != null && simpleType.Identifier == "dynamic")
             {
-                if (method == Bridge.Translator.Emitter.CAST || method == Bridge.Translator.Emitter.AS)
+                if (method == CS.Ops.CAST || method == CS.Ops.AS)
                 {
                     expression.AcceptVisitor(this.Emitter);
                     return;
                 }
-                else if (method == Bridge.Translator.Emitter.IS)
+                else if (method == CS.Ops.IS)
                 {
                     hasValue = true;
                     method = "hasValue";
                 }
             }
 
-            this.Write(Bridge.Translator.Emitter.ROOT);
+            bool unbox = this.Emitter.Rules.Boxing == BoxingRule.Managed && !(itype.IsReferenceType.HasValue ? itype.IsReferenceType.Value : true) && !NullableType.IsNullable(itype) && isCast && conversion.IsUnboxingConversion;
+            if (unbox)
+            {
+                this.Write("System.Nullable.getValue(");
+            }
+
+            var typeDef = itype.Kind == TypeKind.TypeParameter ? null : this.Emitter.GetTypeDefinition(type, true);
+            if (typeDef != null && method == CS.Ops.IS && itype.Kind != TypeKind.Interface && this.Emitter.Validator.IsObjectLiteral(typeDef) && this.Emitter.Validator.GetObjectCreateMode(typeDef) == 0)
+            {
+                throw new EmitterException(type, $"ObjectLiteral type ({itype.FullName}) with Plain mode cannot be used in 'is' operator. Please define cast logic in Cast attribute or use Constructor mode.");
+            }
+
+            this.Write(JS.NS.BRIDGE);
             this.WriteDot();
             this.Write(method);
             this.WriteOpenParentheses();
-            if (isNullable && !isResultNullable)
-            {
-                this.Write("Bridge.Nullable.getValue(");
-            }
+
             expression.AcceptVisitor(this.Emitter);
-            if (isNullable && !isResultNullable)
-            {
-                this.WriteCloseParentheses();
-            }
 
             if (!hasValue)
             {
                 this.WriteComma();
-
-                if (castCode != null)
-                {
-                    this.Write(castCode);
-                }
-                else
-                {
-                    this.EmitCastType(type);
-                }
+                this.EmitCastType(itype);
             }
 
-            if (isResultNullable && method != Bridge.Translator.Emitter.IS)
+            if (isResultNullable && method != CS.Ops.IS)
             {
                 this.WriteComma();
                 this.WriteScript(true);
             }
 
             this.WriteCloseParentheses();
+
+            if (unbox)
+            {
+                this.Write(")");
+            }
+        }
+
+        private bool IsExternalCast(IType type)
+        {
+            if (this.Emitter.Rules.ExternalCast == ExternalCastRule.Plain)
+            {
+                var typeDef = type.GetDefinition();
+                if (typeDef == null || !this.Emitter.Validator.IsExternalType(typeDef))
+                {
+                    return false;
+                }
+
+                var fullName = type.FullName;
+
+                if (fullName.StartsWith("Bridge.") || fullName.StartsWith("System."))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private void WriteCastValue(object value, IType expectedType)
+        {
+            string typeName = null;
+
+            if (value == null || value.GetType().FullName != expectedType.ReflectionName)
+            {
+                if (Helpers.IsDecimalType(expectedType, this.Emitter.Resolver))
+                {
+                    typeName = JS.Types.SYSTEM_DECIMAL;
+                }
+                else if (Helpers.IsLongType(expectedType, this.Emitter.Resolver))
+                {
+                    typeName = JS.Types.System.Int64.NAME;
+                }
+                else if (Helpers.IsULongType(expectedType, this.Emitter.Resolver))
+                {
+                    typeName = JS.Types.SYSTEM_UInt64;
+                }
+            }
+
+            if (typeName != null)
+            {
+                this.Write(typeName);
+                this.WriteOpenParentheses();
+                this.WriteScript(value);
+                this.WriteCloseParentheses();
+            }
+            if (value is float && expectedType.IsKnownType(KnownTypeCode.Double))
+            {
+                this.WriteScript((double)(float)value);
+            }
+            else
+            {
+                this.WriteScript(value);
+            }
         }
 
         protected virtual void EmitCastType(AstType astType)
@@ -261,12 +370,12 @@ namespace Bridge.Translator
             }
             else if (resolveResult.Type.Kind == TypeKind.Delegate)
             {
-                this.Write("Function");
+                this.Write(JS.Types.FUNCTION);
             }
-            else if (resolveResult.Type.Kind == TypeKind.Array)
+            /*else if (resolveResult.Type.Kind == TypeKind.Array)
             {
-                this.Write("Array");
-            }
+                this.EmitArray(resolveResult.Type);
+            }*/
             else
             {
                 astType.AcceptVisitor(this.Emitter);
@@ -281,15 +390,15 @@ namespace Bridge.Translator
             }
             else if (iType.Kind == TypeKind.Delegate)
             {
-                this.Write("Function");
+                this.Write(JS.Types.FUNCTION);
             }
-            else if (iType.Kind == TypeKind.Array)
+            /*else if (iType.Kind == TypeKind.Array)
             {
-                this.Write("Array");
-            }
+                this.EmitArray(iType);
+            }*/
             else if (iType.Kind == TypeKind.Anonymous)
             {
-                this.Write("Object");
+                this.Write(JS.Types.System.Object.NAME);
             }
             else
             {
@@ -297,16 +406,23 @@ namespace Bridge.Translator
             }
         }
 
-        protected virtual string GetCastCode(Expression expression, AstType astType, out bool isInline)
+        protected virtual string GetCastCode(Expression expression, AstType astType, string op, out bool isCastAttr)
         {
             var resolveResult = this.Emitter.Resolver.ResolveNode(astType, this.Emitter) as TypeResolveResult;
+            isCastAttr = false;
+
+            if (resolveResult == null)
+            {
+                return null;
+            }
+
             var exprResolveResult = this.Emitter.Resolver.ResolveNode(expression, this.Emitter);
             string inline = null;
-            isInline = false;
+            bool isOp = op == CS.Ops.IS;
 
-            var method = this.GetCastMethod(exprResolveResult.Type, resolveResult.Type, out inline);
+            var method = isOp ? null : this.GetCastMethod(exprResolveResult.Type, resolveResult.Type, out inline);
 
-            if (method == null && (NullableType.IsNullable(exprResolveResult.Type) || NullableType.IsNullable(resolveResult.Type)))
+            if (method == null && !isOp && (NullableType.IsNullable(exprResolveResult.Type) || NullableType.IsNullable(resolveResult.Type)))
             {
                 method = this.GetCastMethod(NullableType.IsNullable(exprResolveResult.Type) ? NullableType.GetUnderlyingType(exprResolveResult.Type) : exprResolveResult.Type,
                                             NullableType.IsNullable(resolveResult.Type) ? NullableType.GetUnderlyingType(resolveResult.Type) : resolveResult.Type, out inline);
@@ -315,14 +431,123 @@ namespace Bridge.Translator
             if (inline != null)
             {
                 this.InlineMethod = method;
-                isInline = true;
                 return inline;
+            }
+
+            IEnumerable<IAttribute> attributes = null;
+            var type = resolveResult.Type.GetDefinition();
+
+            if (type != null)
+            {
+                attributes = type.Attributes;
+            }
+            else
+            {
+                ParameterizedType paramType = resolveResult.Type as ParameterizedType;
+
+                if (paramType != null)
+                {
+                    attributes = paramType.GetDefinition().Attributes;
+                }
+            }
+
+            if (attributes != null)
+            {
+                var attribute = this.Emitter.GetAttribute(attributes, Translator.Bridge_ASSEMBLY + ".CastAttribute");
+
+                if (attribute != null)
+                {
+                    isCastAttr = true;
+                    return attribute.PositionalArguments[0].ConstantValue.ToString();
+                }
             }
 
             return null;
         }
 
-        private IMethod GetCastMethod(IType fromType, IType toType, out string template)
+        private void EmitArray(IType iType)
+        {
+            string typedArrayName = null;
+            if (this.Emitter.AssemblyInfo.UseTypedArrays && (typedArrayName = Helpers.GetTypedArrayName(iType)) != null)
+            {
+                this.Write(typedArrayName);
+            }
+            else
+            {
+                this.Write(JS.Types.ARRAY);
+            }
+        }
+
+
+        protected virtual void EmitInlineCast(ResolveResult expressionrr, Expression expression, AstType astType, string castCode, bool isCastAttr, string method)
+        {
+            this.Write("");
+            string name;
+
+            if (this.InlineMethod == null)
+            {
+                name = "{this}";
+            }
+            else
+            {
+                name = "{" + this.InlineMethod.Parameters[0].Name + "}";
+                if (!castCode.Contains(name))
+                {
+                    name = "{this}";
+                }
+            }
+
+            string tempVar = null;
+            string expressionStr;
+            var memberTargetrr = expressionrr as MemberResolveResult;
+            bool isField = memberTargetrr != null && memberTargetrr.Member is IField &&
+                           (memberTargetrr.TargetResult is ThisResolveResult ||
+                            memberTargetrr.TargetResult is LocalResolveResult);
+
+            var oldBuilder = this.SaveWriter();
+            var sb = this.NewWriter();
+
+            expression.AcceptVisitor(this.Emitter);
+
+            expressionStr = sb.ToString();
+            this.RestoreWriter(oldBuilder);
+
+            if (!(expressionrr is ThisResolveResult || expressionrr is ConstantResolveResult || expressionrr is LocalResolveResult || isField) && isCastAttr)
+            {
+                tempVar = this.GetTempVarName();
+            }
+
+            if (castCode.Contains(name))
+            {
+                castCode = castCode.Replace(name, tempVar ?? expressionStr);
+            }
+
+            if (castCode.Contains("{0}"))
+            {
+                oldBuilder = this.SaveWriter();
+                sb = this.NewWriter();
+                this.EmitCastType(astType);
+                castCode = castCode.Replace("{0}", sb.ToString());
+                this.RestoreWriter(oldBuilder);
+            }
+
+            if (isCastAttr)
+            {
+                if (tempVar != null)
+                {
+                    castCode = string.Format("({0} = {1}, Bridge.{2}({0}, {4}({0}) && ({3})))", tempVar, expressionStr, method, castCode, JS.Funcs.BRIDGE_HASVALUE);
+                    this.RemoveTempVar(tempVar);
+                }
+                else
+                {
+                    castCode = string.Format("Bridge.{1}({0}, {3}({0}) && ({2}))", expressionStr, method, castCode, JS.Funcs.BRIDGE_HASVALUE);
+                }
+            }
+
+            this.Write(castCode);
+        }
+
+        public IMethod GetCastMethod(IType fromType, IType toType, out string template)
         {
             string inline = null;
             var method = fromType.GetMethods().FirstOrDefault(m =>
@@ -387,47 +612,6 @@ namespace Bridge.Translator
 
             template = inline;
             return method;
-        }
-
-        protected virtual void EmitInlineCast(Expression expression, AstType astType, string castCode, bool isNullable, bool isResultNullable)
-        {
-            this.Write("");
-            var name = "{" + this.InlineMethod.Parameters[0].Name + "}";
-
-            if (!castCode.Contains(name))
-            {
-                name = "{this}";
-            }
-
-            if (castCode.Contains(name))
-            {
-                var oldBuilder = this.Emitter.Output;
-                this.Emitter.Output = new StringBuilder();
-
-                if (isNullable && !isResultNullable)
-                {
-                    this.Write("Bridge.Nullable.getValue(");
-                }
-                expression.AcceptVisitor(this.Emitter);
-                if (isNullable && !isResultNullable)
-                {
-                    this.WriteCloseParentheses();
-                }
-
-                castCode = castCode.Replace(name, this.Emitter.Output.ToString());
-                this.Emitter.Output = oldBuilder;
-            }
-
-            if (castCode.Contains("{0}"))
-            {
-                var oldBuilder = this.Emitter.Output;
-                this.Emitter.Output = new StringBuilder();
-                this.EmitCastType(astType);
-                castCode = castCode.Replace("{0}", this.Emitter.Output.ToString());
-                this.Emitter.Output = oldBuilder;
-            }
-
-            this.Write(castCode);
         }
 
         public IMethod InlineMethod

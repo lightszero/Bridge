@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+  <metadata minClientVersion="2.5">
+    <id>Bridge.Min</id>
+    <version>0.0.0</version>
+    <title>Bridge.NET Min</title>
+    <authors>Object.NET, Inc.</authors>
+    <iconUrl>http://speed.bridge.net/identity/bridgedotnet-100x100.png</iconUrl>
+    <owners />
+    <licenseUrl>https://github.com/bridgedotnet/Bridge/blob/master/LICENSE.md</licenseUrl>
+    <projectUrl>http://bridge.net</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A C# to JavaScript compiler. Write modern mobile and web apps in C#. Run them anywhere with JavaScript.</description>
+    <summary>A C# to JavaScript compiler. Write modern mobile and web apps in C#. Run them anywhere in JavaScript with Bridge.NET.</summary>
+    <copyright>Copyright (c) 2008-2019, Object.NET, Inc. (http://object.net/). All rights reserved.</copyright>
+    <tags>bridge bridge.net bridge js javascript C# csharp mobile ios asp.net aspnet mvc aspnetmvc web transpiler compiler object.net</tags>
+    <dependencies>
+      <dependency id="Bridge.Core" version="17.8.0" />
+    </dependencies>
+    <frameworkAssemblies>
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <file src="../../README.md" target="README.md" />
+    <file src="../../LICENSE.md" target="LICENSE.md" />
+
+    <!--build-->
+    <file src="../../.build/files/Bridge.Min.targets" target="build/Bridge.Min.targets" />
+
+    <!--tools-->
+    <file src="../../Compiler/Build/bin/Release/Bridge.Build.dll" target="tools/Bridge.Builder.v17.dll" />
+    <file src="../../Compiler/Build/bin/Release/Bridge.Contract.dll" target="tools/Bridge.Contract.dll" />
+    <file src="../../Compiler/Build/bin/Release/Bridge.Translator.dll" target="tools/Bridge.Translator.dll" />
+    <file src="../../Compiler/Builder/bin/Release/bridge.exe" target="tools/bridge.exe" />
+    <file src="../../Compiler/Build/bin/Release/AjaxMin.dll" target="tools/AjaxMin.dll" />
+    <file src="../../Compiler/Build/bin/Release/ICSharpCode.NRefactory.Cecil.dll" target="tools/ICSharpCode.NRefactory.Cecil.dll" />
+    <file src="../../Compiler/Build/bin/Release/ICSharpCode.NRefactory.CSharp.dll" target="tools/ICSharpCode.NRefactory.CSharp.dll" />
+    <file src="../../Compiler/Build/bin/Release/ICSharpCode.NRefactory.dll" target="tools/ICSharpCode.NRefactory.dll" />
+    <file src="../../Compiler/Build/bin/Release/Microsoft.CodeAnalysis.CSharp.dll" target="tools/Microsoft.CodeAnalysis.CSharp.dll" />
+    <file src="../../Compiler/Build/bin/Release/Microsoft.CodeAnalysis.dll" target="tools/Microsoft.CodeAnalysis.dll" />
+    <file src="../../Compiler/Build/bin/Release/Mono.Cecil.dll" target="tools/Mono.Cecil.dll" />
+    <file src="../../Compiler/Contract/bin/Release/Mono.Cecil.Mdb.dll" target="tools/Mono.Cecil.Mdb.dll" />
+    <file src="../../Compiler/Contract/bin/Release/Mono.Cecil.Pdb.dll" target="tools/Mono.Cecil.Pdb.dll" />
+    <file src="../../Compiler/Contract/bin/Release/Mono.Cecil.Rocks.dll" target="tools/Mono.Cecil.Rocks.dll" />
+    <file src="../../Compiler/Build/bin/Release/Newtonsoft.Json.dll" target="tools/Newtonsoft.Json.dll" />
+    <file src="../../Compiler/Build/bin/Release/Object.Net.Utilities.dll" target="tools/Object.Net.Utilities.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.AppContext.dll" target="tools/System.AppContext.dll" />
+    <file src="../../Compiler/Build/bin/Release/System.Collections.Immutable.dll" target="tools/System.Collections.Immutable.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Composition.AttributedModel.dll" target="tools/System.Composition.AttributedModel.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Composition.Convention.dll" target="tools/System.Composition.Convention.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Composition.Hosting.dll" target="tools/System.Composition.Hosting.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Composition.Runtime.dll" target="tools/System.Composition.Runtime.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Composition.TypedParts.dll" target="tools/System.Composition.TypedParts.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Console.dll" target="tools/System.Console.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Diagnostics.FileVersionInfo.dll" target="tools/System.Diagnostics.FileVersionInfo.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Diagnostics.StackTrace.dll" target="tools/System.Diagnostics.StackTrace.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.IO.Compression.dll" target="tools/System.IO.Compression.dll" />
+    <file src="../../Compiler/Build/bin/Release/System.IO.FileSystem.dll" target="tools/System.IO.FileSystem.dll" />
+    <file src="../../Compiler/Build/bin/Release/System.IO.FileSystem.Primitives.dll" target="tools/System.IO.FileSystem.Primitives.dll" />
+    <file src="../../Compiler/Build/bin/Release/System.Reflection.Metadata.dll" target="tools/System.Reflection.Metadata.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Security.Cryptography.Algorithms.dll" target="tools/System.Security.Cryptography.Algorithms.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Security.Cryptography.Encoding.dll" target="tools/System.Security.Cryptography.Encoding.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Security.Cryptography.Primitives.dll" target="tools/System.Security.Cryptography.Primitives.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Security.Cryptography.X509Certificates.dll" target="tools/System.Security.Cryptography.X509Certificates.dll" />
+    <file src="../../Compiler/Build/bin/Release/System.Text.Encoding.CodePages.dll" target="tools/System.Text.Encoding.CodePages.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Threading.Thread.dll" target="tools/System.Threading.Thread.dll" />
+    <file src="../../Compiler/Build/bin/Release/System.ValueTuple.dll" target="tools/System.ValueTuple.dll" />
+    <file src="../../Compiler/Build/bin/Release/System.Xml.ReaderWriter.dll" target="tools/System.Xml.ReaderWriter.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Xml.XmlDocument.dll" target="tools/System.Xml.XmlDocument.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Xml.XPath.dll" target="tools/System.Xml.XPath.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Xml.XPath.XDocument.dll" target="tools/System.Xml.XPath.XDocument.dll" />
+    <file src="../../Compiler/Build/bin/Release/TopologicalSorting.dll" target="tools/TopologicalSorting.dll" />
+    <file src="../../Compiler/Translator/bin/Release/Microsoft.Build.dll" target="tools/Microsoft.Build.dll" />
+    <file src="../../Compiler/Translator/bin/Release/Microsoft.Build.Framework.dll" target="tools/Microsoft.Build.Framework.dll" />
+    <file src="../../Compiler/Translator/bin/Release/Microsoft.Build.Utilities.Core.dll" target="tools/Microsoft.Build.Utilities.Core.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Threading.Tasks.Dataflow.dll" target="tools/System.Threading.Tasks.Dataflow.dll" />
+    <file src="../../Compiler/Translator/bin/Release/System.Runtime.InteropServices.RuntimeInformation.dll" target="tools/System.Runtime.InteropServices.RuntimeInformation.dll" />
+  </files>
+</package>

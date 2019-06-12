@@ -30,7 +30,7 @@ namespace Bridge.Translator
                 foreach (var attr in attrSection.Attributes)
                 {
                     var rr = this.Emitter.Resolver.ResolveNode(attr.Type, this.Emitter);
-                    if (rr.Type.FullName == "Bridge.ExternalAttribute" || rr.Type.FullName == "Bridge.IgnoreAttribute")
+                    if (rr.Type.FullName == "Bridge.ExternalAttribute")
                     {
                         return;
                     }
@@ -44,7 +44,6 @@ namespace Bridge.Translator
             var prevNamesMap = this.BuildLocalsNamesMap();
             this.AddLocals(operatorDeclaration.Parameters, operatorDeclaration.Body);
 
-            var typeDef = this.Emitter.GetTypeDefinition();
             var overloads = OverloadsCollection.Create(this.Emitter, operatorDeclaration);
 
             if (overloads.HasOverloads)
@@ -61,7 +60,7 @@ namespace Bridge.Translator
 
             this.WriteFunction();
 
-            this.EmitMethodParameters(operatorDeclaration.Parameters, operatorDeclaration);
+            this.EmitMethodParameters(operatorDeclaration.Parameters, null, operatorDeclaration);
 
             this.WriteSpace();
 
@@ -75,11 +74,7 @@ namespace Bridge.Translator
             {
                 this.BeginBlock();
 
-                foreach (var line in script)
-                {
-                    this.Write(line);
-                    this.WriteNewLine();
-                }
+                this.WriteLines(script);
 
                 this.EndBlock();
             }

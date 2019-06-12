@@ -1,4 +1,6 @@
 using Bridge.Contract;
+using Bridge.Translator;
+using Bridge.Translator.Logging;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
@@ -7,7 +9,7 @@ using System.Linq;
 
 namespace Bridge.Build
 {
-    public class GenerateScript : Task
+    public class BridgeCompilerTask : Task
     {
         [Required]
         public ITaskItem Assembly
@@ -16,8 +18,13 @@ namespace Bridge.Build
             set;
         }
 
-        [Required]
         public string OutputPath
+        {
+            get;
+            set;
+        }
+
+        public string OutDir
         {
             get;
             set;
@@ -37,19 +44,60 @@ namespace Bridge.Build
             set;
         }
 
+        [Required]
+        public string AssemblyName
+        {
+            get;
+            set;
+        }
+
+        [Required]
+        public ITaskItem[] Sources
+        {
+            get;
+            set;
+        }
+
+        public string CheckForOverflowUnderflow
+        {
+            get;
+            set;
+        }
+
         public bool NoCore
         {
             get;
             set;
         }
 
+        public string Platform
+        {
+            get;
+            set;
+        }
+
+        [Required]
         public string Configuration
         {
             get;
             set;
         }
 
+        [Required]
+        public string OutputType
+        {
+            get;
+            set;
+        }
+
         public string DefineConstants
+        {
+            get;
+            set;
+        }
+
+        [Required]
+        public string RootNamespace
         {
             get;
             set;
@@ -69,26 +117,6 @@ namespace Bridge.Build
 
 #endif
 
-        protected virtual void LogMessage(string level, string message)
-        {
-            level = level ?? "message";
-
-            switch (level.ToLowerInvariant())
-            {
-                case "message":
-                    this.Log.LogMessage(message);
-                    break;
-
-                case "warning":
-                    this.Log.LogWarning(message);
-                    break;
-
-                case "error":
-                    this.Log.LogError(message);
-                    break;
-            }
-        }
-
         public override bool Execute()
         {
             var success = true;
@@ -99,82 +127,116 @@ namespace Bridge.Build
                 System.Diagnostics.Debugger.Launch();
             };
 #endif
+            var logger = new Translator.Logging.Logger(null, false, LoggerLevel.Info, true, new VSLoggerWriter(this.Log), new FileLoggerWriter());
 
-            Bridge.Translator.Translator translator = null;
+            logger.Trace("Executing Bridge.Build.Task...");
+
+            var bridgeOptions = this.GetBridgeOptions();
+
+            var processor = new TranslatorProcessor(bridgeOptions, logger);
+
             try
             {
-                translator = new Bridge.Translator.Translator(this.ProjectPath, true);
-                translator.Configuration = this.Configuration;
+                processor.PreProcess();
 
-                if (this.DefineConstants != null)
-                {
-                    translator.DefineConstants.AddRange(this.DefineConstants.Split(';').Select(s => s.Trim()).Where(s => s != ""));
-                    translator.DefineConstants = translator.DefineConstants.Distinct().ToList();
-                }
+                processor.Process();
 
-                translator.BridgeLocation = Path.Combine(this.AssembliesPath, "Bridge.dll");
-                translator.Rebuild = false;
-                translator.Log = this.LogMessage;
-                translator.Translate();
-
-                string fileName = Path.GetFileNameWithoutExtension(this.Assembly.ItemSpec);
-
-                string outputPath = !string.IsNullOrWhiteSpace(translator.AssemblyInfo.Output)
-                    ? Path.Combine(Path.GetDirectoryName(this.ProjectPath), translator.AssemblyInfo.Output)
-                    : this.OutputPath;
-
-                if (translator.AssemblyInfo != null && translator.AssemblyInfo.CleanOutputFolderBeforeBuild)
-                {
-                    Console.WriteLine("Cleaning output folder before extracting scripts...");
-                    CleanDirectory(outputPath);
-                }
-
-                if (!this.NoCore)
-                {
-                    translator.ExtractCore(outputPath);
-                }
-                translator.SaveTo(outputPath, fileName);
-                translator.Flush(outputPath, fileName);
-                translator.Plugins.AfterOutput(translator, outputPath, this.NoCore);
+                processor.PostProcess();
             }
-            catch (EmitterException e)
+            catch (EmitterException ex)
             {
-                this.Log.LogError(null, null, null, e.FileName, e.StartLine + 1, e.StartColumn + 1, e.EndLine + 1, e.EndColumn + 1, "Error: {0} {1}", e.Message, e.StackTrace);
+                var errMsg = $"{ex.Message} {ex.StackTrace}";
+
+                logger.Error(errMsg, ex.FileName, ex.StartLine + 1, ex.StartColumn + 1, ex.EndLine + 1, ex.EndColumn + 1);
+
                 success = false;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                var ee = translator != null ? translator.CreateExceptionFromLastNode() : null;
+                var errMsg = $"{ex.Message} {ex.StackTrace}";
+
+                var ee = processor.Translator != null ? processor.Translator.CreateExceptionFromLastNode() : null;
 
                 if (ee != null)
                 {
-                    this.Log.LogError(null, null, null, ee.FileName, ee.StartLine + 1, ee.StartColumn + 1, ee.EndLine + 1, ee.EndColumn + 1, "Error: {0} {1}", e.Message, e.StackTrace);
+                    logger.Error(errMsg, ee.FileName, ee.StartLine + 1, ee.StartColumn + 1, ee.EndLine + 1, ee.EndColumn + 1);
                 }
                 else
                 {
-                    this.Log.LogError("Error: {0} {1}", e.Message, e.StackTrace);
+                    logger.Error(errMsg);
                 }
 
                 success = false;
             }
+
+            processor = null;
 
             return success;
         }
 
-        private static void CleanDirectory(string outputPath)
+        private Bridge.Translator.BridgeOptions GetBridgeOptions()
         {
-            var outputDirectory = new DirectoryInfo(outputPath);
-            if (outputDirectory.Exists)
+            var bridgeOptions = new Bridge.Translator.BridgeOptions()
             {
-                foreach (var file in outputDirectory.GetFiles())
-                {
-                    file.Delete();
-                }
-                foreach (var dir in outputDirectory.GetDirectories())
-                {
-                    dir.Delete(true);
-                }
+                ProjectLocation = this.ProjectPath,
+                OutputLocation = this.OutputPath,
+                DefaultFileName = Path.GetFileName(this.Assembly.ItemSpec),
+                BridgeLocation = Path.Combine(this.AssembliesPath, "Bridge.dll"),
+                Rebuild = false,
+                ExtractCore = !NoCore,
+                Folder = null,
+                Recursive = false,
+                Lib = null,
+                NoCompilation = false,
+                NoTimeStamp = null,
+                FromTask = true,
+                Name = "",
+                Sources = GetSources()
+            };
+
+            bridgeOptions.ProjectProperties = new ProjectProperties()
+            {
+                AssemblyName = this.AssemblyName,
+                OutputPath = this.OutputPath,
+                OutDir = this.OutDir,
+                RootNamespace = this.RootNamespace,
+                Configuration = this.Configuration,
+                Platform = this.Platform,
+                DefineConstants = this.DefineConstants,
+                CheckForOverflowUnderflow = GetCheckForOverflowUnderflow(),
+                OutputType = this.OutputType
+            };
+
+            return bridgeOptions;
+        }
+
+        private string GetSources()
+        {
+            if (this.Sources != null && this.Sources.Length > 0)
+            {
+                var result = string.Join(";", this.Sources.Select(x => x.ItemSpec));
+
+                return result;
             }
+
+            return null;
+        }
+
+        private bool? GetCheckForOverflowUnderflow()
+        {
+            if (this.CheckForOverflowUnderflow == null)
+            {
+                return null;
+            }
+
+            bool b;
+
+            if (bool.TryParse(this.CheckForOverflowUnderflow, out b))
+            {
+                return b;
+            }
+
+            return null;
         }
     }
 }

@@ -1,6 +1,7 @@
 using Bridge.Contract;
 using ICSharpCode.NRefactory.CSharp;
 using System.Collections.Generic;
+using ICSharpCode.NRefactory.Semantics;
 
 namespace Bridge.Translator
 {
@@ -11,7 +12,7 @@ namespace Bridge.Translator
         {
         }
 
-        protected virtual void WriteObjectInitializer(IEnumerable<Expression> expressions, bool changeCase)
+        protected virtual void WriteObjectInitializer(IEnumerable<Expression> expressions, bool changeCase, bool valuesOnly = false)
         {
             bool needComma = false;
 
@@ -43,27 +44,35 @@ namespace Bridge.Translator
                 }
 
                 needComma = true;
-                string name;
+                string name = null;
                 Expression expression;
+
+                var rr = this.Emitter.Resolver.ResolveNode(item, this.Emitter) as MemberResolveResult;
+
+                if (rr != null)
+                {
+                    name = this.Emitter.GetEntityName(rr.Member);
+                    changeCase = false;
+                }
 
                 if (namedExression != null)
                 {
-                    name = namedExression.Name;
+                    name = name ?? namedExression.Name;
                     expression = namedExression.Expression;
                 }
                 else if (namedArgumentExpression != null)
                 {
-                    name = namedArgumentExpression.Name;
+                    name = name ?? namedArgumentExpression.Name;
                     expression = namedArgumentExpression.Expression;
                 }
                 else if (identifierExpression != null)
                 {
-                    name = identifierExpression.Identifier;
+                    name = name ?? identifierExpression.Identifier;
                     expression = identifierExpression;
                 }
                 else
                 {
-                    name = memberReferenceExpression.MemberName;
+                    name = name ?? memberReferenceExpression.MemberName;
                     expression = memberReferenceExpression;
                 }
 
@@ -72,7 +81,11 @@ namespace Bridge.Translator
                     name = Object.Net.Utilities.StringUtils.ToLowerCamelCase(name);
                 }
 
-                this.Write(name, ": ");
+                if (!valuesOnly)
+                {
+                    this.Write(name, ": ");
+                }
+
                 expression.AcceptVisitor(this.Emitter);
             }
         }

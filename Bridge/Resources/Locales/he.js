@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("he", true), {
+Bridge.merge(new System.Globalization.CultureInfo("he", true), {
     englishName: "Hebrew",
     nativeName: "עברית",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "לא מספר",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "אינסוף שלילי",
-        positiveInfinitySymbol: "אינסוף חיובי",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["יום א","יום ב","יום ג","יום ד","יום ה","יום ו","שבת"],
         abbreviatedMonthGenitiveNames: ["ינו","פבר","מרץ","אפר","מאי","יונ","יול","אוג","ספט","אוק","נוב","דצמ",""],
         abbreviatedMonthNames: ["ינו","פבר","מרץ","אפר","מאי","יונ","יול","אוג","ספט","אוק","נוב","דצמ",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1255,
+        CultureName: "he-IL",
+        EBCDICCodePage: 500,
+        IsRightToLeft: true,
+        LCID: 1037,
+        listSeparator: ",",
+        MacCodePage: 10005,
+        OEMCodePage: 862,
+        IsReadOnly: true
     })
 });

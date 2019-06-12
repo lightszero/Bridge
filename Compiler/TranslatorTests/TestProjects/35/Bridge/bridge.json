@@ -1,0 +1,20 @@
+{
+  "cleanOutputFolderBeforeBuildPattern": "*.*",
+  "html": {
+    "disabled": true
+  },
+  "logging": {
+    "level":  "None"
+  },
+  "output": "Bridge\\output",
+  "outputBy": "Namespace",
+  "outputFormatting": "Formatted",
+  "report": {
+    "enabled": true,
+    "fileName": "report.log"
+  },
+  "reflection": {
+    "disabled": true
+  },
+  "useTypedArrays": true
+}

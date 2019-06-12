@@ -1,7 +1,7 @@
 ﻿using Bridge;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-
 
 namespace Test.BridgeIssues.N697
 {
@@ -24,7 +24,7 @@ namespace Test.BridgeIssues.N697
     {
         private static Func<TProps, ReactElement> _reactStatelessRenderFunction;
         private readonly ReactElement _reactElement;
-        protected StatelessComponent(TProps props, params Any<ReactElement, string>[] children)
+        protected StatelessComponent(TProps props, params Union<ReactElement, string>[] children)
         {
             if (children != null)
             {
@@ -48,8 +48,23 @@ namespace Test.BridgeIssues.N697
             // don't get it if you call DOM.Div(null, "Item1", "Item2"), so we don't want it in most cases here either - to achieve this, we prepare an arguments
             // array and pass that to React.createElement in an "apply" call. Similar techniques are used in the stateful component.
             Array createElementArgs = new object[] { reactStatelessRenderFunction, ComponentHelpers<TProps>.WrapProps(props) };
+
             if (children != null)
-                createElementArgs = createElementArgs.Concat(children);
+            {
+                var tempList = new List<object>();
+                foreach (var entry in createElementArgs)
+                {
+                    tempList.Add(entry);
+                }
+
+                foreach (var entry in children)
+                {
+                    tempList.Add(entry);
+                }
+
+                createElementArgs = tempList.ToArray();
+            }
+
             _reactElement = Script.Write<ReactElement>("React.createElement.apply(null, createElementArgs)");
         }
 
@@ -61,26 +76,26 @@ namespace Test.BridgeIssues.N697
             // best way that I can think of is to use Object.create to prepare a new instance, taking the prototype of the component class, and then setting its
             // props reference, then wrapping this all in a function that calls its Render function, binding to this instance. This woud mean that the constructor
             // would not get called on the component, but that's just the same as for stateful components (from the Component class).
-            var fullClassName = this.GetClassName();
+            var fullClassName = this.GetType().FullName;
             /*@
-			var classPrototype;
-			eval('classPrototype = ' + fullClassName + '.prototype');
-			var scopeBoundFunction = function(props) {
-				var target = Object.create(classPrototype);
-				target.props = props;
-				return target.render.apply(target, []);
-			}
-			*/
+            var classPrototype;
+            eval('classPrototype = ' + fullClassName + '.prototype');
+            var scopeBoundFunction = function(props) {
+                var target = Object.create(classPrototype);
+                target.props = props;
+                return target.render.apply(target, []);
+            }
+            */
 
             // We have an anonymous function for the renderer now but it would better to name it, since React Dev Tools will use show the function name (if defined) as
             // the component name in the tree. The only way to do this is, unfortunately, with eval - but the only dynamic content is the class name (which should be
             // safe to use since valid C# class names should be valid JavaScript function names, with no escaping required) and this work is only performed once per
             // class, since it is stored in a static variable - so the eval calls will be made very infrequently (so performance is not a concern).
-            var className = fullClassName.Split(".").Last();
+            var className = fullClassName.Split('.').Last();
             Func<TProps, ReactElement> namedScopeBoundFunction = null;
             /*@
-			eval("namedScopeBoundFunction = function " + className + "(props) { return scopeBoundFunction(props); };");
-			*/
+            eval("namedScopeBoundFunction = function " + className + "(props) { return scopeBoundFunction(props); };");
+            */
             return namedScopeBoundFunction;
         }
 
@@ -96,9 +111,9 @@ namespace Test.BridgeIssues.N697
         /// <summary>
         /// This will never be null nor contain any null references, though it may be empt if there are children to render
         /// </summary>
-        protected Any<ReactElement, string>[] Children
+        protected Union<ReactElement, string>[] Children
         {
-            get { return Script.Write<Any<ReactElement, string>[]>("this.props && this.props.children ? this.props.children : []"); }
+            get { return Script.Write<Union<ReactElement, string>[]>("this.props && this.props.children ? this.props.children : []"); }
         }
 
         public abstract ReactElement Render();
@@ -111,7 +126,7 @@ namespace Test.BridgeIssues.N697
             return component._reactElement;
         }
 
-        public static implicit operator Any<ReactElement, string>(StatelessComponent<TProps> component)
+        public static implicit operator Union<ReactElement, string>(StatelessComponent<TProps> component)
         {
             if (component == null)
                 throw new ArgumentNullException("component");

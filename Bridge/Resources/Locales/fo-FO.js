@@ -1,27 +1,27 @@
-﻿Bridge.merge(new Bridge.CultureInfo("fo-FO", true), {
+Bridge.merge(new System.Globalization.CultureInfo("fo-FO", true), {
     englishName: "Faroese (Faroe Islands)",
     nativeName: "føroyskt (Føroyar)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-INF",
-        positiveInfinitySymbol: "INF",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: ".",
-        percentPositivePattern: 1,
-        percentNegativePattern: 1,
-        currencySymbol: "kr.",
+        percentPositivePattern: 0,
+        percentNegativePattern: 0,
+        currencySymbol: "kr",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
         currencyGroupSeparator: ".",
-        currencyNegativePattern: 12,
-        currencyPositivePattern: 2,
+        currencyNegativePattern: 8,
+        currencyPositivePattern: 3,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
@@ -29,30 +29,42 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
-        abbreviatedDayNames: ["sun","mán","týs","mik","hós","frí","leyg"],
-        abbreviatedMonthGenitiveNames: ["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des",""],
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
+        abbreviatedDayNames: ["sun.","mán.","týs.","mik.","hós.","frí.","ley."],
+        abbreviatedMonthGenitiveNames: ["jan.","feb.","mar.","apr.","mai","jun.","jul.","aug.","sep.","okt.","nov.","des.",""],
         abbreviatedMonthNames: ["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des",""],
-        amDesignator: "",
-        dateSeparator: "-",
+        amDesignator: "um fyr.",
+        dateSeparator: ".",
         dayNames: ["sunnudagur","mánadagur","týsdagur","mikudagur","hósdagur","fríggjadagur","leygardagur"],
         firstDayOfWeek: 1,
-        fullDateTimePattern: "d. MMMM yyyy HH:mm:ss",
-        longDatePattern: "d. MMMM yyyy",
+        fullDateTimePattern: "dddd, d. MMMM yyyy HH:mm:ss",
+        longDatePattern: "dddd, d. MMMM yyyy",
         longTimePattern: "HH:mm:ss",
-        monthDayPattern: "d MMMM",
+        monthDayPattern: "d. MMMM",
         monthGenitiveNames: ["januar","februar","mars","apríl","mai","juni","juli","august","september","oktober","november","desember",""],
         monthNames: ["januar","februar","mars","apríl","mai","juni","juli","august","september","oktober","november","desember",""],
-        pmDesignator: "",
+        pmDesignator: "um sein.",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "dd-MM-yyyy",
-        shortestDayNames: ["su","má","tý","mi","hó","fr","ley"],
+        shortDatePattern: "dd.MM.yyyy",
+        shortestDayNames: ["su.","má.","tý.","mi.","hó.","fr.","le."],
         shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "fo-FO",
+        EBCDICCodePage: 20277,
+        IsRightToLeft: false,
+        LCID: 1080,
+        listSeparator: ";",
+        MacCodePage: 10079,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

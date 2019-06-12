@@ -37,6 +37,12 @@ namespace Bridge.Translator
             protected set;
         }
 
+        public List<string> IgnoredTypes
+        {
+            get;
+            protected set;
+        }
+
         public IMemberResolver Resolver
         {
             get;

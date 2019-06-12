@@ -1,41 +1,91 @@
-﻿// @source /Collections/ArrayEnumerator.js
+    Bridge.define("Bridge.ArrayEnumerator", {
+        inherits: [System.Collections.IEnumerator, System.IDisposable],
 
-Bridge.define('Bridge.ArrayEnumerator', {
-    inherits: [Bridge.IEnumerator],
+        statics: {
+            $isArrayEnumerator: true
+        },
 
-    constructor: function (array) {
-        this.array = array;
-        this.reset();
-    },
-    
-    moveNext: function () {
-        this.index++;
+        config: {
+            properties: {
+                Current: {
+                    get: function () {
+                        return this.getCurrent();
+                    }
+                },
 
-        return this.index < this.array.length;
-    },
+                Current$1: {
+                    get: function () {
+                        return this.getCurrent();
+                    }
+                }
+            },
 
-    getCurrent: function () {
-        return this.array[this.index];
-    },
+            alias: [
+                "getCurrent", "System$Collections$IEnumerator$getCurrent",
+                "moveNext", "System$Collections$IEnumerator$moveNext",
+                "reset", "System$Collections$IEnumerator$reset",
+                "Dispose", "System$IDisposable$Dispose",
+                "Current", "System$Collections$IEnumerator$Current"
+            ]
+        },
 
-    getCurrent$1: function () {
-        return this.array[this.index];
-    },
+        ctor: function (array, T) {
+            this.$initialize();
+            this.array = array;
+            this.reset();
 
-    reset: function () {
-        this.index = -1;
-    },
+            if (T) {
+                this["System$Collections$Generic$IEnumerator$1$" + Bridge.getTypeAlias(T) + "$getCurrent$1"] = this.getCurrent;
+                this["System$Collections$Generic$IEnumerator$1$getCurrent$1"] = this.getCurrent;
 
-    dispose: Bridge.emptyFn
-});
+                Object.defineProperty(this, "System$Collections$Generic$IEnumerator$1$" + Bridge.getTypeAlias(T) + "$Current$1", {
+                    get: this.getCurrent,
+                    enumerable: true
+                });
 
-Bridge.define('Bridge.ArrayEnumerable', {
-    inherits: [Bridge.IEnumerable],
-    constructor: function (array) {
-        this.array = array;
-    },
+                Object.defineProperty(this, "System$Collections$Generic$IEnumerator$1$Current$1", {
+                    get: this.getCurrent,
+                    enumerable: true
+                });
+            }
+        },
 
-    getEnumerator: function () {
-        return new Bridge.ArrayEnumerator(this.array);
-    }
-});
+        moveNext: function () {
+            this.index++;
+
+            return this.index < this.array.length;
+        },
+
+        getCurrent: function () {
+            return this.array[this.index];
+        },
+
+        getCurrent$1: function () {
+            return this.array[this.index];
+        },
+
+        reset: function () {
+            this.index = -1;
+        },
+
+        Dispose: Bridge.emptyFn
+    });
+
+    Bridge.define("Bridge.ArrayEnumerable", {
+        inherits: [System.Collections.IEnumerable],
+
+        config: {
+            alias: [
+                "GetEnumerator", "System$Collections$IEnumerable$GetEnumerator"
+            ]
+        },
+
+        ctor: function (array) {
+            this.$initialize();
+            this.array = array;
+        },
+
+        GetEnumerator: function () {
+            return new Bridge.ArrayEnumerator(this.array);
+        }
+    });

@@ -1,12 +1,15 @@
+using System.Collections.Concurrent;
 using Bridge.Contract;
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.CSharp.Resolver;
+using ICSharpCode.NRefactory.CSharp.TypeSystem;
 using ICSharpCode.NRefactory.Semantics;
 using ICSharpCode.NRefactory.TypeSystem;
 using ICSharpCode.NRefactory.TypeSystem.Implementation;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Mono.Cecil;
 
 namespace Bridge.Translator
 {
@@ -17,6 +20,7 @@ namespace Bridge.Translator
         private ICompilation compilation;
         private CSharpAstResolver resolver;
         private IProjectContent project;
+        private readonly ConcurrentDictionary<SyntaxTree, CSharpUnresolvedFile> typeSystemCache;
 
         public bool CanFreeze
         {
@@ -40,31 +44,41 @@ namespace Bridge.Translator
             }
         }
 
-        public MemberResolver(IList<ParsedSourceFile> sourceFiles, IEnumerable<IAssemblyReference> assemblies)
+        public IEnumerable<IAssemblyReference> Assemblies
+        {
+            get;
+            private set;
+        }
+
+        public MemberResolver(IList<ParsedSourceFile> sourceFiles, IEnumerable<IAssemblyReference> assemblies, AssemblyDefinition assemblyDefinition)
         {
             this.project = null;
             this.lastFileName = null;
             this.sourceFiles = sourceFiles;
+            this.Assemblies = assemblies;
+            this.MainAssembly = assemblyDefinition;
+            this.typeSystemCache = new ConcurrentDictionary<SyntaxTree, CSharpUnresolvedFile>();
 
             this.project = new CSharpProjectContent();
             this.project = this.project.AddAssemblyReferences(assemblies);
+            this.project = this.project.SetAssemblyName(assemblyDefinition.FullName);
             this.AddOrUpdateFiles();
+        }
+
+        public AssemblyDefinition MainAssembly
+        {
+            get; set;
         }
 
         private void AddOrUpdateFiles()
         {
+            this.typeSystemCache.Clear();
             var unresolvedFiles = new IUnresolvedFile[this.sourceFiles.Count];
 
             Parallel.For(0, unresolvedFiles.Length, i =>
             {
                 var syntaxTree = this.sourceFiles[i].SyntaxTree;
-
-                if (this.CanFreeze)
-                {
-                    //syntaxTree.Freeze();
-                }
-
-                unresolvedFiles[i] = syntaxTree.ToTypeSystem();
+                unresolvedFiles[i] = this.GetTypeSystem(syntaxTree);
             });
 
             this.project = this.project.AddOrUpdateFiles(unresolvedFiles);
@@ -73,12 +87,28 @@ namespace Bridge.Translator
 
         private void InitResolver(SyntaxTree syntaxTree)
         {
-            if (this.lastFileName != syntaxTree.FileName)
+            if (this.lastFileName != syntaxTree.FileName || string.IsNullOrEmpty(syntaxTree.FileName))
             {
                 this.lastFileName = syntaxTree.FileName;
-                var unresolvedFile = syntaxTree.ToTypeSystem();
-                this.resolver = new CSharpAstResolver(compilation, syntaxTree, unresolvedFile);
+                var typeSystem = this.GetTypeSystem(syntaxTree);
+                this.resolver = new CSharpAstResolver(this.compilation, syntaxTree, typeSystem);
             }
+        }
+
+        private CSharpUnresolvedFile GetTypeSystem(SyntaxTree syntaxTree)
+        {
+            CSharpUnresolvedFile existingTypeSystem;
+            if (this.typeSystemCache.TryGetValue(syntaxTree, out existingTypeSystem))
+            {
+                return existingTypeSystem;
+            }
+            CSharpUnresolvedFile unresolvedFile = null;
+            if (!string.IsNullOrEmpty(syntaxTree.FileName))
+            {
+                unresolvedFile = syntaxTree.ToTypeSystem();
+            }
+            this.typeSystemCache[syntaxTree] = unresolvedFile;
+            return unresolvedFile;
         }
 
         public ResolveResult ResolveNode(AstNode node, ILog log)

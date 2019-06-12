@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("dsb", true), {
+Bridge.merge(new System.Globalization.CultureInfo("dsb", true), {
     englishName: "Lower Sorbian",
     nativeName: "dolnoserbšćina",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "njedefinowane",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-njeskóńcnje",
-        positiveInfinitySymbol: "+njeskóńcnje",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["nje","pon","wał","srj","stw","pět","sob"],
         abbreviatedMonthGenitiveNames: ["jan","feb","měr","apr","maj","jun","jul","awg","sep","okt","now","dec",""],
         abbreviatedMonthNames: ["jan","feb","měr","apr","maj","jun","jul","awg","sep","okt","now","dec",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "dsb-DE",
+        EBCDICCodePage: 870,
+        IsRightToLeft: false,
+        LCID: 2094,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

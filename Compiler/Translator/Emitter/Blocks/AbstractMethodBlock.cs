@@ -1,6 +1,10 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
+
 using ICSharpCode.NRefactory.CSharp;
+
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Bridge.Translator
 {
@@ -11,16 +15,26 @@ namespace Bridge.Translator
         {
         }
 
-        protected virtual void EmitMethodParameters(IEnumerable<ParameterDeclaration> declarations, AstNode context, bool skipCloseParentheses = false)
+        protected virtual void EmitMethodParameters(IEnumerable<ParameterDeclaration> declarations, IEnumerable<TypeParameterDeclaration> typeParamsdeclarations, AstNode context, bool skipCloseParentheses = false)
         {
             this.WriteOpenParentheses();
             bool needComma = false;
 
+            if (typeParamsdeclarations != null && typeParamsdeclarations.Any())
+            {
+                this.EmitTypeParameters(typeParamsdeclarations, context);
+
+                if (declarations.Any())
+                {
+                    this.EnsureComma(false);
+                }
+            }
+
             foreach (var p in declarations)
             {
-                var name = this.Emitter.GetEntityName(p);
+                var name = this.Emitter.GetParameterName(p);
 
-                name = name.Replace(Bridge.Translator.Emitter.FIX_ARGUMENT_NAME, "");
+                name = name.Replace(JS.Vars.FIX_ARGUMENT_NAME, "");
 
                 if (this.Emitter.LocalsNamesMap != null && this.Emitter.LocalsNamesMap.ContainsKey(name))
                 {
@@ -33,6 +47,8 @@ namespace Bridge.Translator
                 }
 
                 needComma = true;
+                this.WriteSourceMapName(p.Name);
+                this.WriteSequencePoint(p.Region);
                 this.Write(name);
             }
 
@@ -44,7 +60,6 @@ namespace Bridge.Translator
 
         protected virtual void EmitTypeParameters(IEnumerable<TypeParameterDeclaration> declarations, AstNode context)
         {
-            this.WriteOpenParentheses();
             bool needComma = false;
 
             foreach (var p in declarations)
@@ -57,10 +72,11 @@ namespace Bridge.Translator
                 }
 
                 needComma = true;
-                this.Write(p.Name.Replace(Bridge.Translator.Emitter.FIX_ARGUMENT_NAME, ""));
+                this.WriteSourceMapName(p.Name);
+                this.WriteSequencePoint(p.Region);
+                this.Write(p.Name.Replace(JS.Vars.FIX_ARGUMENT_NAME, ""));
+                this.Emitter.Comma = true;
             }
-
-            this.WriteCloseParentheses();
         }
     }
 }

@@ -1,5 +1,19 @@
 {
   "output": "Bridge\\output",
-  "cleanOutputFolderBeforeBuild": true,
-  "outputFormatting": "Formatted"
+  "fileName": "TestProject.I2096.js",
+  "cleanOutputFolderBeforeBuildPattern": "*.*",
+  "outputFormatting": "Formatted",
+  "locales": "en-US",
+  "combineScripts":  true,
+  "html": {
+    "title": "This is title from Html config"
+  },
+  "logging": {
+    "level":  "None"
+  },
+  "report": false
+  //"sourceMap": {
+  //  "enabled": true,
+  //  "eol": "crlf"
+  //}
 }

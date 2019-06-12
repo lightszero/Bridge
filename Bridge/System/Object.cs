@@ -1,142 +1,102 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Name("Object")]
-    [IgnoreCast]
-    [Constructor("{ }")]
+    [Bridge.External]
+    [Bridge.IgnoreCast]
+    [Bridge.Constructor("{ }")]
     public class Object
     {
-        public virtual object this[string name]
+        public virtual extern object this[string name]
         {
-            [External]
-            get
-            {
-                return null;
-            }
-            [External]
-            set
-            {
-            }
+            [Bridge.External]
+            get;
+            [Bridge.External]
+            set;
         }
 
-        public virtual string ToString()
-        {
-            return null;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        [Bridge.Template("Bridge.toString({this})")]
+        public virtual extern string ToString();
 
-        public virtual string ToLocaleString()
-        {
-            return null;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public virtual extern string ToLocaleString();
 
-        public virtual object ValueOf()
-        {
-            return null;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public virtual extern object ValueOf();
 
-        public virtual bool HasOwnProperty(object v)
-        {
-            return false;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public virtual extern bool HasOwnProperty(object v);
 
-        public virtual bool IsPrototypeOf(object v)
-        {
-            return false;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public virtual extern bool IsPrototypeOf(object v);
 
-        public virtual bool PropertyIsEnumerable(object v)
-        {
-            return false;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        public virtual extern bool PropertyIsEnumerable(object v);
 
-        [Template("Bridge.getType({this})")]
-        public Type GetType()
-        {
-            return null;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        [Bridge.Template("<self>{this:type}")]
+        public extern Type GetType();
 
-        [Template("{a} === {b}")]
-        public static bool ReferenceEquals(object a, object b)
-        {
-            return false;
-        }
+        // Returns a new object instance that is a memberwise copy of this
+        // object.  This is always a shallow copy of the instance. The method is protected
+        // so that other object may only call this method on themselves.  It is entended to
+        // support the ICloneable interface.
+        //
+        // TODO: NotSupported
+        //[System.Security.SecuritySafeCritical]  // auto-generated
+        //[ResourceExposure(ResourceScope.None)]
+        //[MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [Bridge.Template("Bridge.clone({this})")]
+        protected extern Object MemberwiseClone();
 
-        [Template("Bridge.equals({this}, {o})")]
-        public virtual bool Equals(object o)
-        {
-            return false;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        [Bridge.Template("Bridge.referenceEquals({a}, {b})")]
+        public static extern bool ReferenceEquals(object a, object b);
 
-        [Template("Bridge.equals({a}, {b})")]
-        public static bool Equals(object a, object b)
-        {
-            return false;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        [Bridge.Template("Bridge.equals({this}, {o})")]
+        public virtual extern bool Equals(object o);
 
-        [Template("Bridge.getHashCode({this})")]
-        public virtual int GetHashCode()
-        {
-            return 0;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        [Bridge.Template("Bridge.equals({a}, {b})")]
+        public static extern bool Equals(object a, object b);
 
-        public static string[] Keys(object obj)
-        {
-            return null;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        [Bridge.Template("Bridge.getHashCode({this})")]
+        public virtual extern int GetHashCode();
 
-        public static string[] GetOwnPropertyNames(object obj)
-        {
-            return null;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        [Bridge.Template("Object.getOwnPropertyNames({obj})")]
+        [Bridge.Unbox(true)]
+        public static extern string[] GetOwnPropertyNames(object obj);
 
-        [Template("{T}.prototype")]
-        public static dynamic GetPrototype<T>()
-        {
-            return null;
-        }
+        [Bridge.Convention(Bridge.Notation.CamelCase)]
+        [Bridge.Template("{T}.prototype")]
+        public static extern dynamic GetPrototype<T>();
 
         public readonly Type Constructor;
 
-        [Template("{this}")]
-        public virtual dynamic ToDynamic()
-        {
-            return null;
-        }
+#pragma warning disable 169
+        private readonly Type ctor;
+#pragma warning restore 169
 
-        [Template("Bridge.getTypeName({this})")]
-        public virtual string GetClassName()
-        {
-            return null;
-        }
+        [Bridge.Template("{this}")]
+        public virtual extern dynamic ToDynamic();
     }
 
-    [External]
+    [Bridge.External]
     public static class ObjectExtensions
     {
-        [Template("{0}")]
-        public static T As<T>(this object obj)
-        {
-            return default(T);
-        }
+        [Bridge.Template("{0}")]
+        [Bridge.Unbox(true)]
+        public static extern T As<T>(this object obj);
 
-        [Template("Bridge.cast({obj}, {T})")]
-        public static T Cast<T>(this object obj)
-        {
-            return default(T);
-        }
+        [Bridge.Template("Bridge.cast({obj}, {T})")]
+        public static extern T Cast<T>(this object obj);
 
-        [Template("Bridge.as({obj}, {T})")]
-        public static T TryCast<T>(this object obj) where T : class
-        {
-            return default(T);
-        }
+        [Bridge.Template("Bridge.as({obj}, {T})")]
+        public static extern T TryCast<T>(this object obj) where T : class;
 
-        [Template("Bridge.is({obj}, {T})")]
-        public static bool Is<T>(this object obj)
-        {
-            return false;
-        }
+        [Bridge.Template("Bridge.is({obj}, {T})")]
+        public static extern bool Is<T>(this object obj);
     }
 }

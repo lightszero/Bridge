@@ -1,70 +1,80 @@
-﻿// @source /Collections/Interfaces.js
+    Bridge.define("System.Collections.IEnumerable", {
+        $kind: "interface"
+    });
+    Bridge.define("System.Collections.ICollection", {
+        inherits: [System.Collections.IEnumerable],
+        $kind: "interface"
+    });
+    Bridge.define("System.Collections.IList", {
+        inherits: [System.Collections.ICollection],
+        $kind: "interface"
+    });
+    Bridge.define("System.Collections.IDictionary", {
+        inherits: [System.Collections.ICollection],
+        $kind: "interface"
+    });
 
-Bridge.define('Bridge.IEnumerable');
-Bridge.define('Bridge.IEnumerator');
-Bridge.define('Bridge.IEqualityComparer');
-Bridge.define('Bridge.ICollection', {
-    inherits: [Bridge.IEnumerable]
-});
+    Bridge.define("System.Collections.Generic.IEnumerable$1", function (T) {
+        return {
+            inherits: [System.Collections.IEnumerable],
+            $kind: "interface",
+            $variance: [1]
+        };
+    });
 
-Bridge.Class.generic('Bridge.IEnumerator$1', function (T) {
-    var $$name = Bridge.Class.genericName('Bridge.IEnumerator$1', T);
+    Bridge.define("System.Collections.Generic.ICollection$1", function (T) {
+        return {
+            inherits: [System.Collections.Generic.IEnumerable$1(T)],
+            $kind: "interface"
+        };
+    });
 
-    return Bridge.Class.cache[$$name] || (Bridge.Class.cache[$$name] = Bridge.define($$name, {
-        inherits: [Bridge.IEnumerator]
-    }));
-});
+    Bridge.define("System.Collections.Generic.IEqualityComparer$1", function (T) {
+        return {
+            $kind: "interface",
+            $variance: [2]
+        };
+    });
 
-Bridge.Class.generic('Bridge.IEnumerable$1', function (T) {
-    var $$name = Bridge.Class.genericName('Bridge.IEnumerable$1', T);
+    Bridge.define("System.Collections.Generic.IDictionary$2", function (TKey, TValue) {
+        return {
+            inherits: [System.Collections.Generic.ICollection$1(System.Collections.Generic.KeyValuePair$2(TKey, TValue))],
+            $kind: "interface"
+        };
+    });
 
-    return Bridge.Class.cache[$$name] || (Bridge.Class.cache[$$name] = Bridge.define($$name, {
-        inherits: [Bridge.IEnumerable]
-    }));
-});
+    Bridge.define("System.Collections.Generic.IList$1", function (T) {
+        return {
+            inherits: [System.Collections.Generic.ICollection$1(T)],
+            $kind: "interface"
+        };
+    });
 
-Bridge.Class.generic('Bridge.ICollection$1', function (T) {
-    var $$name = Bridge.Class.genericName('Bridge.ICollection$1', T);
+    Bridge.define("System.Collections.Generic.ISet$1", function (T) {
+        return {
+            inherits: [System.Collections.Generic.ICollection$1(T)],
+            $kind: "interface"
+        };
+    });
 
-    return Bridge.Class.cache[$$name] || (Bridge.Class.cache[$$name] = Bridge.define($$name, {
-        inherits: [Bridge.IEnumerable$1(T)]
-    }));
-});
+    Bridge.define("System.Collections.Generic.IReadOnlyCollection$1", function (T) {
+        return {
+            inherits: [System.Collections.Generic.IEnumerable$1(T)],
+            $kind: "interface"
+        };
+    });
 
-Bridge.Class.generic('Bridge.IEqualityComparer$1', function (T) {
-    var $$name = Bridge.Class.genericName('Bridge.IEqualityComparer$1', T);
+    Bridge.define("System.Collections.Generic.IReadOnlyList$1", function (T) {
+        return {
+            inherits: [System.Collections.Generic.IReadOnlyCollection$1(T)],
+            $kind: "interface",
+            $variance: [1]
+        };
+    });
 
-    return Bridge.Class.cache[$$name] || (Bridge.Class.cache[$$name] = Bridge.define($$name, {
-    }));
-});
-
-Bridge.Class.generic('Bridge.IDictionary$2', function (TKey, TValue) {
-    var $$name = Bridge.Class.genericName('Bridge.IDictionary$2', TKey, TValue);
-
-    return Bridge.Class.cache[$$name] || (Bridge.Class.cache[$$name] = Bridge.define($$name, {
-        inherits: [Bridge.IEnumerable$1(Bridge.KeyValuePair$2(TKey, TValue))]
-    }));
-});
-
-Bridge.Class.generic('Bridge.IList$1', function (T) {
-    var $$name = Bridge.Class.genericName('Bridge.IList$1', T);
-
-    return Bridge.Class.cache[$$name] || (Bridge.Class.cache[$$name] = Bridge.define($$name, {
-        inherits: [Bridge.ICollection$1(T)]
-    }));
-});
-
-Bridge.Class.generic('Bridge.IComparer$1', function (T) {
-    var $$name = Bridge.Class.genericName('Bridge.IComparer$1', T);
-
-    return Bridge.Class.cache[$$name] || (Bridge.Class.cache[$$name] = Bridge.define($$name, {
-    }));
-});
-
-Bridge.Class.generic('Bridge.ISet$1', function (T) {
-    var $$name = Bridge.Class.genericName('Bridge.ISet$1', T);
-
-    return Bridge.Class.cache[$$name] || (Bridge.Class.cache[$$name] = Bridge.define($$name, {
-        inherits: [Bridge.ICollection$1(T)]
-    }));
-});
+    Bridge.define("System.Collections.Generic.IReadOnlyDictionary$2", function (TKey, TValue) {
+        return {
+            inherits: [System.Collections.Generic.IReadOnlyCollection$1(System.Collections.Generic.KeyValuePair$2(TKey, TValue))],
+            $kind: "interface"
+        };
+    });

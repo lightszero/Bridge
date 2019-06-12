@@ -1,4 +1,3 @@
-using Bridge;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -8,303 +7,309 @@ namespace System
     /// The decimal data type.
     /// http://mikemcl.github.io/decimal.js/
     /// </summary>
-    [External]
-    [Name("Bridge.Decimal")]
-    [Constructor("Bridge.Decimal")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Constructor("System.Decimal")]
+    [Bridge.Reflectable]
     public struct Decimal : IComparable, IComparable<Decimal>, IEquatable<Decimal>, IFormattable
     {
-        [Name(false)]
-        public static readonly decimal Zero = 0;
+        [Bridge.Convention]
+        public const decimal Zero = 0;
 
-        [Name(false)]
-        public static readonly decimal One = 1;
+        [Bridge.Convention]
+        public const decimal One = 1;
 
-        [Name(false)]
-        public static readonly decimal MinusOne = -1;
+        [Bridge.Convention]
+        public const decimal MinusOne = -1;
 
-        [Name(false)]
-        public static readonly decimal MaxValue = 0;
+        [Bridge.Convention]
+        public const decimal MaxValue = 79228162514264337593543950335m;
 
-        [Name(false)]
-        public static readonly decimal MinValue = 0;
+        [Bridge.Convention]
+        public const decimal MinValue = -79228162514264337593543950335m;
 
-        [Template("Bridge.Decimal(0)")]
+        [Bridge.Template("System.Decimal(0)")]
         private extern Decimal(DummyTypeUsedToAddAttributeToDefaultValueTypeConstructor _);
 
-        [Template("Bridge.Decimal({d})")]
+        [Bridge.Template("System.Decimal({d})")]
         public extern Decimal(double d);
 
-        [Template("Bridge.Decimal({i})")]
+        [Bridge.Template("System.Decimal({i})")]
         public extern Decimal(int i);
 
-        [Template("Bridge.Decimal({i})")]
+        [Bridge.Template("System.Decimal({i})")]
+        [CLSCompliant(false)]
         public extern Decimal(uint i);
 
-        [Template("Bridge.Decimal({f})")]
+        [Bridge.Template("System.Decimal({f})")]
         public extern Decimal(float f);
 
-        [Template("Bridge.Decimal({n})")]
+        [Bridge.Template("System.Decimal({n})")]
         public extern Decimal(long n);
 
-        [Template("Bridge.Decimal({n})")]
+        [Bridge.Template("System.Decimal({n})")]
+        [CLSCompliant(false)]
         public extern Decimal(ulong n);
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         public extern Decimal(int lo, int mid, int hi, bool isNegative, byte scale);
 
-        [Template("Bridge.Int.format({this}.toFloat(), {format})")]
+        [Bridge.Template("Bridge.Int.format({this}, {format})")]
         public extern string Format(string format);
 
-        [Template("Bridge.Int.format({this}.toFloat(), {format}, {provider})")]
+        [Bridge.Template("Bridge.Int.format({this}, {format}, {provider})")]
         public extern string Format(string format, IFormatProvider provider);
 
-        [Template("Bridge.Int.format({this}.toFloat(), {format})")]
-        public string ToString(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("Bridge.Int.format({this}, {format})")]
+        public extern string ToString(string format);
 
-        [Template("Bridge.Int.format({this}.toFloat(), {format}, {provider})")]
-        public string ToString(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("Bridge.Int.format({this}, {format}, {provider})")]
+        public extern string ToString(string format, IFormatProvider provider);
 
-        [Template("Bridge.Int.format({this}.toFloat(), 'G', {provider})")]
-        public string ToString(IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("Bridge.Int.format({this}, \"G\", {provider})")]
+        public extern string ToString(IFormatProvider provider);
+
+        public override extern string ToString();
 
         public extern decimal Abs();
 
-        [Name("ceil")]
+        [Bridge.Name("ceil")]
         public extern decimal Ceiling();
 
         public extern int ComparedTo(decimal d);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(byte value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        public static extern implicit operator decimal (byte value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(sbyte value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        [CLSCompliant(false)]
+        public static extern implicit operator decimal (sbyte value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(short value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        public static extern implicit operator decimal (short value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(ushort value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        [CLSCompliant(false)]
+        public static extern implicit operator decimal (ushort value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(char value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        public static extern implicit operator decimal (char value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(int value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        public static extern implicit operator decimal (int value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(uint value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        [CLSCompliant(false)]
+        public static extern implicit operator decimal (uint value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(long value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        public static extern implicit operator decimal (long value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern implicit operator decimal(ulong value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        [CLSCompliant(false)]
+        public static extern implicit operator decimal (ulong value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern explicit operator decimal(float value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        public static extern explicit operator decimal (float value);
 
-        [Template("Bridge.Decimal.lift({value})")]
-        public static extern explicit operator decimal(double value);
+        //[Bridge.Template("System.Decimal.lift({value})")]
+        public static extern explicit operator decimal (double value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator byte(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, System.Byte)")]
+        public static extern explicit operator byte (decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator sbyte(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, System.SByte)")]
+        [CLSCompliant(false)]
+        public static extern explicit operator sbyte (decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator char(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, Bridge.Char)")]
+        public static extern explicit operator char (decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator short(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, System.Int16)")]
+        public static extern explicit operator short (decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator ushort(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, System.UInt16)")]
+        [CLSCompliant(false)]
+        public static extern explicit operator ushort (decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator int(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, System.Int32)")]
+        public static extern explicit operator int (decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator uint(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, System.UInt32)")]
+        [CLSCompliant(false)]
+        public static extern explicit operator uint (decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator long(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, System.Int64)")]
+        public static extern explicit operator long (decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
-        public static extern explicit operator ulong(decimal value);
+        //[Bridge.Template("System.Decimal.toInt({value}, System.UInt64)")]
+        [CLSCompliant(false)]
+        public static extern explicit operator ulong (decimal value);
 
-        [Template("Bridge.Decimal.toFloat({value})")]
-        public static extern explicit operator float(decimal value);
+        //[Bridge.Template("System.Decimal.toFloat({value})")]
+        public static extern explicit operator float (decimal value);
 
-        [Template("Bridge.Decimal.toFloat({value})")]
-        public static extern explicit operator double(decimal value);
+        //[Bridge.Template("System.Decimal.toFloat({value})")]
+        public static extern explicit operator double (decimal value);
 
-        [Template("{d}.clone()")]
+        [Bridge.Template("{d}.clone()")]
         public static extern decimal operator +(decimal d);
 
-        [Template("{d}.neg()")]
+        [Bridge.Template("{d}.neg()")]
         public static extern decimal operator -(decimal d);
 
-        [Template("{d1}.add({d2})")]
+        [Bridge.Template("{d1}.add({d2})")]
         public static extern decimal operator +(decimal d1, decimal d2);
 
-        [Template("{d1}.sub({d2})")]
+        [Bridge.Template("{d1}.sub({d2})")]
         public static extern decimal operator -(decimal d1, decimal d2);
 
-        [Template("{d}.add(1)")]
+        [Bridge.Template("{d}.inc()")]
         public static extern decimal operator ++(decimal d);
 
-        [Template("{d}.sub(1)")]
+        [Bridge.Template("{d}.dec()")]
         public static extern decimal operator --(decimal d);
 
-        [Template("{d1}.mul({d2})")]
+        [Bridge.Template("{d1}.mul({d2})")]
         public static extern decimal operator *(decimal d1, decimal d2);
 
-        [Template("{d1}.div({d2})")]
+        [Bridge.Template("{d1}.div({d2})")]
         public static extern decimal operator /(decimal d1, decimal d2);
 
-        [Template("{d1}.mod({d2})")]
+        [Bridge.Template("{d1}.mod({d2})")]
         public static extern decimal operator %(decimal d1, decimal d2);
 
-        [Template("{d1}.equalsT({d2})")]
+        [Bridge.Template("{d1}.equalsT({d2})")]
         public static extern bool operator ==(decimal d1, decimal d2);
 
-        [Template("{d1}.ne({d2})")]
+        [Bridge.Template("{d1}.ne({d2})")]
         public static extern bool operator !=(decimal d1, decimal d2);
 
-        [Template("{d1}.gt({d2})")]
+        [Bridge.Template("{d1}.gt({d2})")]
         public static extern bool operator >(decimal d1, decimal d2);
 
-        [Template("{d1}.gte({d2})")]
+        [Bridge.Template("{d1}.gte({d2})")]
         public static extern bool operator >=(decimal d1, decimal d2);
 
-        [Template("{d1}.lt({d2})")]
+        [Bridge.Template("{d1}.lt({d2})")]
         public static extern bool operator <(decimal d1, decimal d2);
 
-        [Template("{d1}.lte({d2})")]
+        [Bridge.Template("{d1}.lte({d2})")]
         public static extern bool operator <=(decimal d1, decimal d2);
 
-        [Template("{d1}.add({d2})")]
+        [Bridge.Template("{d1}.add({d2})")]
         public static extern decimal Add(decimal d1, decimal d2);
 
-        [Template("Bridge.Decimal.exp({d})")]
+        [Bridge.Template("System.Decimal.exp({d})")]
         public static extern decimal Exp(decimal d);
 
-        [Template("Bridge.Decimal.ln({d})")]
+        [Bridge.Template("System.Decimal.ln({d})")]
         public static extern decimal Ln(decimal d);
 
-        [Template("Bridge.Decimal.log({d}, {logBase})")]
+        [Bridge.Template("System.Decimal.log({d}, {logBase})")]
         public static extern decimal Log(decimal d, decimal logBase);
 
-        [Template("Bridge.Decimal.pow({d}, {exponent})")]
+        [Bridge.Template("System.Decimal.pow({d}, {exponent})")]
         public static extern decimal Pow(decimal d, decimal exponent);
 
-        [Template("Bridge.Decimal.sqrt({d})")]
+        [Bridge.Template("System.Decimal.sqrt({d})")]
         public static extern decimal Sqrt(decimal d);
 
-        [Template("{d}.ceil()")]
+        [Bridge.Template("{d}.ceil()")]
         public static extern decimal Ceiling(decimal d);
 
-        [Template("{d1}.div({d2})")]
+        [Bridge.Template("{d1}.div({d2})")]
         public static extern decimal Divide(decimal d1, decimal d2);
 
-        [Template("{d}.floor()")]
+        [Bridge.Template("{d}.floor()")]
         public static extern decimal Floor(decimal d);
 
-        [Template("{d1}.mod({d2})")]
+        [Bridge.Template("{d1}.mod({d2})")]
         public static extern decimal Remainder(decimal d1, decimal d2);
 
-        [Template("{d1}.mul({d2})")]
+        [Bridge.Template("{d1}.mul({d2})")]
         public static extern decimal Multiply(decimal d1, decimal d2);
 
-        [Template("Bridge.Decimal(0).sub({d})")]
+        [Bridge.Template("System.Decimal(0).sub({d})")]
         public static extern decimal Negate(decimal d);
 
-        [Template("Bridge.Decimal({s})")]
+        [Bridge.Template("System.Decimal({s})")]
         public static extern decimal Parse(string s);
 
-        [Template("Bridge.Decimal({s}, {provider})")]
+        [Bridge.Template("System.Decimal({s}, {provider})")]
         public static extern decimal Parse(string s, IFormatProvider provider);
 
-        [Template("Bridge.Decimal.tryParse({s}, null, {result})")]
+        [Bridge.Template("System.Decimal.tryParse({s}, null, {result})")]
         public static extern bool TryParse(string s, out decimal result);
 
-        [Template("Bridge.Decimal.tryParse({s}, {provider}, {result})")]
+        [Bridge.Template("System.Decimal.tryParse({s}, {provider}, {result})")]
         public static extern bool TryParse(string s, IFormatProvider provider, out decimal result);
 
-        [Template("Bridge.Decimal.round({d}, 6)")]
+        [Bridge.Template("System.Decimal.round({d}, 6)")]
         public static extern decimal Round(decimal d);
 
-        [Template("Bridge.Decimal.toDecimalPlaces({d}, {decimals}, 6)")]
+        [Bridge.Template("System.Decimal.toDecimalPlaces({d}, {decimals}, 6)")]
         public static extern decimal Round(decimal d, int decimals);
 
-        [Template("Bridge.Decimal.toDecimalPlaces({d}, {decimals}, {mode})")]
+        [Bridge.Template("System.Decimal.toDecimalPlaces({d}, {decimals}, {mode})")]
         public static extern decimal Round(decimal d, int decimals, MidpointRounding mode);
 
-        [Template("Bridge.Decimal.round({d}, {mode})")]
+        [Bridge.Template("System.Decimal.round({d}, {mode})")]
         public static extern decimal Round(decimal d, MidpointRounding mode);
 
-        [Template("{d}.trunc()")]
+        [Bridge.Template("{d}.trunc()")]
         public static extern decimal Truncate(decimal d);
 
-        [Template("{d1}.sub({d2})")]
+        [Bridge.Template("{d1}.sub({d2})")]
         public static extern decimal Subtract(decimal d1, decimal d2);
 
-        [Template("{this}.compareTo({other})")]
+        [Bridge.Template("{this}.compareTo({other})")]
         public extern int CompareTo(decimal other);
 
-        [Template("{d1}.compareTo({d2})")]
+        [Bridge.Template("{d1}.compareTo({d2})")]
         public static extern int Compare(decimal d1, decimal d2);
 
-        public extern bool Equals(decimal other);
-
-        [Template("{d1}.equals({d2})")]
+        [Bridge.Template("{d1}.equals({d2})")]
         public static extern bool Equals(decimal d1, decimal d2);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value})")]
         public static extern byte ToByte(decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value})")]
+        [CLSCompliant(false)]
         public static extern sbyte ToSByte(decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value})")]
         public static extern char ToChar(decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value})")]
         public static extern short ToInt16(decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value})")]
+        [CLSCompliant(false)]
         public static extern ushort ToUInt16(decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value})")]
         public static extern int ToInt32(decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value})")]
+        [CLSCompliant(false)]
         public static extern uint ToUInt32(decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value}, System.Int64)")]
         public static extern long ToInt64(decimal value);
 
-        [Template("Bridge.Decimal.toInt({value})")]
+        [Bridge.Template("System.Decimal.toInt({value}, System.UInt64)")]
+        [CLSCompliant(false)]
         public static extern ulong ToUInt64(decimal value);
 
-        [Template("Bridge.Decimal.toFloat({value})")]
+        [Bridge.Template("System.Decimal.toFloat({value})")]
         public static extern float ToSingle(decimal value);
 
-        [Template("Bridge.Decimal.toFloat({value})")]
+        [Bridge.Template("System.Decimal.toFloat({value})")]
         public static extern double ToDouble(decimal value);
 
-        [Template("{this}.compareTo({obj})")]
+        [Bridge.Template("{this}.compareTo({obj})")]
         public extern int CompareTo(object obj);
 
         public extern int DecimalPlaces();
@@ -347,33 +352,22 @@ namespace System
 
         public extern decimal ToSignificantDigits(int sd, MidpointRounding rm);
 
-        public static decimal Max(params decimal[] values)
-        {
-            return 0;
-        }
+        public static extern decimal Max(params decimal[] values);
 
-        public static decimal Min(params decimal[] values)
-        {
-            return 0;
-        }
+        public static extern decimal Min(params decimal[] values);
 
         /// <summary>
         /// Returns a new Decimal with a pseudo-random value equal to or greater than 0 and less than 1.
         /// </summary>
         /// <param name="dp">The return value will have dp decimal places (or less if trailing zeros are produced). If dp is omitted then the number of decimal places will default to the current precision setting.</param>
         /// <returns></returns>
-        public static decimal Random(int dp)
-        {
-            return 0m;
-        }
+        public static extern decimal Random(int dp);
 
         /// <summary>
         /// Configures the 'global' settings for this particular Decimal constructor.
         /// </summary>
         /// <param name="config"></param>
-        public static void SetConfig(DecimalConfig config)
-        {
-        }
+        public static extern void SetConfig(DecimalConfig config);
 
         public extern string ToFormat();
 
@@ -385,13 +379,29 @@ namespace System
 
         public extern string ToFormat(int dp, MidpointRounding rm, DecimalFormatConfig config);
 
-        [Template("toFormat(null, null,{config})")]
+        [Bridge.Template("toFormat(null, null,{config})")]
         public extern string ToFormat(DecimalFormatConfig config);
+
+#pragma warning disable 659
+        public override extern bool Equals(object o);
+#pragma warning restore 659
+
+        [Bridge.Name("equalsT")]
+        public extern bool Equals(decimal other);
+
+        public override extern int GetHashCode();
+
+        [Bridge.Template("{value}.getBytes()")]
+        internal static extern byte[] GetBytes(decimal value);
+
+        [Bridge.Template("System.Decimal.fromBytes({bytes})")]
+        internal static extern decimal FromBytes(byte[] bytes);
     }
 
-    [Name("Object")]
-    [Constructor("{ }")]
-    [External]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.Name("System.Object")]
+    [Bridge.Constructor("{ }")]
+    [Bridge.External]
     public class DecimalConfig
     {
         /// <summary>
@@ -446,9 +456,10 @@ namespace System
         public DecimalFormatConfig Format;
     }
 
-    [Name("Object")]
-    [Constructor("{ }")]
-    [External]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.Name("System.Object")]
+    [Bridge.Constructor("{ }")]
+    [Bridge.External]
     public class DecimalFormatConfig
     {
         /// <summary>

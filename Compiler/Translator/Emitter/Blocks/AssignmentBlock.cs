@@ -1,14 +1,16 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
+using Bridge.Translator.Utils;
 using ICSharpCode.NRefactory.CSharp;
+using ICSharpCode.NRefactory.CSharp.Resolver;
 using ICSharpCode.NRefactory.Semantics;
 using ICSharpCode.NRefactory.TypeSystem;
-using ICSharpCode.NRefactory.TypeSystem.Implementation;
 using System;
 using System.Linq;
 
 namespace Bridge.Translator
 {
-    public class AssignmentBlock : AbstractEmitterBlock
+    public class AssignmentBlock : ConversionBlock
     {
         public AssignmentBlock(IEmitter emitter, AssignmentExpression assignmentExpression)
             : base(emitter, assignmentExpression)
@@ -23,12 +25,17 @@ namespace Bridge.Translator
             set;
         }
 
-        protected override void DoEmit()
+        protected override Expression GetExpression()
+        {
+            return this.AssignmentExpression;
+        }
+
+        protected override void EmitConversionExpression()
         {
             this.VisitAssignmentExpression();
         }
 
-        protected bool ResolveOperator(AssignmentExpression assignmentExpression, OperatorResolveResult orr, int initCount)
+        protected bool ResolveOperator(AssignmentExpression assignmentExpression, OperatorResolveResult orr, int initCount, bool thisAssignment)
         {
             var method = orr != null ? orr.UserDefinedOperatorMethod : null;
 
@@ -38,7 +45,7 @@ namespace Bridge.Translator
 
                 if (!string.IsNullOrWhiteSpace(inline))
                 {
-                    if (this.Emitter.Writers.Count == initCount)
+                    if (this.Emitter.Writers.Count == initCount && !thisAssignment)
                     {
                         this.Write("= ");
                     }
@@ -52,16 +59,16 @@ namespace Bridge.Translator
                     }
                     return true;
                 }
-                else if (!this.Emitter.Validator.IsIgnoreType(method.DeclaringTypeDefinition))
+                else if (!this.Emitter.Validator.IsExternalType(method.DeclaringTypeDefinition))
                 {
-                    if (this.Emitter.Writers.Count == initCount)
+                    if (this.Emitter.Writers.Count == initCount && !thisAssignment)
                     {
                         this.Write("= ");
                     }
 
                     if (orr.IsLiftedOperator)
                     {
-                        this.Write(Bridge.Translator.Emitter.ROOT + ".Nullable.lift(");
+                        this.Write(JS.Types.SYSTEM_NULLABLE + "." + JS.Funcs.Math.LIFT + ".(");
                     }
 
                     this.Write(BridgeTypes.ToJsName(method.DeclaringType, this.Emitter));
@@ -79,7 +86,7 @@ namespace Bridge.Translator
                     }
 
                     new ExpressionListBlock(this.Emitter,
-                        new Expression[] { assignmentExpression.Left, assignmentExpression.Right }, null).Emit();
+                        new Expression[] { assignmentExpression.Left, assignmentExpression.Right }, null, null, 0).Emit();
                     this.WriteCloseParentheses();
 
                     if (this.Emitter.Writers.Count > initCount)
@@ -105,7 +112,7 @@ namespace Bridge.Translator
                 {
                     return true;
                 }
-                else if (!this.Emitter.Validator.IsIgnoreType(method.DeclaringTypeDefinition))
+                else if (!this.Emitter.Validator.IsExternalType(method.DeclaringTypeDefinition))
                 {
                     return true;
                 }
@@ -119,6 +126,19 @@ namespace Bridge.Translator
             AssignmentExpression assignmentExpression = this.AssignmentExpression;
             var oldAssigment = this.Emitter.IsAssignment;
             var oldAssigmentType = this.Emitter.AssignmentType;
+            string variable = null;
+
+            bool needReturnValue = !(assignmentExpression.Parent is ExpressionStatement);
+
+            if (needReturnValue && assignmentExpression.Parent is LambdaExpression)
+            {
+                var lambdarr = this.Emitter.Resolver.ResolveNode(assignmentExpression.Parent, this.Emitter) as LambdaResolveResult;
+
+                if (lambdarr != null && lambdarr.ReturnType.Kind == TypeKind.Void)
+                {
+                    needReturnValue = false;
+                }
+            }
 
             var delegateAssigment = false;
             bool isEvent = false;
@@ -134,9 +154,32 @@ namespace Bridge.Translator
             var rr = this.Emitter.Resolver.ResolveNode(assignmentExpression, this.Emitter);
             var orr = rr as OperatorResolveResult;
             bool isDecimal = Helpers.IsDecimalType(rr.Type, this.Emitter.Resolver);
+            bool isLong = Helpers.Is64Type(rr.Type, this.Emitter.Resolver);
             var expectedType = this.Emitter.Resolver.Resolver.GetExpectedType(assignmentExpression);
             bool isDecimalExpected = Helpers.IsDecimalType(expectedType, this.Emitter.Resolver);
+            bool isLongExpected = Helpers.Is64Type(expectedType, this.Emitter.Resolver);
             bool isUserOperator = this.IsUserOperator(orr);
+
+            var rrType = rr.Type;
+
+            if (rrType.Kind == TypeKind.Enum)
+            {
+                rrType = rrType.GetDefinition().EnumUnderlyingType;
+            }
+
+            bool isUint = rrType.IsKnownType(KnownTypeCode.UInt16) ||
+                          rrType.IsKnownType(KnownTypeCode.UInt32) ||
+                          rrType.IsKnownType(KnownTypeCode.UInt64);
+
+            if (!isLong && rr.Type.Kind == TypeKind.Enum && Helpers.Is64Type(rr.Type.GetDefinition().EnumUnderlyingType, this.Emitter.Resolver))
+            {
+                isLong = true;
+            }
+
+            if (!isLongExpected && expectedType.Kind == TypeKind.Enum && Helpers.Is64Type(expectedType.GetDefinition().EnumUnderlyingType, this.Emitter.Resolver))
+            {
+                isLongExpected = true;
+            }
 
             var charToString = -1;
 
@@ -152,7 +195,45 @@ namespace Bridge.Translator
                 }
             }
 
-            if (assignmentExpression.Operator == AssignmentOperatorType.Divide &&
+            var memberTargetrr = leftResolverResult as MemberResolveResult;
+            bool isField = (memberTargetrr != null && memberTargetrr.Member is IField &&
+                           (memberTargetrr.TargetResult is ThisResolveResult ||
+                            memberTargetrr.TargetResult is LocalResolveResult)) || leftResolverResult is ThisResolveResult || leftResolverResult is LocalResolveResult || leftResolverResult is ConstantResolveResult;
+
+            var rightMemberTargetrr = rightResolverResult as MemberResolveResult;
+            bool isRightSimple = (rightMemberTargetrr != null && rightMemberTargetrr.Member is IField &&
+                           (rightMemberTargetrr.TargetResult is ThisResolveResult ||
+                            rightMemberTargetrr.TargetResult is LocalResolveResult)) || rightResolverResult is ThisResolveResult || rightResolverResult is LocalResolveResult || rightResolverResult is ConstantResolveResult;
+
+            var needTempVar = needReturnValue && (!isRightSimple && !isField || assignmentExpression.Operator != AssignmentOperatorType.Assign);
+            /*if (assignmentExpression.Operator == AssignmentOperatorType.Any)
+            {
+                needTempVar = false;
+            }*/
+
+            if (needReturnValue)
+            {
+                if (needTempVar)
+                {
+                    variable = this.GetTempVarName();
+                    this.Write("(" + variable + " = ");
+
+                    var oldValue1 = this.Emitter.ReplaceAwaiterByVar;
+                    this.Emitter.ReplaceAwaiterByVar = true;
+                    assignmentExpression.Right.AcceptVisitor(this.Emitter);
+
+                    this.Emitter.ReplaceAwaiterByVar = oldValue1;
+                    this.Write(", ");
+                }
+                else
+                {
+                    this.Write("(");
+                }
+            }
+
+            if (assignmentExpression.Operator == AssignmentOperatorType.Divide && this.Emitter.Rules.Integer == IntegerRule.Managed &&
+                !(this.Emitter.IsJavaScriptOverflowMode && !ConversionBlock.InsideOverflowContext(this.Emitter, assignmentExpression)) &&
+                !isLong && !isLongExpected &&
                 (
                     (Helpers.IsIntegerType(leftResolverResult.Type, this.Emitter.Resolver) &&
                     Helpers.IsIntegerType(rightResolverResult.Type, this.Emitter.Resolver)) ||
@@ -165,7 +246,7 @@ namespace Bridge.Translator
                 this.Emitter.AssignmentType = AssignmentOperatorType.Assign;
                 var oldValue1 = this.Emitter.ReplaceAwaiterByVar;
                 this.Emitter.ReplaceAwaiterByVar = true;
-                assignmentExpression.Left.AcceptVisitor(this.Emitter);
+                this.AcceptLeftExpression(assignmentExpression.Left, memberTargetrr);
 
                 if (this.Emitter.Writers.Count == initCount)
                 {
@@ -176,12 +257,14 @@ namespace Bridge.Translator
                 this.Emitter.AssignmentType = oldAssigmentType;
                 this.Emitter.IsAssignment = oldAssigment;
 
-                this.Write("Bridge.Int.div(");
+                this.Write(JS.Types.BRIDGE_INT + "." + JS.Funcs.Math.DIV + "(");
                 assignmentExpression.Left.AcceptVisitor(this.Emitter);
                 this.Write(", ");
                 oldValue1 = this.Emitter.ReplaceAwaiterByVar;
                 this.Emitter.ReplaceAwaiterByVar = true;
+
                 assignmentExpression.Right.AcceptVisitor(this.Emitter);
+
                 this.Write(")");
 
                 this.Emitter.ReplaceAwaiterByVar = oldValue1;
@@ -191,11 +274,109 @@ namespace Bridge.Translator
                 {
                     this.PopWriter();
                 }
+
+                if (needReturnValue && !isField)
+                {
+                    if (needTempVar)
+                    {
+                        this.Write(", " + variable);
+                    }
+                    else
+                    {
+                        this.Write(", ");
+                        this.Emitter.IsAssignment = false;
+                        assignmentExpression.Right.AcceptVisitor(this.Emitter);
+                        this.Emitter.IsAssignment = oldAssigment;
+                    }
+                }
+
+                if (needReturnValue)
+                {
+                    this.Write(")");
+                }
+
                 return;
             }
 
-            if (assignmentExpression.Operator == AssignmentOperatorType.Add ||
-                assignmentExpression.Operator == AssignmentOperatorType.Subtract)
+            if (assignmentExpression.Operator == AssignmentOperatorType.Multiply && this.Emitter.Rules.Integer == IntegerRule.Managed &&
+                !(this.Emitter.IsJavaScriptOverflowMode && !ConversionBlock.InsideOverflowContext(this.Emitter, assignmentExpression)) &&
+                !isLong && !isLongExpected &&
+                (
+                    (Helpers.IsInteger32Type(leftResolverResult.Type, this.Emitter.Resolver) &&
+                    Helpers.IsInteger32Type(rightResolverResult.Type, this.Emitter.Resolver) &&
+                    Helpers.IsInteger32Type(rr.Type, this.Emitter.Resolver)) ||
+
+                    (Helpers.IsInteger32Type(this.Emitter.Resolver.Resolver.GetExpectedType(assignmentExpression.Left), this.Emitter.Resolver) &&
+                    Helpers.IsInteger32Type(this.Emitter.Resolver.Resolver.GetExpectedType(assignmentExpression.Right), this.Emitter.Resolver) &&
+                    Helpers.IsInteger32Type(rr.Type, this.Emitter.Resolver))
+                ))
+            {
+                this.Emitter.IsAssignment = true;
+                this.Emitter.AssignmentType = AssignmentOperatorType.Assign;
+                var oldValue1 = this.Emitter.ReplaceAwaiterByVar;
+                this.Emitter.ReplaceAwaiterByVar = true;
+                this.AcceptLeftExpression(assignmentExpression.Left, memberTargetrr);
+
+                if (this.Emitter.Writers.Count == initCount)
+                {
+                    this.Write(" = ");
+                }
+
+                this.Emitter.ReplaceAwaiterByVar = oldValue1;
+                this.Emitter.AssignmentType = oldAssigmentType;
+                this.Emitter.IsAssignment = oldAssigment;
+
+                isUint = NullableType.GetUnderlyingType(rr.Type).IsKnownType(KnownTypeCode.UInt32);
+                this.Write(JS.Types.BRIDGE_INT + "." + (isUint ? JS.Funcs.Math.UMUL : JS.Funcs.Math.MUL) + "(");
+                assignmentExpression.Left.AcceptVisitor(this.Emitter);
+                this.Write(", ");
+                oldValue1 = this.Emitter.ReplaceAwaiterByVar;
+                this.Emitter.ReplaceAwaiterByVar = true;
+
+                assignmentExpression.Right.AcceptVisitor(this.Emitter);
+
+                if (ConversionBlock.IsInCheckedContext(this.Emitter, assignmentExpression))
+                {
+                    this.Write(", 1");
+                }
+
+                this.Write(")");
+
+                this.Emitter.ReplaceAwaiterByVar = oldValue1;
+                this.Emitter.AsyncExpressionHandling = asyncExpressionHandling;
+
+                if (this.Emitter.Writers.Count > initCount)
+                {
+                    this.PopWriter();
+                }
+
+                if (needReturnValue && !isField)
+                {
+                    if (needTempVar)
+                    {
+                        this.Write(", " + variable);
+                    }
+                    else
+                    {
+                        this.Write(", ");
+                        this.Emitter.IsAssignment = false;
+                        assignmentExpression.Right.AcceptVisitor(this.Emitter);
+                        this.Emitter.IsAssignment = oldAssigment;
+                    }
+                }
+
+                if (needReturnValue)
+                {
+                    this.Write(")");
+                }
+
+                return;
+            }
+
+            bool templateDelegateAssigment = false;
+
+            if (assignmentExpression.Operator == AssignmentOperatorType.Add
+                || assignmentExpression.Operator == AssignmentOperatorType.Subtract)
             {
                 var add = assignmentExpression.Operator == AssignmentOperatorType.Add;
 
@@ -206,14 +387,18 @@ namespace Bridge.Translator
 
                     if (leftMemberResolveResult != null)
                     {
-                        isEvent = leftMemberResolveResult.Member is DefaultResolvedEvent;
+                        isEvent = leftMemberResolveResult.Member is IEvent;
+                        this.Emitter.IsAssignment = true;
+                        this.Emitter.AssignmentType = assignmentExpression.Operator;
+                        templateDelegateAssigment = !string.IsNullOrWhiteSpace(this.Emitter.GetInline(leftMemberResolveResult.Member));
+                        this.Emitter.IsAssignment = false;
                     }
 
                     if (!isEvent)
                     {
                         this.Emitter.IsAssignment = true;
                         this.Emitter.AssignmentType = AssignmentOperatorType.Assign;
-                        assignmentExpression.Left.AcceptVisitor(this.Emitter);
+                        this.AcceptLeftExpression(assignmentExpression.Left, memberTargetrr);
                         this.Emitter.IsAssignment = false;
 
                         if (this.Emitter.Writers.Count == initCount)
@@ -221,14 +406,14 @@ namespace Bridge.Translator
                             this.Write(" = ");
                         }
 
-                        this.Write(Bridge.Translator.Emitter.ROOT + "." + (add ? Bridge.Translator.Emitter.DELEGATE_COMBINE : Bridge.Translator.Emitter.DELEGATE_REMOVE));
+                        this.Write(add ? JS.Funcs.BRIDGE_COMBINE : JS.Funcs.BRIDGE_REMOVE);
                         this.WriteOpenParentheses();
                     }
                 }
             }
 
             bool nullable = orr != null && orr.IsLiftedOperator;
-            string root = Bridge.Translator.Emitter.ROOT + ".Nullable.";
+            string root = JS.Types.SYSTEM_NULLABLE + ".";
 
             bool special = nullable;
 
@@ -241,7 +426,7 @@ namespace Bridge.Translator
 
             if (!thisAssignment)
             {
-                if (special || (isDecimal && isDecimalExpected) || isUserOperator)
+                if (special || (isDecimal && isDecimalExpected) || (isLong && isLongExpected) || isUserOperator)
                 {
                     this.Emitter.AssignmentType = AssignmentOperatorType.Assign;
                 }
@@ -251,7 +436,7 @@ namespace Bridge.Translator
                     this.Emitter.IsAssignment = false;
                 }
 
-                assignmentExpression.Left.AcceptVisitor(this.Emitter);
+                this.AcceptLeftExpression(assignmentExpression.Left, memberTargetrr);
 
                 if (delegateAssigment)
                 {
@@ -267,7 +452,7 @@ namespace Bridge.Translator
             this.Emitter.AssignmentType = oldAssigmentType;
             this.Emitter.IsAssignment = oldAssigment;
 
-            if (this.Emitter.Writers.Count == 0 && !delegateAssigment && !thisAssignment)
+            if (this.Emitter.Writers.Count == initCount && !delegateAssigment && !thisAssignment)
             {
                 this.WriteSpace();
             }
@@ -276,23 +461,91 @@ namespace Bridge.Translator
             {
                 if (this.Emitter.Writers.Count == initCount)
                 {
-                    this.Write(" = ");
+                    this.Write("= ");
                 }
 
-                this.HandleDecimal(rr);
+                oldValue = this.Emitter.ReplaceAwaiterByVar;
+                this.Emitter.ReplaceAwaiterByVar = true;
+
+                this.HandleDecimal(rr, variable);
 
                 if (this.Emitter.Writers.Count > initCount)
                 {
                     this.PopWriter();
                 }
 
+                if (needTempVar)
+                {
+                    this.Write(", " + variable + ")");
+                }
+                else if (needReturnValue)
+                {
+                    if (!isField)
+                    {
+                        this.Write(", ");
+                        this.Emitter.IsAssignment = false;
+                        assignmentExpression.Right.AcceptVisitor(this.Emitter);
+                        this.Emitter.IsAssignment = oldAssigment;
+                    }
+
+                    this.Write(")");
+                }
+
+                this.Emitter.ReplaceAwaiterByVar = oldValue;
                 return;
             }
 
-            if (this.ResolveOperator(assignmentExpression, orr, initCount))
+            if (isLong && isLongExpected)
             {
+                if (this.Emitter.Writers.Count == initCount)
+                {
+                    this.Write("= ");
+                }
+
+                oldValue = this.Emitter.ReplaceAwaiterByVar;
+                this.Emitter.ReplaceAwaiterByVar = true;
+
+                this.HandleLong(rr, variable, isUint);
+
+                if (this.Emitter.Writers.Count > initCount)
+                {
+                    this.PopWriter();
+                }
+
+                if (needTempVar)
+                {
+                    this.Write(", " + variable + ")");
+                }
+                else if (needReturnValue)
+                {
+                    if (!isField)
+                    {
+                        this.Write(", ");
+                        this.Emitter.IsAssignment = false;
+                        assignmentExpression.Right.AcceptVisitor(this.Emitter);
+                        this.Emitter.IsAssignment = oldAssigment;
+                    }
+
+                    this.Write(")");
+                }
+                this.Emitter.ReplaceAwaiterByVar = oldValue;
                 return;
             }
+
+            if (this.ResolveOperator(assignmentExpression, orr, initCount, thisAssignment))
+            {
+                if (thisAssignment)
+                {
+                    this.Write(")." + JS.Funcs.CLONE + "(this)");
+                }
+                else if (needReturnValue)
+                {
+                    this.Write(")");
+                }
+                return;
+            }
+
+            bool isBool = NullableType.IsNullable(rr.Type) ? NullableType.GetUnderlyingType(rr.Type).IsKnownType(KnownTypeCode.Boolean) : rr.Type.IsKnownType(KnownTypeCode.Boolean);
 
             if (!delegateAssigment)
             {
@@ -308,11 +561,18 @@ namespace Bridge.Translator
                             break;
 
                         case AssignmentOperatorType.BitwiseAnd:
-                            this.Write("&");
+                            if (!isBool)
+                            {
+                                this.Write("&");
+                            }
                             break;
 
                         case AssignmentOperatorType.BitwiseOr:
-                            this.Write("|");
+                            if (!isBool)
+                            {
+                                this.Write("|");
+                            }
+
                             break;
 
                         case AssignmentOperatorType.Divide:
@@ -320,7 +580,9 @@ namespace Bridge.Translator
                             break;
 
                         case AssignmentOperatorType.ExclusiveOr:
-                            this.Write("^");
+                            if (!isBool) {
+                                this.Write("^");
+                            }
                             break;
 
                         case AssignmentOperatorType.Modulus:
@@ -336,7 +598,7 @@ namespace Bridge.Translator
                             break;
 
                         case AssignmentOperatorType.ShiftRight:
-                            this.Write(">>");
+                            this.Write(isUint ? ">>>" : ">>");
                             break;
 
                         case AssignmentOperatorType.Subtract:
@@ -353,7 +615,7 @@ namespace Bridge.Translator
                 {
                     if (this.Emitter.Writers.Count == initCount)
                     {
-                        this.Write(" = ");
+                        this.Write("= ");
                     }
                     this.Write(root);
 
@@ -363,43 +625,43 @@ namespace Bridge.Translator
                             break;
 
                         case AssignmentOperatorType.Add:
-                            this.Write("add");
+                            this.Write(JS.Funcs.Math.ADD);
                             break;
 
                         case AssignmentOperatorType.BitwiseAnd:
-                            this.Write("band");
+                            this.Write(isBool ? JS.Funcs.Math.AND : JS.Funcs.Math.BAND);
                             break;
 
                         case AssignmentOperatorType.BitwiseOr:
-                            this.Write("bor");
+                            this.Write(isBool ? JS.Funcs.Math.OR : JS.Funcs.Math.BOR);
                             break;
 
                         case AssignmentOperatorType.Divide:
-                            this.Write("div");
+                            this.Write(JS.Funcs.Math.DIV);
                             break;
 
                         case AssignmentOperatorType.ExclusiveOr:
-                            this.Write("xor");
+                            this.Write(JS.Funcs.Math.XOR);
                             break;
 
                         case AssignmentOperatorType.Modulus:
-                            this.Write("mod");
+                            this.Write(JS.Funcs.Math.MOD);
                             break;
 
                         case AssignmentOperatorType.Multiply:
-                            this.Write("mul");
+                            this.Write(JS.Funcs.Math.MUL);
                             break;
 
                         case AssignmentOperatorType.ShiftLeft:
-                            this.Write("sl");
+                            this.Write(JS.Funcs.Math.SL);
                             break;
 
                         case AssignmentOperatorType.ShiftRight:
-                            this.Write("sr");
+                            this.Write(isUint ? JS.Funcs.Math.SRR : JS.Funcs.Math.SR);
                             break;
 
                         case AssignmentOperatorType.Subtract:
-                            this.Write("sub");
+                            this.Write(JS.Funcs.Math.SUB);
                             break;
 
                         default:
@@ -413,8 +675,7 @@ namespace Bridge.Translator
                     this.Write(", ");
                 }
 
-                int count = this.Emitter.Writers.Count;
-                if (count == 0 && !thisAssignment && !special)
+                if (this.Emitter.Writers.Count == initCount && !thisAssignment && !special)
                 {
                     this.Write("= ");
                 }
@@ -424,19 +685,74 @@ namespace Bridge.Translator
                 this.WriteComma();
             }
 
+            if (!special && isBool && (assignmentExpression.Operator == AssignmentOperatorType.BitwiseAnd || assignmentExpression.Operator == AssignmentOperatorType.BitwiseOr || assignmentExpression.Operator == AssignmentOperatorType.ExclusiveOr))
+            {
+                if (assignmentExpression.Operator != AssignmentOperatorType.ExclusiveOr)
+                {
+                    this.Write("!!(");
+                }
+
+                assignmentExpression.Left.AcceptVisitor(this.Emitter);
+
+                string op = null;
+                switch(assignmentExpression.Operator)
+                {
+                    case AssignmentOperatorType.BitwiseAnd:
+                        op = " & ";
+                        break;
+                    case AssignmentOperatorType.BitwiseOr:
+                        op = " | ";
+                        break;
+                    case AssignmentOperatorType.ExclusiveOr:
+                        op = " != ";
+                        break;
+                }
+                this.Write(op);
+            }
+
             oldValue = this.Emitter.ReplaceAwaiterByVar;
             this.Emitter.ReplaceAwaiterByVar = true;
 
             if (charToString == 1)
             {
-                this.Write("String.fromCharCode(");
+                this.Write(JS.Funcs.STRING_FROMCHARCODE + "(");
             }
 
-            assignmentExpression.Right.AcceptVisitor(this.Emitter);
+            if (needTempVar)
+            {
+                int pos = this.Emitter.Output.Length;
+                this.Write(variable);
+                Helpers.CheckValueTypeClone(rr, assignmentExpression.Right, this, pos);
+            }
+            else
+            {
+                var wrap = assignmentExpression.Operator != AssignmentOperatorType.Assign
+                    && this.Emitter.Writers.Count > initCount
+                    && !AssigmentExpressionHelper.CheckIsRightAssigmentExpression(assignmentExpression);
+
+                if (wrap)
+                {
+                    this.WriteOpenParentheses();
+                }
+
+                assignmentExpression.Right.AcceptVisitor(this.Emitter);
+
+                if (wrap)
+                {
+                    this.WriteCloseParentheses();
+                }
+            }
+
+            if (!special && isBool &&
+                (assignmentExpression.Operator == AssignmentOperatorType.BitwiseAnd ||
+                 assignmentExpression.Operator == AssignmentOperatorType.BitwiseOr))
+            {
+                this.WriteCloseParentheses();
+            }
 
             if (charToString == 1)
             {
-                this.Write(")");
+                this.WriteCloseParentheses();
             }
 
             if (special)
@@ -446,7 +762,7 @@ namespace Bridge.Translator
 
             if (thisAssignment)
             {
-                this.Write(").$clone(this)");
+                this.Write(")." + JS.Funcs.CLONE + "(this)");
             }
 
             this.Emitter.ReplaceAwaiterByVar = oldValue;
@@ -461,18 +777,90 @@ namespace Bridge.Translator
                 }
             }
 
-            if (delegateAssigment)
+            if (delegateAssigment && !templateDelegateAssigment)
             {
                 this.WriteCloseParentheses();
             }
+
+            if (needTempVar)
+            {
+                this.Write(", " + variable + ")");
+            }
+            else if (needReturnValue)
+            {
+                if (!isField)
+                {
+                    this.Write(", ");
+                    this.Emitter.IsAssignment = false;
+                    assignmentExpression.Right.AcceptVisitor(this.Emitter);
+                    this.Emitter.IsAssignment = oldAssigment;
+                }
+
+                this.Write(")");
+            }
         }
 
-        private void HandleDecimal(ResolveResult resolveOperator)
+        private void AcceptLeftExpression(Expression left, ResolveResult rr)
+        {
+            var mrr = rr as MemberResolveResult;
+            if (!this.Emitter.InConstructor || mrr == null || !(mrr.Member is IProperty) || mrr.Member.IsStatic || mrr.Member.DeclaringTypeDefinition == null || !mrr.Member.DeclaringTypeDefinition.Equals(this.Emitter.TypeInfo.Type))
+            {
+                left.AcceptVisitor(this.Emitter);
+            }
+            else
+            {
+                var property = (IProperty)mrr.Member;
+                var proto = mrr.IsVirtualCall || property.IsVirtual || property.IsOverride;
+
+                var td = this.Emitter.GetTypeDefinition();
+                var prop = td.Properties.FirstOrDefault(p => p.Name == mrr.Member.Name);
+
+                if (proto && prop != null && prop.SetMethod == null)
+                {
+                    var name = OverloadsCollection.Create(this.Emitter, mrr.Member).GetOverloadName();
+                    this.Write(JS.Types.Bridge.ENSURE_BASE_PROPERTY + "(this, \"" + name + "\"");
+
+                    if (this.Emitter.Validator.IsExternalType(property.DeclaringTypeDefinition) && !this.Emitter.Validator.IsBridgeClass(property.DeclaringTypeDefinition))
+                    {
+                        this.Write(", \"" + BridgeTypes.ToJsName(property.DeclaringType, this.Emitter, isAlias: true) + "\"");
+                    }
+
+                    this.Write(")");
+
+                    this.WriteDot();
+                    var alias = BridgeTypes.ToJsName(mrr.Member.DeclaringType, this.Emitter, isAlias: true);
+                    if (alias.StartsWith("\""))
+                    {
+                        alias = alias.Insert(1, "$");
+                        name = alias + "+\"$" + name + "\"";
+                        this.WriteIdentifier(name, false);
+                    }
+                    else
+                    {
+                        name = "$" + alias + "$" + name;
+                        this.WriteIdentifier(name);
+                    }
+                }
+                else
+                {
+                    left.AcceptVisitor(this.Emitter);
+                }
+            }
+        }
+
+        private void HandleType(ResolveResult resolveOperator, string variable, string op_name, KnownTypeCode typeCode)
         {
             if (this.AssignmentExpression.Operator == AssignmentOperatorType.Assign)
             {
-                new ExpressionListBlock(this.Emitter,
-                        new Expression[] { this.AssignmentExpression.Right }, null).Emit();
+                if (variable != null)
+                {
+                    this.Write(variable);
+                }
+                else
+                {
+                    new ExpressionListBlock(this.Emitter, new Expression[] { this.AssignmentExpression.Right }, null, null, 0).Emit();
+                }
+
                 return;
             }
 
@@ -492,66 +880,22 @@ namespace Bridge.Translator
 
                 if (orr.IsLiftedOperator)
                 {
-                    this.Write(Bridge.Translator.Emitter.ROOT + ".Nullable.");
-                    string action = "lift2";
-                    string op_name = null;
-
-                    switch (assigmentType)
-                    {
-                        case BinaryOperatorType.GreaterThan:
-                            op_name = "gt";
-                            break;
-
-                        case BinaryOperatorType.GreaterThanOrEqual:
-                            op_name = "gte";
-                            break;
-
-                        case BinaryOperatorType.Equality:
-                            op_name = "equals";
-                            break;
-
-                        case BinaryOperatorType.InEquality:
-                            op_name = "ne";
-                            break;
-
-                        case BinaryOperatorType.LessThan:
-                            op_name = "lt";
-                            break;
-
-                        case BinaryOperatorType.LessThanOrEqual:
-                            op_name = "lte";
-                            break;
-
-                        case BinaryOperatorType.Add:
-                            op_name = "add";
-                            break;
-
-                        case BinaryOperatorType.Subtract:
-                            op_name = "sub";
-                            break;
-
-                        case BinaryOperatorType.Multiply:
-                            op_name = "mul";
-                            break;
-
-                        case BinaryOperatorType.Divide:
-                            op_name = "div";
-                            break;
-
-                        case BinaryOperatorType.Modulus:
-                            op_name = "mod";
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                    this.Write(JS.Types.SYSTEM_NULLABLE + ".");
+                    string action = JS.Funcs.Math.LIFT2;
 
                     this.Write(action);
                     this.WriteOpenParentheses();
                     this.WriteScript(op_name);
                     this.WriteComma();
-                    new ExpressionListBlock(this.Emitter,
-                        new Expression[] { this.AssignmentExpression.Left, this.AssignmentExpression.Right }, null).Emit();
+                    if (variable != null)
+                    {
+                        new ExpressionListBlock(this.Emitter, new Expression[] { this.AssignmentExpression.Left }, null, null, 0).Emit();
+                    }
+                    else
+                    {
+                        new ExpressionListBlock(this.Emitter, new Expression[] { this.AssignmentExpression.Left, this.AssignmentExpression.Right }, null, null, 0).Emit();
+                    }
+                    this.AddOveflowFlag(typeCode, op_name);
                     this.WriteCloseParentheses();
                 }
                 else if (!string.IsNullOrWhiteSpace(inline))
@@ -559,7 +903,7 @@ namespace Bridge.Translator
                     new InlineArgumentsBlock(this.Emitter,
                         new ArgumentsInfo(this.Emitter, this.AssignmentExpression, orr, method), inline).Emit();
                 }
-                else if (!this.Emitter.Validator.IsIgnoreType(method.DeclaringTypeDefinition))
+                else if (!this.Emitter.Validator.IsExternalType(method.DeclaringTypeDefinition))
                 {
                     this.Write(BridgeTypes.ToJsName(method.DeclaringType, this.Emitter));
                     this.WriteDot();
@@ -568,11 +912,205 @@ namespace Bridge.Translator
 
                     this.WriteOpenParentheses();
 
-                    new ExpressionListBlock(this.Emitter,
-                        new Expression[] { this.AssignmentExpression.Left, this.AssignmentExpression.Right }, null).Emit();
+                    if (variable != null)
+                    {
+                        new ExpressionListBlock(this.Emitter, new Expression[] { this.AssignmentExpression.Left }, null, null, 0).Emit();
+                        this.Write(", " + variable);
+                    }
+                    else
+                    {
+                        new ExpressionListBlock(this.Emitter, new Expression[] { this.AssignmentExpression.Left, this.AssignmentExpression.Right }, null, null, 0).Emit();
+                    }
+
                     this.WriteCloseParentheses();
                 }
             }
+            else
+            {
+                if (orr.IsLiftedOperator)
+                {
+                    this.Write(JS.Types.SYSTEM_NULLABLE + ".");
+                    string action = JS.Funcs.Math.LIFT2;
+
+                    this.Write(action);
+                    this.WriteOpenParentheses();
+                    this.WriteScript(op_name);
+                    this.WriteComma();
+                    if (variable != null)
+                    {
+                        new ExpressionListBlock(this.Emitter, new Expression[] { this.AssignmentExpression.Left }, null, null, 0).Emit();
+                    }
+                    else
+                    {
+                        new ExpressionListBlock(this.Emitter, new Expression[] { this.AssignmentExpression.Left, this.AssignmentExpression.Right }, null, null, 0).Emit();
+                    }
+                    this.AddOveflowFlag(typeCode, op_name);
+                    this.WriteCloseParentheses();
+                }
+                else
+                {
+                    this.AssignmentExpression.Left.AcceptVisitor(this.Emitter);
+                    this.WriteDot();
+                    this.Write(op_name);
+                    this.WriteOpenParentheses();
+                    this.AssignmentExpression.Right.AcceptVisitor(this.Emitter);
+                    this.AddOveflowFlag(typeCode, op_name);
+                    this.WriteCloseParentheses();
+                }
+            }
+        }
+
+        private void AddOveflowFlag(KnownTypeCode typeCode, string op_name)
+        {
+            if ((typeCode == KnownTypeCode.Int64 || typeCode == KnownTypeCode.UInt64) && ConversionBlock.IsInCheckedContext(this.Emitter, this.AssignmentExpression))
+            {
+                if (op_name == JS.Funcs.Math.ADD || op_name == JS.Funcs.Math.SUB || op_name == JS.Funcs.Math.MUL)
+                {
+                    this.Write(", 1");
+                }
+            }
+        }
+
+        private void HandleDecimal(ResolveResult resolveOperator, string variable)
+        {
+            var assigmentType = Helpers.TypeOfAssignment(this.AssignmentExpression.Operator);
+
+            string op_name = null;
+
+            if (this.AssignmentExpression.Operator != AssignmentOperatorType.Assign)
+            {
+                switch (assigmentType)
+                {
+                    case BinaryOperatorType.GreaterThan:
+                        op_name = JS.Funcs.Math.GT;
+                        break;
+
+                    case BinaryOperatorType.GreaterThanOrEqual:
+                        op_name = JS.Funcs.Math.GTE;
+                        break;
+
+                    case BinaryOperatorType.Equality:
+                        op_name = JS.Funcs.Math.EQUALS;
+                        break;
+
+                    case BinaryOperatorType.InEquality:
+                        op_name = JS.Funcs.Math.NE;
+                        break;
+
+                    case BinaryOperatorType.LessThan:
+                        op_name = JS.Funcs.Math.LT;
+                        break;
+
+                    case BinaryOperatorType.LessThanOrEqual:
+                        op_name = JS.Funcs.Math.LTE;
+                        break;
+
+                    case BinaryOperatorType.Add:
+                        op_name = JS.Funcs.Math.ADD;
+                        break;
+
+                    case BinaryOperatorType.Subtract:
+                        op_name = JS.Funcs.Math.SUB;
+                        break;
+
+                    case BinaryOperatorType.Multiply:
+                        op_name = JS.Funcs.Math.MUL;
+                        break;
+
+                    case BinaryOperatorType.Divide:
+                        op_name = JS.Funcs.Math.DIV;
+                        break;
+
+                    case BinaryOperatorType.Modulus:
+                        op_name = JS.Funcs.Math.MOD;
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            this.HandleType(resolveOperator, variable, op_name, KnownTypeCode.Decimal);
+        }
+
+        private void HandleLong(ResolveResult resolveOperator, string variable, bool isUnsigned)
+        {
+            var assigmentType = Helpers.TypeOfAssignment(this.AssignmentExpression.Operator);
+
+            string op_name = null;
+            if (this.AssignmentExpression.Operator != AssignmentOperatorType.Assign)
+            {
+                switch (assigmentType)
+                {
+                    case BinaryOperatorType.GreaterThan:
+                        op_name = JS.Funcs.Math.GT;
+                        break;
+
+                    case BinaryOperatorType.GreaterThanOrEqual:
+                        op_name = JS.Funcs.Math.GTE;
+                        break;
+
+                    case BinaryOperatorType.Equality:
+                        op_name = JS.Funcs.Math.EQUALS;
+                        break;
+
+                    case BinaryOperatorType.InEquality:
+                        op_name = JS.Funcs.Math.NE;
+                        break;
+
+                    case BinaryOperatorType.LessThan:
+                        op_name = JS.Funcs.Math.LT;
+                        break;
+
+                    case BinaryOperatorType.LessThanOrEqual:
+                        op_name = JS.Funcs.Math.LTE;
+                        break;
+
+                    case BinaryOperatorType.Add:
+                        op_name = JS.Funcs.Math.ADD;
+                        break;
+
+                    case BinaryOperatorType.Subtract:
+                        op_name = JS.Funcs.Math.SUB;
+                        break;
+
+                    case BinaryOperatorType.Multiply:
+                        op_name = JS.Funcs.Math.MUL;
+                        break;
+
+                    case BinaryOperatorType.Divide:
+                        op_name = JS.Funcs.Math.DIV;
+                        break;
+
+                    case BinaryOperatorType.Modulus:
+                        op_name = JS.Funcs.Math.MOD;
+                        break;
+
+                    case BinaryOperatorType.BitwiseAnd:
+                        op_name = JS.Funcs.Math.AND;
+                        break;
+
+                    case BinaryOperatorType.BitwiseOr:
+                        op_name = JS.Funcs.Math.OR;
+                        break;
+
+                    case BinaryOperatorType.ExclusiveOr:
+                        op_name = JS.Funcs.Math.XOR;
+                        break;
+
+                    case BinaryOperatorType.ShiftLeft:
+                        op_name = JS.Funcs.Math.SHL;
+                        break;
+
+                    case BinaryOperatorType.ShiftRight:
+                        op_name = isUnsigned ? JS.Funcs.Math.SHRU : JS.Funcs.Math.SHR;
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            this.HandleType(resolveOperator, variable, op_name, isUnsigned ? KnownTypeCode.UInt64 : KnownTypeCode.Int64);
         }
     }
 }

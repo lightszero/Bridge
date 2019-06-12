@@ -1,15 +1,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("Bridge.Builder")]
-[assembly: AssemblyProduct("Bridge.Builder")]
-[assembly: AssemblyDescription("Bridge Builder .exe application.")]
+[assembly: AssemblyTitle("Bridge Compiler")]
+[assembly: AssemblyProduct("Bridge Compiler")]
+[assembly: AssemblyDescription("Open Source C# to JavaScript Compiler")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Object.NET, Inc.")]
-[assembly: AssemblyCopyright("Copyright 2008-2015 Object.NET, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: Guid("44bd50e3-3b1b-4c13-90fa-8ab048f2c0c0")]
-[assembly: AssemblyVersion("1.10")]
-[assembly: AssemblyFileVersion("1.10.2")]

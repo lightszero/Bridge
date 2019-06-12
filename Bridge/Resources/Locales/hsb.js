@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("hsb", true), {
+Bridge.merge(new System.Globalization.CultureInfo("hsb", true), {
     englishName: "Upper Sorbian",
     nativeName: "hornjoserbšćina",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "njedefinowane",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-njekónčne",
-        positiveInfinitySymbol: "+njekónčne",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,30 +29,42 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["nje","pón","wut","srj","štw","pja","sob"],
-        abbreviatedMonthGenitiveNames: ["jan","feb","měr","apr","mej","jun","jul","awg","sep","okt","now","dec",""],
+        abbreviatedMonthGenitiveNames: ["jan.","feb.","měr.","apr.","mej.","jun.","jul.","awg.","sep.","okt.","now.","dec.",""],
         abbreviatedMonthNames: ["jan","feb","měr","apr","mej","jun","jul","awg","sep","okt","now","dec",""],
-        amDesignator: "",
-        dateSeparator: ". ",
+        amDesignator: "dopołdnja",
+        dateSeparator: ".",
         dayNames: ["njedźela","póndźela","wutora","srjeda","štwórtk","pjatk","sobota"],
         firstDayOfWeek: 1,
-        fullDateTimePattern: "dddd, 'dnja' d. MMMM yyyy H.mm.ss",
-        longDatePattern: "dddd, 'dnja' d. MMMM yyyy",
-        longTimePattern: "H.mm.ss",
-        monthDayPattern: "d. MMMM",
+        fullDateTimePattern: "dddd, d. MMMM yyyy H:mm:ss",
+        longDatePattern: "dddd, d. MMMM yyyy",
+        longTimePattern: "H:mm:ss",
+        monthDayPattern: "MMMM d",
         monthGenitiveNames: ["januara","februara","měrca","apryla","meje","junija","julija","awgusta","septembra","oktobra","nowembra","decembra",""],
         monthNames: ["januar","februar","měrc","apryl","meja","junij","julij","awgust","september","oktober","nowember","december",""],
-        pmDesignator: "",
+        pmDesignator: "popołdnju",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "d. M. yyyy",
-        shortestDayNames: ["n","p","w","s","š","p","s"],
-        shortTimePattern: "H.mm",
+        shortDatePattern: "d.M.yyyy",
+        shortestDayNames: ["nj","pó","wu","sr","št","pj","so"],
+        shortTimePattern: "H:mm 'hodź'.",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
-        timeSeparator: ".",
+        timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
-        yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        yearMonthPattern: "yyyy MMMM",
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "hsb-DE",
+        EBCDICCodePage: 870,
+        IsRightToLeft: false,
+        LCID: 1070,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

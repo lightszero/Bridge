@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("el", true), {
+Bridge.merge(new System.Globalization.CultureInfo("el", true), {
     englishName: "Greek",
     nativeName: "Ελληνικά",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "μη αριθμός",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Άπειρο",
-        positiveInfinitySymbol: "Άπειρο",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Κυρ","Δευ","Τρι","Τετ","Πεμ","Παρ","Σαβ"],
         abbreviatedMonthGenitiveNames: ["Ιαν","Φεβ","Μαρ","Απρ","Μαϊ","Ιουν","Ιουλ","Αυγ","Σεπ","Οκτ","Νοε","Δεκ",""],
         abbreviatedMonthNames: ["Ιαν","Φεβ","Μαρ","Απρ","Μαϊ","Ιουν","Ιουλ","Αυγ","Σεπ","Οκτ","Νοε","Δεκ",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1253,
+        CultureName: "el-GR",
+        EBCDICCodePage: 20273,
+        IsRightToLeft: false,
+        LCID: 1032,
+        listSeparator: ";",
+        MacCodePage: 10006,
+        OEMCodePage: 737,
+        IsReadOnly: true
     })
 });

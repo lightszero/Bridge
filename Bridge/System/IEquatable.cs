@@ -1,12 +1,12 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Namespace("Bridge")]
-    public interface IEquatable<in T> : IBridgeClass
+    [Bridge.External]
+    [Bridge.Convention(Target = Bridge.ConventionTarget.Member, Member = Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.Reflectable]
+    public interface IEquatable<T> : Bridge.IBridgeClass
     {
-        [Template("Bridge.equalsT({this}, {other})")]
+        [Bridge.Template("Bridge.equalsT({this}, {other}, {T})")]
+        [Bridge.Name("equalsT")]
         bool Equals(T other);
     }
 }

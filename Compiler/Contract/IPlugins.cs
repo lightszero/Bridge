@@ -1,3 +1,5 @@
+using ICSharpCode.NRefactory.CSharp;
+using ICSharpCode.NRefactory.Semantics;
 using System.Collections.Generic;
 
 namespace Bridge.Contract
@@ -7,6 +9,10 @@ namespace Bridge.Contract
         void OnConfigRead(IAssemblyInfo config);
 
         System.Collections.Generic.IEnumerable<string> GetConstructorInjectors(Bridge.Contract.IConstructorBlock constructorBlock);
+
+        IInvocationInterceptor OnInvocation(IAbstractEmitterBlock block, InvocationExpression expression, InvocationResolveResult resolveResult);
+
+        IReferenceInterceptor OnReference(IAbstractEmitterBlock block, MemberReferenceExpression expression, MemberResolveResult resolveResult);
 
         bool HasConstructorInjectors(Bridge.Contract.IConstructorBlock constructorBlock);
 

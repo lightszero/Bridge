@@ -1,9 +1,12 @@
 ﻿using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
-using Object.Net.Utilities;
+using ICSharpCode.NRefactory.TypeSystem;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ICSharpCode.NRefactory.Semantics;
+using Newtonsoft.Json;
 
 namespace Bridge.Translator
 {
@@ -43,6 +46,21 @@ namespace Bridge.Translator
 
         protected virtual void EmitMethods(Dictionary<string, List<MethodDeclaration>> methods, Dictionary<string, List<EntityDeclaration>> properties, Dictionary<OperatorType, List<OperatorDeclaration>> operators)
         {
+            int pos = this.Emitter.Output.Length;
+            var writerInfo = this.SaveWriter();
+
+            string globalTarget = BridgeTypes.GetGlobalTarget(this.TypeInfo.Type.GetDefinition(), this.TypeInfo.TypeDeclaration);
+
+            if (globalTarget == null)
+            {
+                this.EnsureComma();
+                this.Write(JS.Fields.METHODS);
+                this.WriteColon();
+                this.BeginBlock();
+            }
+
+            int checkPos = this.Emitter.Output.Length;
+
             var names = new List<string>(properties.Keys);
 
             foreach (var name in names)
@@ -83,20 +101,76 @@ namespace Bridge.Translator
                 }
             }
 
-            if (this.TypeInfo.ClassType == ClassType.Struct && !this.StaticBlock)
+            if (this.TypeInfo.ClassType == ClassType.Struct)
             {
-                this.EmitStructMethods();
+                if (!this.StaticBlock)
+                {
+                    this.EmitStructMethods();
+                }
+                else
+                {
+                    string structName = BridgeTypes.ToJsName(this.TypeInfo.Type, this.Emitter);
+                    if (this.TypeInfo.Type.TypeArguments.Count > 0 &&
+                        !Helpers.IsIgnoreGeneric(this.TypeInfo.Type, this.Emitter))
+                    {
+                        structName = "(" + structName + ")";
+                    }
+
+                    this.EnsureComma();
+                    this.Write(JS.Funcs.GETDEFAULTVALUE + ": function () { return new " + structName + "(); }");
+                    this.Emitter.Comma = true;
+                }
+            }
+            else if (this.StaticBlock)
+            {
+                var ctor = this.TypeInfo.Type.GetConstructors().FirstOrDefault(c => c.Parameters.Count == 0 && this.Emitter.GetInline(c) != null);
+
+                if (ctor != null)
+                {
+                    var code = this.Emitter.GetInline(ctor);
+                    this.EnsureComma();
+                    this.Write(JS.Funcs.GETDEFAULTVALUE + ": function () ");
+                    this.BeginBlock();
+                    this.Write("return ");
+                    var argsInfo = new ArgumentsInfo(this.Emitter, ctor);
+                    new InlineArgumentsBlock(this.Emitter, argsInfo, code).Emit();
+                    this.Write(";");
+                    this.WriteNewLine();
+                    this.EndBlock();
+                    this.Emitter.Comma = true;
+                }
+            }
+
+            if (globalTarget == null)
+            {
+                if (checkPos == this.Emitter.Output.Length)
+                {
+                    this.Emitter.IsNewLine = writerInfo.IsNewLine;
+                    this.Emitter.ResetLevel(writerInfo.Level);
+                    this.Emitter.Comma = writerInfo.Comma;
+                    this.Emitter.Output.Length = pos;
+                }
+                else
+                {
+                    this.WriteNewLine();
+                    this.EndBlock();
+                }
             }
         }
 
         protected virtual void EmitStructMethods()
         {
             var typeDef = this.Emitter.GetTypeDefinition();
-            string structName = this.Emitter.Validator.GetCustomTypeName(typeDef, this.Emitter);
+            string structName = BridgeTypes.ToJsName(this.TypeInfo.Type, this.Emitter);
 
-            if (structName.IsEmpty())
+            bool immutable = this.Emitter.Validator.IsImmutableType(typeDef);
+
+            if (!immutable)
             {
-                structName = BridgeTypes.ToJsName(this.TypeInfo.Type, this.Emitter);
+                var mutableFields = this.TypeInfo.Type.GetFields(f => !f.IsConst, GetMemberOptions.IgnoreInheritedMembers);
+                var autoProps = typeDef.Properties.Where(Helpers.IsAutoProperty);
+                var autoEvents = this.TypeInfo.Type.GetEvents(null, GetMemberOptions.IgnoreInheritedMembers);
+                immutable = !mutableFields.Any() && !autoProps.Any() && !autoEvents.Any();
             }
 
             var fields = this.TypeInfo.InstanceConfig.Fields;
@@ -113,44 +187,42 @@ namespace Bridge.Translator
             if (list.Count == 0)
             {
                 this.EnsureComma();
-                this.Write("$clone: function (to) { return this; }");
+                this.Write(JS.Funcs.CLONE + ": function (to) { return this; }");
                 this.Emitter.Comma = true;
                 return;
             }
 
-            if (!this.TypeInfo.InstanceMethods.ContainsKey("GetHashCode"))
+            if (!this.TypeInfo.InstanceMethods.ContainsKey(CS.Methods.GETHASHCODE))
             {
                 this.EnsureComma();
-                this.Write("getHashCode: function () ");
+                this.Write(JS.Funcs.GETHASHCODE + ": function () ");
                 this.BeginBlock();
-                this.Write("var hash = 17;");
+                this.Write("var h = " + JS.Funcs.BRIDGE_ADDHASH + "([");
+
+                var nameHashValue = new HashHelper().GetDeterministicHash(this.TypeInfo.Name);
+                this.Write(nameHashValue);
 
                 foreach (var field in list)
                 {
                     string fieldName = field.GetName(this.Emitter);
-
-                    this.WriteNewLine();
-                    this.Write("hash = hash * 23 + ");
-                    this.Write("(this." + fieldName);
-                    this.Write(" == null ? 0 : ");
-                    this.Write("Bridge.getHashCode(");
-                    this.Write("this." + fieldName);
-                    this.Write("));");
+                    this.Write(", this." + fieldName);
                 }
 
+                this.Write("]);");
+
                 this.WriteNewLine();
-                this.Write("return hash;");
+                this.Write("return h;");
                 this.WriteNewLine();
                 this.EndBlock();
                 this.Emitter.Comma = true;
             }
 
-            if (!this.TypeInfo.InstanceMethods.ContainsKey("Equals"))
+            if (!this.TypeInfo.InstanceMethods.ContainsKey(CS.Methods.EQUALS))
             {
                 this.EnsureComma();
-                this.Write("equals: function (o) ");
+                this.Write(JS.Funcs.EQUALS + ": function (o) ");
                 this.BeginBlock();
-                this.Write("if (!Bridge.is(o,");
+                this.Write("if (!" + JS.Types.Bridge.IS + "(o, ");
                 this.Write(structName);
                 this.Write(")) ");
                 this.BeginBlock();
@@ -173,7 +245,7 @@ namespace Bridge.Translator
 
                     and = true;
 
-                    this.Write("Bridge.equals(this.");
+                    this.Write(JS.Funcs.BRIDGE_EQUALS + "(this.");
                     this.Write(fieldName);
                     this.Write(", o.");
                     this.Write(fieldName);
@@ -187,28 +259,57 @@ namespace Bridge.Translator
             }
 
             this.EnsureComma();
-            this.Write("$clone: function (to) ");
-            this.BeginBlock();
-            this.Write("var s = to || new ");
-            this.Write(structName);
-            this.Write("();");
 
-            foreach (var field in list)
+            if (immutable)
             {
-                this.WriteNewLine();
-                string fieldName = field.GetName(this.Emitter);
+                this.Write(JS.Funcs.CLONE + ": function (to) { return this; }");
+            }
+            else
+            {
+                this.Write(JS.Funcs.CLONE + ": function (to) ");
+                this.BeginBlock();
+                this.Write("var s = to || new ");
+                if (this.TypeInfo.Type.TypeArguments.Count > 0 && !Helpers.IsIgnoreGeneric(this.TypeInfo.Type, this.Emitter))
+                {
+                    structName = "(" + structName + ")";
+                }
+                this.Write(structName);
+                this.Write("();");
 
-                this.Write("s.");
-                this.Write(fieldName);
-                this.Write(" = this.");
-                this.Write(fieldName);
-                this.Write(";");
+                foreach (var field in list)
+                {
+                    this.WriteNewLine();
+                    string fieldName = field.GetName(this.Emitter);
+
+                    this.Write("s.");
+                    this.Write(fieldName);
+                    this.Write(" = ");
+
+                    int insertPosition = this.Emitter.Output.Length;
+                    this.Write("this.");
+                    this.Write(fieldName);
+
+                    var rr = this.Emitter.Resolver.ResolveNode(field.Entity, this.Emitter) as MemberResolveResult;
+
+                    if (rr == null && field.VarInitializer != null)
+                    {
+                        rr = Emitter.Resolver.ResolveNode(field.VarInitializer, Emitter) as MemberResolveResult;
+                    }
+
+                    if (rr != null)
+                    {
+                        Helpers.CheckValueTypeClone(rr, null, this, insertPosition);
+                    }
+
+                    this.Write(";");
+                }
+
+                this.WriteNewLine();
+                this.Write("return s;");
+                this.WriteNewLine();
+                this.EndBlock();
             }
 
-            this.WriteNewLine();
-            this.Write("return s;");
-            this.WriteNewLine();
-            this.EndBlock();
             this.Emitter.Comma = true;
         }
 
@@ -216,7 +317,7 @@ namespace Bridge.Translator
         {
             string name = evtVar.Name;
 
-            this.Write(add ? "add" : "remove", name, " : ");
+            this.Write(Helpers.GetAddOrRemove(add), name, " : ");
             this.WriteFunction();
             this.WriteOpenParentheses();
             this.Write("value");
@@ -227,7 +328,7 @@ namespace Bridge.Translator
             this.WriteDot();
             this.Write(this.Emitter.GetEntityName(e));
             this.Write(" = ");
-            this.Write(Bridge.Translator.Emitter.ROOT, ".", add ? Bridge.Translator.Emitter.DELEGATE_COMBINE : Bridge.Translator.Emitter.DELEGATE_REMOVE);
+            this.Write(add ? JS.Funcs.BRIDGE_COMBINE : JS.Funcs.BRIDGE_REMOVE);
             this.WriteOpenParentheses();
             this.WriteThis();
             this.WriteDot();
@@ -245,7 +346,7 @@ namespace Bridge.Translator
         {
             if (group.Count == 1)
             {
-                if (!group[0].Body.IsNull)
+                if ((!group[0].Body.IsNull || this.Emitter.GetScript(group[0]) != null) && (!this.StaticBlock || !Helpers.IsEntryPointMethod(this.Emitter, group[0])))
                 {
                     this.Emitter.VisitMethodDeclaration(group[0]);
                 }
@@ -260,7 +361,7 @@ namespace Bridge.Translator
 
                 foreach (var method in group)
                 {
-                    if (!method.Body.IsNull)
+                    if (!method.Body.IsNull && (!this.StaticBlock || !Helpers.IsEntryPointMethod(this.Emitter, group[0])))
                     {
                         this.Emitter.VisitMethodDeclaration(method);
                     }
@@ -282,9 +383,8 @@ namespace Bridge.Translator
             }
             else
             {
-                var typeDef = this.Emitter.GetTypeDefinition();
                 var name = group[0].Name;
-                var methodsDef = typeDef.Methods.Where(m => m.Name == name);
+                var methodsDef = this.Emitter.GetTypeDefinition().Methods.Where(m => m.Name == name);
                 this.Emitter.MethodsGroup = methodsDef;
                 this.Emitter.MethodsGroupBuilder = new Dictionary<int, StringBuilder>();
 

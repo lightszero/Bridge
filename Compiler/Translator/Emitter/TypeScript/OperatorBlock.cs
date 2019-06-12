@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Bridge.Translator.TypeScript
 {
-    public class OperatorBlock : AbstractEmitterBlock
+    public class OperatorBlock : TypeScriptBlock
     {
         public OperatorBlock(IEmitter emitter, OperatorDeclaration operatorDeclaration)
             : base(emitter, operatorDeclaration)
@@ -57,7 +57,7 @@ namespace Bridge.Translator.TypeScript
 
             foreach (var p in declarations)
             {
-                var name = this.Emitter.GetEntityName(p);
+                var name = this.Emitter.GetParameterName(p);
 
                 if (needComma)
                 {

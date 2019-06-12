@@ -1,9 +1,12 @@
-﻿    // @source INotifyPropertyChanged.js
+    Bridge.define("System.ComponentModel.INotifyPropertyChanged", {
+        $kind: "interface"
+    });
 
-    Bridge.define("Bridge.INotifyPropertyChanged");
-
-    Bridge.define("Bridge.PropertyChangedEventArgs", {
-        constructor: function (propertyName) {
+    Bridge.define("System.ComponentModel.PropertyChangedEventArgs", {
+        ctor: function (propertyName, newValue, oldValue) {
+            this.$initialize();
             this.propertyName = propertyName;
+            this.newValue = newValue;
+            this.oldValue = oldValue;
         }
     });

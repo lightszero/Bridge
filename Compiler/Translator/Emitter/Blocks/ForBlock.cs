@@ -1,4 +1,5 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,7 +65,7 @@ namespace Bridge.Translator
 
             this.RemovePenultimateEmptyLines(true);
             this.WriteNewLine();
-            this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+            this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
             this.WriteNewLine();
             this.Write("continue;");
 
@@ -75,13 +76,22 @@ namespace Bridge.Translator
 
             this.WriteIf();
             this.WriteOpenParentheses(true);
-            forStatement.Condition.AcceptVisitor(this.Emitter);
+
+            if (!forStatement.Condition.IsNull)
+            {
+                forStatement.Condition.AcceptVisitor(this.Emitter);
+            }
+            else
+            {
+                this.Write("true");
+            }
+
             this.WriteCloseParentheses(true);
             this.Emitter.ReplaceAwaiterByVar = oldValue;
 
             this.WriteSpace();
             this.BeginBlock();
-            this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+            this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
             this.WriteNewLine();
             this.Write("continue;");
 
@@ -89,7 +99,7 @@ namespace Bridge.Translator
             this.Emitter.AsyncBlock.EmittedAsyncSteps = new List<IAsyncStep>();
             var writer = this.SaveWriter();
 
-            var bodyStep = this.Emitter.AsyncBlock.AddAsyncStep();
+            this.Emitter.AsyncBlock.AddAsyncStep();
             this.Emitter.IgnoreBlock = forStatement.EmbeddedStatement;
             var startCount = this.Emitter.AsyncBlock.Steps.Count;
             forStatement.EmbeddedStatement.AcceptVisitor(this.Emitter);
@@ -105,7 +115,7 @@ namespace Bridge.Translator
             if (!AbstractEmitterBlock.IsJumpStatementLast(this.Emitter.Output.ToString()))
             {
                 this.WriteNewLine();
-                this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+                this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
                 this.WriteNewLine();
                 this.Write("continue;");
                 this.WriteNewLine();
@@ -180,11 +190,8 @@ namespace Bridge.Translator
         protected void VisitForStatement()
         {
             ForStatement forStatement = this.ForStatement;
-
-            if (forStatement.Initializers.Count > 1)
-            {
-                throw new EmitterException(forStatement, "Too many initializers");
-            }
+            var jumpStatements = this.Emitter.JumpStatements;
+            this.Emitter.JumpStatements = null;
 
             this.PushLocals();
             this.Emitter.EnableSemicolon = false;
@@ -192,6 +199,8 @@ namespace Bridge.Translator
             this.WriteFor();
             this.WriteOpenParentheses();
 
+            var old = this.Emitter.IsAsync;
+            this.Emitter.IsAsync = false;
             foreach (var item in forStatement.Initializers)
             {
                 if (item != forStatement.Initializers.First())
@@ -201,11 +210,15 @@ namespace Bridge.Translator
 
                 item.AcceptVisitor(this.Emitter);
             }
+            this.Emitter.IsAsync = old;
 
             this.WriteSemiColon();
             this.WriteSpace();
 
-            forStatement.Condition.AcceptVisitor(this.Emitter);
+            if (!forStatement.Condition.IsNull)
+            {
+                forStatement.Condition.AcceptVisitor(this.Emitter);
+            }
 
             this.WriteSemiColon();
             this.WriteSpace();
@@ -227,6 +240,7 @@ namespace Bridge.Translator
             this.EmitBlockOrIndentedLine(forStatement.EmbeddedStatement);
 
             this.PopLocals();
+            this.Emitter.JumpStatements = jumpStatements;
         }
     }
 }

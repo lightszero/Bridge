@@ -1,5 +1,7 @@
 using Bridge.Contract;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Bridge.Translator.Utils
@@ -7,11 +9,19 @@ namespace Bridge.Translator.Utils
     public class AssemblyConfigHelper
     {
         private const string CONFIG_FILE_NAME = "bridge.json";
-        private static ConfigHelper<AssemblyInfo> helper = new ConfigHelper<AssemblyInfo>();
 
-        public static IAssemblyInfo ReadConfig(string configFileName, bool folderMode, string location)
+        private ILogger Logger { get; set; }
+        private ConfigHelper<AssemblyInfo> helper { get; set; }
+
+        public AssemblyConfigHelper(ILogger logger)
         {
-            var config = helper.ReadConfig(configFileName, folderMode, location);
+            this.Logger = logger;
+            this.helper = new ConfigHelper<AssemblyInfo>(logger);
+        }
+
+        public IAssemblyInfo ReadConfig(string configFileName, bool folderMode, string location, string configuration)
+        {
+            var config = helper.ReadConfig(configFileName, folderMode, location, configuration);
 
             if (config == null)
             {
@@ -24,45 +34,159 @@ namespace Bridge.Translator.Utils
             return config;
         }
 
-        public static IAssemblyInfo ReadConfig(bool folderMode, string location)
+        public IAssemblyInfo ReadConfig(bool folderMode, string location, string configuration)
         {
-            return ReadConfig(CONFIG_FILE_NAME, folderMode, location);
+            return ReadConfig(CONFIG_FILE_NAME, folderMode, location, configuration);
         }
 
-        public static void CreateConfig(IAssemblyInfo bridgeConfig, string folder)
+        public string CreateConfig(IAssemblyInfo bridgeConfig, string folder)
         {
-            using (var textFile = File.CreateText(folder + Path.DirectorySeparatorChar + CONFIG_FILE_NAME))
+            var path = Path.Combine(folder, CONFIG_FILE_NAME);
+
+            using (var textFile = File.CreateText(path))
             {
-                var config = JsonConvert.SerializeObject(bridgeConfig);
+                var jss = new JsonSerializerSettings()
+                {
+                    Formatting = Formatting.Indented,
+                    ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+                };
+
+                var config = JsonConvert.SerializeObject(bridgeConfig, jss);
+
                 textFile.Write(config);
             }
+
+            return path;
         }
 
-        public static void ConvertConfigPaths(IAssemblyInfo assemblyInfo)
+        public static string ConfigToString(IAssemblyInfo config)
         {
-            if (!string.IsNullOrWhiteSpace(assemblyInfo.AfterBuild))
+            return JsonConvert.SerializeObject(config);
+        }
+
+        public void ApplyTokens(IAssemblyInfo config, ProjectProperties projectProperties)
+        {
+            Logger.Trace("ApplyTokens ...");
+
+            if (config == null)
             {
-                assemblyInfo.AfterBuild = helper.ConvertPath(assemblyInfo.AfterBuild);
+                throw new ArgumentNullException("config");
             }
 
-            if (!string.IsNullOrWhiteSpace(assemblyInfo.BeforeBuild))
+            if (projectProperties == null)
             {
-                assemblyInfo.BeforeBuild = helper.ConvertPath(assemblyInfo.BeforeBuild);
+                throw new ArgumentNullException("projectProperties");
             }
 
-            if (!string.IsNullOrWhiteSpace(assemblyInfo.Output))
+            Logger.Trace("Properties:" + projectProperties.ToString());
+
+            var tokens = projectProperties.GetValues();
+
+            if (tokens == null || tokens.Count <= 0)
             {
-                assemblyInfo.Output = helper.ConvertPath(assemblyInfo.Output);
+                Logger.Trace("No tokens applied as no values to apply");
+                return;
             }
 
-            if (!string.IsNullOrWhiteSpace(assemblyInfo.PluginsPath))
+            config.FileName = helper.ApplyPathTokens(tokens, config.FileName);
+            config.Output = helper.ApplyPathTokens(tokens, config.Output);
+            config.BeforeBuild = helper.ApplyPathTokens(tokens, config.BeforeBuild);
+            config.AfterBuild = helper.ApplyPathTokens(tokens, config.AfterBuild);
+            config.PluginsPath = helper.ApplyPathTokens(tokens, config.PluginsPath);
+            config.CleanOutputFolderBeforeBuild = helper.ApplyTokens(tokens, config.CleanOutputFolderBeforeBuild);
+            config.CleanOutputFolderBeforeBuildPattern = helper.ApplyTokens(tokens, config.CleanOutputFolderBeforeBuildPattern);
+            config.Locales = helper.ApplyTokens(tokens, config.Locales);
+            config.LocalesOutput = helper.ApplyTokens(tokens, config.LocalesOutput);
+            config.LocalesFileName = helper.ApplyPathTokens(tokens, config.LocalesFileName);
+
+            if (config.Logging != null)
             {
-                assemblyInfo.PluginsPath = helper.ConvertPath(assemblyInfo.PluginsPath);
+                var logging = config.Logging;
+
+                logging.FileName = helper.ApplyPathTokens(tokens, logging.FileName);
+                logging.Folder = helper.ApplyPathTokens(tokens, logging.Folder);
             }
 
-            if (!string.IsNullOrWhiteSpace(assemblyInfo.LocalesOutput))
+            if (config.Reflection != null)
             {
-                assemblyInfo.LocalesOutput = helper.ConvertPath(assemblyInfo.LocalesOutput);
+                config.Reflection.Filter = helper.ApplyTokens(tokens, config.Reflection.Filter);
+                config.Reflection.Output = helper.ApplyTokens(tokens, config.Reflection.Output);
+            }
+
+            if (config.Resources != null)
+            {
+                foreach (var resourceItem in config.Resources.Items)
+                {
+                    resourceItem.Header = helper.ApplyTokens(tokens, resourceItem.Header);
+                    resourceItem.Name = helper.ApplyTokens(tokens, resourceItem.Name);
+                    resourceItem.Remark = helper.ApplyTokens(tokens, resourceItem.Remark);
+
+                    var files = resourceItem.Files;
+
+                    if (files != null)
+                    {
+                        for (int i = 0; i < files.Length; i++)
+                        {
+                            files[i] = helper.ApplyPathTokens(tokens, files[i]);
+                        }
+                    }
+                }
+            }
+
+            if (config.Html != null)
+            {
+                config.Html.Name = helper.ApplyTokens(tokens, config.Html.Name);
+            }
+
+            if (config.Report != null)
+            {
+                config.Report.FileName = helper.ApplyPathTokens(tokens, config.Report.FileName);
+                config.Report.Path = helper.ApplyPathTokens(tokens, config.Report.Path);
+            }
+
+            Logger.Trace("ApplyTokens done");
+        }
+
+        public void ConvertConfigPaths(IAssemblyInfo assemblyInfo)
+        {
+            assemblyInfo.AfterBuild = helper.ConvertPath(assemblyInfo.AfterBuild);
+            assemblyInfo.BeforeBuild = helper.ConvertPath(assemblyInfo.BeforeBuild);
+            assemblyInfo.Output = helper.ConvertPath(assemblyInfo.Output);
+            assemblyInfo.PluginsPath = helper.ConvertPath(assemblyInfo.PluginsPath);
+            assemblyInfo.LocalesOutput = helper.ConvertPath(assemblyInfo.LocalesOutput);
+
+            if (assemblyInfo.Logging != null)
+            {
+                assemblyInfo.Logging.Folder = helper.ConvertPath(assemblyInfo.Logging.Folder);
+            }
+
+            if (assemblyInfo.Html != null)
+            {
+                assemblyInfo.Html.Name = helper.ConvertPath(assemblyInfo.Html.Name);
+            }
+
+            if (assemblyInfo.Report != null)
+            {
+                assemblyInfo.Report.Path = helper.ConvertPath(assemblyInfo.Report.Path);
+            }
+
+            if (assemblyInfo.Resources != null)
+            {
+                foreach (var resourceConfigItem in assemblyInfo.Resources.Items)
+                {
+                    var files = resourceConfigItem.Files;
+
+                    if (files != null)
+                    {
+                        for (int i = 0; i < files.Length; i++)
+                        {
+                            var resourceItem = files[i];
+                            files[i] = helper.ConvertPath(resourceItem);
+                        }
+                    }
+
+                    resourceConfigItem.Output = helper.ConvertPath(resourceConfigItem.Output);
+                }
             }
         }
     }

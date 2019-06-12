@@ -1,243 +1,137 @@
-using Bridge;
-
 namespace System.Text
 {
-    [External]
-    [Namespace("Bridge.Text")]
-    public class StringBuilder : IBridgeClass
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
+    public class StringBuilder : Bridge.IBridgeClass
     {
-        public StringBuilder()
-            : this(string.Empty)
-        {
-        }
+        public extern StringBuilder();
 
-        public StringBuilder(string value)
-            : this(value, 0, ((value != null) ? value.Length : 0))
-        {
-        }
+        public extern StringBuilder(string value);
 
-        public StringBuilder(string value, int startIndex, int length)
-        {
-        }
+        public extern StringBuilder(string value, int startIndex, int length);
 
-        public StringBuilder(string value, int capacity)
-        {
-        }
+        public extern StringBuilder(string value, int startIndex, int length, int capacity);
 
-        [Template("new Bridge.Text.StringBuilder(\"\", {capacity})")]
-        public StringBuilder(int capacity)
-            : this(string.Empty, capacity)
-        {
-        }
+        public extern StringBuilder(string value, int capacity);
 
-        public override string ToString()
-        {
-            return null;
-        }
+        [Bridge.Template("new System.Text.StringBuilder(\"\", {capacity})")]
+        public extern StringBuilder(int capacity);
 
-        public string ToString(int startIndex, int length)
-        {
-            return null;
-        }
+        public override extern string ToString();
+
+        public extern string ToString(int startIndex, int length);
 
         /// <summary>
         /// Gets or sets the length of the current StringBuilder object.
         /// </summary>
-        public int Length
+        public extern int Length
         {
+            [Bridge.Template("getLength()")]
             get;
+            [Bridge.Template("setLength({0})")]
             set;
         }
 
-        public int Capacity
+        public extern int Capacity
         {
+            [Bridge.Template("getCapacity()")]
             get;
+            [Bridge.Template("setCapacity({0})")]
             set;
         }
 
-        public StringBuilder Append(bool value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(bool value);
 
-        public StringBuilder Append(byte value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(byte value);
 
-        [Template("append(String.fromCharCode({value}))")]
-        public StringBuilder Append(char value)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("append(String.fromCharCode({value}))")]
+        public extern StringBuilder Append(char value);
 
-        public StringBuilder Append(decimal value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(decimal value);
 
-        public StringBuilder Append(double value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(double value);
 
-        public StringBuilder Append(float value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(float value);
 
-        public StringBuilder Append(int value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(int value);
 
-        public StringBuilder Append(long value)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("{this}.append({value}.toString())")]
+        public extern StringBuilder Append(long value);
 
-        public StringBuilder Append(object value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(object value);
 
-        public StringBuilder Append(string value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(string value);
 
-        public StringBuilder Append(uint value)
-        {
-            return new StringBuilder();
-        }
+        [CLSCompliant(false)]
+        public extern StringBuilder Append(uint value);
 
-        public StringBuilder Append(ulong value)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("{this}.append({value}.toString())")]
+        [CLSCompliant(false)]
+        public extern StringBuilder Append(ulong value);
 
-        [Template("append(String.fromCharCode({value}), {repeatCount})")]
-        public StringBuilder Append(char value, int repeatCount)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("append(String.fromCharCode({value}), {repeatCount})")]
+        public extern StringBuilder Append(char value, int repeatCount);
 
-        public StringBuilder Append(string value, int startIndex, int count)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Append(string value, int startIndex, int count);
 
-        public StringBuilder AppendFormat(string format, params object[] args)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder AppendFormat(string format, params object[] args);
 
-        public StringBuilder AppendLine()
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder AppendLine();
 
-        public StringBuilder AppendLine(string value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder AppendLine(string value);
 
-        public StringBuilder Clear()
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Clear();
 
-        public bool Equals(StringBuilder sb)
-        {
-            return false;
-        }
+        public extern bool Equals(StringBuilder sb);
 
-        public StringBuilder Insert(int index, bool value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Insert(int index, bool value);
 
-        [Template("insert({index}, String.fromCharCode({value}))")]
-        public StringBuilder Insert(int index, char value)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("insert({index}, String.fromCharCode({value}))")]
+        public extern StringBuilder Insert(int index, char value);
 
-        public StringBuilder Insert(int index, decimal value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Insert(int index, decimal value);
 
-        public StringBuilder Insert(int index, double value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Insert(int index, double value);
 
-        public StringBuilder Insert(int index, float value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Insert(int index, float value);
 
-        public StringBuilder Insert(int index, int value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Insert(int index, int value);
 
-        public StringBuilder Insert(int index, long value)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("{this}.insert({index}, {value}.toString())")]
+        public extern StringBuilder Insert(int index, long value);
 
-        public StringBuilder Insert(int index, object value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Insert(int index, object value);
 
-        public StringBuilder Insert(int index, string value)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Insert(int index, string value);
 
-        public StringBuilder Insert(int index, uint value)
-        {
-            return new StringBuilder();
-        }
+        [CLSCompliant(false)]
+        public extern StringBuilder Insert(int index, uint value);
 
-        public StringBuilder Insert(int index, ulong value)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("{this}.insert({index}, {value}.toString())")]
+        [CLSCompliant(false)]
+        public extern StringBuilder Insert(int index, ulong value);
 
-        public StringBuilder Insert(int index, string value, int count)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Insert(int index, string value, int count);
 
-        public StringBuilder Remove(int startIndex, int length)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Remove(int startIndex, int length);
 
-        [Template("replace(String.fromCharCode({oldChar}), String.fromCharCode({newChar}))")]
-        public StringBuilder Replace(char oldChar, char newChar)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("replace(String.fromCharCode({oldChar}), String.fromCharCode({newChar}))")]
+        public extern StringBuilder Replace(char oldChar, char newChar);
 
-        public StringBuilder Replace(string oldValue, string newValue)
-        {
-            return new StringBuilder();
-        }
+        public extern StringBuilder Replace(string oldValue, string newValue);
 
-        [Template("replace(String.fromCharCode({oldChar}), String.fromCharCode({newChar}), {startIndex}, {count})")]
-        public StringBuilder Replace(char oldChar, char newChar, int startIndex, int count)
-        {
-            return new StringBuilder();
-        }
+        [Bridge.Template("replace(String.fromCharCode({oldChar}), String.fromCharCode({newChar}), {startIndex}, {count})")]
+        public extern StringBuilder Replace(char oldChar, char newChar, int startIndex, int count);
 
-        public StringBuilder Replace(string oldValue, string newValue, int startIndex, int count)
+        public extern StringBuilder Replace(string oldValue, string newValue, int startIndex, int count);
+
+        [Bridge.Name("Char")]
+        [Bridge.AccessorsIndexer]
+        public extern char this[int index]
         {
-            return new StringBuilder();
+            get;
+            set;
         }
     }
 }

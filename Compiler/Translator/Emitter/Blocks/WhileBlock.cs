@@ -1,5 +1,8 @@
 ﻿using Bridge.Contract;
+using Bridge.Contract.Constants;
+
 using ICSharpCode.NRefactory.CSharp;
+
 using System.Collections.Generic;
 using System.Linq;
 
@@ -65,13 +68,13 @@ namespace Bridge.Translator
             this.WriteSpace();
             this.BeginBlock();
 
-            this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+            this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
             this.WriteNewLine();
             this.Write("continue;");
 
             var writer = this.SaveWriter();
 
-            var bodyStep = this.Emitter.AsyncBlock.AddAsyncStep();
+            this.Emitter.AsyncBlock.AddAsyncStep();
             this.Emitter.IgnoreBlock = this.WhileStatement.EmbeddedStatement;
 
             var startCount = this.Emitter.AsyncBlock.Steps.Count;
@@ -81,7 +84,7 @@ namespace Bridge.Translator
             if (!AbstractEmitterBlock.IsJumpStatementLast(this.Emitter.Output.ToString()))
             {
                 this.WriteNewLine();
-                this.Write("$step = " + conditionStep.Step + ";");
+                this.Write(JS.Vars.ASYNC_STEP + " = " + conditionStep.Step + ";");
                 this.WriteNewLine();
                 this.Write("continue;");
             }
@@ -95,7 +98,7 @@ namespace Bridge.Translator
             if (!AbstractEmitterBlock.IsJumpStatementLast(this.Emitter.Output.ToString()))
             {
                 this.WriteNewLine();
-                this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+                this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
                 this.WriteNewLine();
                 this.Write("continue;");
             }
@@ -117,11 +120,16 @@ namespace Bridge.Translator
 
         protected void VisitWhileStatement()
         {
+            var jumpStatements = this.Emitter.JumpStatements;
+            this.Emitter.JumpStatements = null;
+
             this.WriteWhile();
             this.WriteOpenParentheses();
             this.WhileStatement.Condition.AcceptVisitor(this.Emitter);
             this.WriteCloseParentheses();
             this.EmitBlockOrIndentedLine(this.WhileStatement.EmbeddedStatement);
+
+            this.Emitter.JumpStatements = jumpStatements;
         }
     }
 }

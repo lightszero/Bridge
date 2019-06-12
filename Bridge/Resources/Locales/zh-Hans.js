@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("zh-Hans", true), {
+Bridge.merge(new System.Globalization.CultureInfo("zh-Hans", true), {
     englishName: "Chinese (Simplified)",
     nativeName: "中文(简体)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "非数字",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "负无穷大",
-        positiveInfinitySymbol: "正无穷大",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["周日","周一","周二","周三","周四","周五","周六"],
         abbreviatedMonthGenitiveNames: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月",""],
         abbreviatedMonthNames: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月",""],
@@ -40,7 +40,7 @@
         fullDateTimePattern: "yyyy'年'M'月'd'日' H:mm:ss",
         longDatePattern: "yyyy'年'M'月'd'日'",
         longTimePattern: "H:mm:ss",
-        monthDayPattern: "M'月'd'日'",
+        monthDayPattern: "M月d日",
         monthGenitiveNames: ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月",""],
         monthNames: ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月",""],
         pmDesignator: "下午",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "yyyy'年'M'月'",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 936,
+        CultureName: "zh-CN",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 2052,
+        listSeparator: ",",
+        MacCodePage: 10008,
+        OEMCodePage: 936,
+        IsReadOnly: true
     })
 });

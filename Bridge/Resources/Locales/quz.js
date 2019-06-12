@@ -1,20 +1,20 @@
-﻿Bridge.merge(new Bridge.CultureInfo("quz", true), {
+Bridge.merge(new System.Globalization.CultureInfo("quz", true), {
     englishName: "Quechua",
-    nativeName: "runasimi",
+    nativeName: "Runasimi",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinity",
-        positiveInfinitySymbol: "Infinity",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: ".",
-        percentPositivePattern: 2,
-        percentNegativePattern: 2,
+        percentPositivePattern: 0,
+        percentNegativePattern: 0,
         currencySymbol: "Bs.",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["int","kil","ati","quy","Ch'","Ill","k'u"],
         abbreviatedMonthGenitiveNames: ["Qul","Hat","Pau","ayr","Aym","Int","Ant","Qha","Uma","Kan","Aya","Kap",""],
         abbreviatedMonthNames: ["Qul","Hat","Pau","ayr","Aym","Int","Ant","Qha","Uma","Kan","Aya","Kap",""],
@@ -40,7 +40,7 @@
         fullDateTimePattern: "dddd, dd' de 'MMMM' de 'yyyy hh:mm:ss tt",
         longDatePattern: "dddd, dd' de 'MMMM' de 'yyyy",
         longTimePattern: "hh:mm:ss tt",
-        monthDayPattern: "d' de 'MMMM",
+        monthDayPattern: "d 'de' MMMM",
         monthGenitiveNames: ["Qulla puquy","Hatun puquy","Pauqar waray","ayriwa","Aymuray","Inti raymi","Anta Sitwa","Qhapaq Sitwa","Uma raymi","Kantaray","Ayamarq'a","Kapaq Raymi",""],
         monthNames: ["Qulla puquy","Hatun puquy","Pauqar waray","ayriwa","Aymuray","Inti raymi","Anta Sitwa","Qhapaq Sitwa","Uma raymi","Kantaray","Ayamarq'a","Kapaq Raymi",""],
         pmDesignator: "p.m.",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM' de 'yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "quz-BO",
+        EBCDICCodePage: 20284,
+        IsRightToLeft: false,
+        LCID: 1131,
+        listSeparator: ",",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

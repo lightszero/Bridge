@@ -99,7 +99,7 @@ namespace Bridge.Contract
             get;
         }
 
-        int LastEnumValue
+        object LastEnumValue
         {
             get;
             set;
@@ -117,7 +117,13 @@ namespace Bridge.Contract
             set;
         }
 
-        string Module
+        string JsName
+        {
+            get;
+            set;
+        }
+
+        Module Module
         {
             get;
             set;
@@ -166,9 +172,12 @@ namespace Bridge.Contract
         }
 
         bool HasRealStatic(IEmitter emitter);
+        bool HasRealInstantiable(IEmitter emitter);
 
         List<AstType> GetBaseTypes(IEmitter emitter);
 
         AstType GetBaseClass(IEmitter emitter);
+
+        string GetNamespace(IEmitter emitter, bool nons = false);
     }
 }

@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ps-AF", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ps-AF", true), {
     englishName: "Pashto (Afghanistan)",
     nativeName: "پښتو (افغانستان)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "غ ع",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
@@ -11,48 +11,60 @@
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
-        percentDecimalSeparator: ".",
-        percentGroupSeparator: ",",
-        percentPositivePattern: 2,
-        percentNegativePattern: 4,
+        percentDecimalSeparator: ",",
+        percentGroupSeparator: ".",
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "؋",
         currencyGroupSizes: [3],
-        currencyDecimalDigits: 2,
-        currencyDecimalSeparator: ".",
-        currencyGroupSeparator: ",",
-        currencyNegativePattern: 3,
-        currencyPositivePattern: 0,
+        currencyDecimalDigits: 0,
+        currencyDecimalSeparator: ",",
+        currencyGroupSeparator: ".",
+        currencyNegativePattern: 8,
+        currencyPositivePattern: 3,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
-        numberDecimalSeparator: ".",
-        numberGroupSeparator: ",",
-        numberNegativePattern: 3
+        numberDecimalSeparator: ",",
+        numberGroupSeparator: ".",
+        numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["یکشنبه","دوشنبه","سه‌شنبه","چارشنبه","پنجشنبه","جمعه","شنبه"],
-        abbreviatedMonthGenitiveNames: ["محرم","صفر","ربيع الأوّل","ربيع الثاني","جمادى الأول","جمادى الثانى","رجب","شعبان","رمضان","شوّال","ذو القعدة","ذو الحجّة",""],
-        abbreviatedMonthNames: ["محرم","صفر","ربيع الأوّل","ربيع الثاني","جمادى الأول","جمادى الثانى","رجب","شعبان","رمضان","شوّال","ذو القعدة","ذو الحجّة",""],
-        amDesignator: "غ.م",
+        abbreviatedMonthGenitiveNames: ["وری","غويی","غبرګولی","چنګاښ","زمری","وږی","تله","لړم","ليندۍ","مرغومی","سلواغه","كب",""],
+        abbreviatedMonthNames: ["وری","غويی","غبرګولی","چنګاښ","زمری","وږی","تله","لړم","ليندۍ","مرغومی","سلواغه","كب",""],
+        amDesignator: "غ.م.",
         dateSeparator: "/",
         dayNames: ["یکشنبه","دوشنبه","سه‌شنبه","چارشنبه","پنجشنبه","جمعه","شنبه"],
         firstDayOfWeek: 6,
-        fullDateTimePattern: "yyyy, dd, MMMM, dddd h:mm:ss tt",
-        longDatePattern: "yyyy, dd, MMMM, dddd",
-        longTimePattern: "h:mm:ss tt",
+        fullDateTimePattern: "d MMMM yyyy H:mm:ss",
+        longDatePattern: "d MMMM yyyy",
+        longTimePattern: "H:mm:ss",
         monthDayPattern: "d MMMM",
-        monthGenitiveNames: ["محرم","صفر","ربيع الأوّل","ربيع الثاني","جمادى الأول","جمادى الثانى","رجب","شعبان","رمضان","شوّال","ذو القعدة","ذو الحجّة",""],
-        monthNames: ["محرم","صفر","ربيع الأوّل","ربيع الثاني","جمادى الأول","جمادى الثانى","رجب","شعبان","رمضان","شوّال","ذو القعدة","ذو الحجّة",""],
-        pmDesignator: "غ.و",
+        monthGenitiveNames: ["وری","غويی","غبرګولی","چنګاښ","زمری","وږی","تله","لړم","ليندۍ","مرغومی","سلواغه","كب",""],
+        monthNames: ["وری","غويی","غبرګولی","چنګاښ","زمری","وږی","تله","لړم","ليندۍ","مرغومی","سلواغه","كب",""],
+        pmDesignator: "غ.و.",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
         shortDatePattern: "yyyy/M/d",
         shortestDayNames: ["ی","د","س","چ","پ","ج","ش"],
-        shortTimePattern: "h:mm tt",
+        shortTimePattern: "H:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 0,
+        CultureName: "ps-AF",
+        EBCDICCodePage: 500,
+        IsRightToLeft: true,
+        LCID: 1123,
+        listSeparator: ";",
+        MacCodePage: 2,
+        OEMCodePage: 1,
+        IsReadOnly: true
     })
 });

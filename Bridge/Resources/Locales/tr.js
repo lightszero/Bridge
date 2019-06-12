@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("tr", true), {
+Bridge.merge(new System.Globalization.CultureInfo("tr", true), {
     englishName: "Turkish",
     nativeName: "Türkçe",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Sonsuz",
-        positiveInfinitySymbol: "Sonsuz",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -20,8 +20,8 @@
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
         currencyGroupSeparator: ".",
-        currencyNegativePattern: 8,
-        currencyPositivePattern: 3,
+        currencyNegativePattern: 1,
+        currencyPositivePattern: 0,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
@@ -29,11 +29,11 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"],
         abbreviatedMonthGenitiveNames: ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara",""],
         abbreviatedMonthNames: ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara",""],
-        amDesignator: "",
+        amDesignator: "ÖÖ",
         dateSeparator: ".",
         dayNames: ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"],
         firstDayOfWeek: 1,
@@ -43,16 +43,28 @@
         monthDayPattern: "d MMMM",
         monthGenitiveNames: ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık",""],
         monthNames: ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık",""],
-        pmDesignator: "",
+        pmDesignator: "ÖS",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "d.M.yyyy",
-        shortestDayNames: ["Pz","Pt","Sa","Ça","Pe","Cu","Ct"],
+        shortDatePattern: "d.MM.yyyy",
+        shortestDayNames: ["Pa","Pt","Sa","Ça","Pe","Cu","Ct"],
         shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1254,
+        CultureName: "tr-TR",
+        EBCDICCodePage: 20905,
+        IsRightToLeft: false,
+        LCID: 1055,
+        listSeparator: ";",
+        MacCodePage: 10081,
+        OEMCodePage: 857,
+        IsReadOnly: true
     })
 });

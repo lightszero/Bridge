@@ -1,6 +1,13 @@
 {
   "output": "Bridge\\output",
-  "cleanOutputFolderBeforeBuild": true,
+  "cleanOutputFolderBeforeBuildPattern": "*.*",
   "outputFormatting": "Formatted",
-  "outputBy": "Project"
+  "outputBy": "Namespace",
+  "logging": {
+    "level": "None"
+  },
+  "sourceMap": {
+    "enabled": true
+  },
+  "report": true
 }

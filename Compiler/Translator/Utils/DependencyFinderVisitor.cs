@@ -14,6 +14,12 @@ namespace Bridge.Translator
             this.Dependencies = new List<ITypeInfo>();
         }
 
+        public override void VisitSimpleType(SimpleType simpleType)
+        {
+            this.CheckDependency(simpleType);
+            base.VisitSimpleType(simpleType);
+        }
+
         public override void VisitMemberReferenceExpression(MemberReferenceExpression memberReferenceExpression)
         {
             this.CheckDependency(memberReferenceExpression.Target);

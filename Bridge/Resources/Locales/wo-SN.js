@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("wo-SN", true), {
+Bridge.merge(new System.Globalization.CultureInfo("wo-SN", true), {
     englishName: "Wolof (Senegal)",
     nativeName: "Wolof (Senegaal)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "Non Numérique",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "Non Numérique",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-Infini",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Dib.","Alt.","Tal.","Àll.","Alx.","Àjj.","Gaa."],
         abbreviatedMonthGenitiveNames: ["Sam.","Few.","Maa","Awr.","Me","Suwe","Sul.","Ut","Sept.","Okt.","Noow.","Des.",""],
         abbreviatedMonthNames: ["Sam.","Few.","Maa","Awr.","Me","Suw","Sul.","Ut","Sept.","Okt.","Now.","Des.",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "wo-SN",
+        EBCDICCodePage: 20297,
+        IsRightToLeft: false,
+        LCID: 1160,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

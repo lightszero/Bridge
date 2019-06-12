@@ -1,15 +1,15 @@
-﻿Bridge.merge(new Bridge.CultureInfo("sah", true), {
+Bridge.merge(new System.Globalization.CultureInfo("sah", true), {
     englishName: "Sakha",
     nativeName: "Саха",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NAN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "чыыһыла буотах",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
         positiveInfinitySymbol: "∞",
         percentSymbol: "%",
-        percentGroupSizes: [3,0],
+        percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: " ",
@@ -20,16 +20,16 @@
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
         currencyGroupSeparator: " ",
-        currencyNegativePattern: 5,
-        currencyPositivePattern: 1,
-        numberGroupSizes: [3,0],
+        currencyNegativePattern: 8,
+        currencyPositivePattern: 3,
+        numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
         numberGroupSeparator: " ",
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Өр","Бн","Оп","Ср","Чп","Бт","Сб"],
         abbreviatedMonthGenitiveNames: ["тхс","олн","клн","мсу","ыам","бэс","оты","атр","блҕ","алт","сэт","ахс",""],
         abbreviatedMonthNames: ["Тхс","Олн","Клн","Мсу","Ыам","Бэс","Оты","Атр","Блҕ","Алт","Сэт","Ахс",""],
@@ -40,7 +40,7 @@
         fullDateTimePattern: "dddd, yyyy 'с.' MMMM d 'күнэ' H:mm:ss",
         longDatePattern: "dddd, yyyy 'с.' MMMM d 'күнэ'",
         longTimePattern: "H:mm:ss",
-        monthDayPattern: "MMMM d 'күнэ'",
+        monthDayPattern: "MMMM d күнэ",
         monthGenitiveNames: ["тохсунньу","олунньу","кулун тутар","муус устар","ыам ыйын","бэс ыйын","от ыйын","атырдьах ыйын","балаҕан ыйын","алтынньы","сэтинньи","ахсынньы",""],
         monthNames: ["Тохсунньу","Олунньу","Кулун тутар","Муус устар","Ыам ыйа","Бэс ыйа","От ыйа","Атырдьах ыйа","Балаҕан ыйа","Алтынньы","Сэтинньи","Ахсынньы",""],
         pmDesignator: "КК",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "yyyy 'с.' MMMM",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1251,
+        CultureName: "sah-RU",
+        EBCDICCodePage: 20880,
+        IsRightToLeft: false,
+        LCID: 1157,
+        listSeparator: ";",
+        MacCodePage: 10007,
+        OEMCodePage: 866,
+        IsReadOnly: true
     })
 });

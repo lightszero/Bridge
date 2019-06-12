@@ -1,5 +1,8 @@
 ﻿using Bridge.Contract;
+using Bridge.Contract.Constants;
+
 using ICSharpCode.NRefactory.CSharp;
+
 using System.Collections.Generic;
 using System.Linq;
 
@@ -35,6 +38,23 @@ namespace Bridge.Translator
         {
             IfElseStatement ifElseStatement = this.IfElseStatement;
 
+            var awaiters = this.GetAwaiters(ifElseStatement);
+
+            if (awaiters == null || awaiters.Length == 0)
+            {
+                this.WriteIf();
+                this.WriteOpenParentheses();
+                ifElseStatement.Condition.AcceptVisitor(this.Emitter);
+                this.WriteCloseParentheses();
+                this.EmitBlockOrIndentedLine(ifElseStatement.TrueStatement);
+                if (ifElseStatement.FalseStatement != null && !ifElseStatement.FalseStatement.IsNull)
+                {
+                    this.Write(" else");
+                    this.EmitBlockOrIndentedLine(ifElseStatement.FalseStatement);
+                }
+                return;
+            }
+
             this.WriteAwaiters(ifElseStatement.Condition);
 
             this.WriteIf();
@@ -62,11 +82,11 @@ namespace Bridge.Translator
                 this.Emitter.IgnoreBlock = ifElseStatement.TrueStatement;
                 this.WriteSpace();
                 this.BeginBlock();
-                this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+                this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
                 this.WriteNewLine();
                 this.Write("continue;");
                 var writer = this.SaveWriter();
-                var bodyStep = this.Emitter.AsyncBlock.AddAsyncStep();
+                this.Emitter.AsyncBlock.AddAsyncStep();
                 ifElseStatement.TrueStatement.AcceptVisitor(this.Emitter);
 
                 if (this.Emitter.AsyncBlock.Steps.Count > startCount)
@@ -97,11 +117,11 @@ namespace Bridge.Translator
                     this.Emitter.IgnoreBlock = ifElseStatement.FalseStatement;
                     this.WriteSpace();
                     this.BeginBlock();
-                    this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+                    this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
                     this.WriteNewLine();
                     this.Write("continue;");
                     var writer = this.SaveWriter();
-                    var bodyStep = this.Emitter.AsyncBlock.AddAsyncStep();
+                    this.Emitter.AsyncBlock.AddAsyncStep();
                     ifElseStatement.FalseStatement.AcceptVisitor(this.Emitter);
 
                     if (this.Emitter.AsyncBlock.Steps.Count > elseCount)
@@ -128,7 +148,7 @@ namespace Bridge.Translator
                 if (this.Emitter.AsyncBlock.Steps.Count <= elseCount && !AbstractEmitterBlock.IsJumpStatementLast(this.Emitter.Output.ToString()))
                 {
                     this.WriteNewLine();
-                    this.Write("$step = " + this.Emitter.AsyncBlock.Step + ";");
+                    this.Write(JS.Vars.ASYNC_STEP + " = " + this.Emitter.AsyncBlock.Step + ";");
                     this.WriteNewLine();
                     this.Write("continue;");
                 }

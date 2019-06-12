@@ -26,6 +26,7 @@ namespace Bridge.Translator
         protected virtual void EmitTypeReference()
         {
             AstType astType = this.Type;
+
             this.Write(BridgeTypes.ToJsName(astType, this.Emitter));
         }
     }

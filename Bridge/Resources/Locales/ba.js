@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ba", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ba", true), {
     englishName: "Bashkir",
     nativeName: "Башҡорт",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Йш","Дш","Шш","Шр","Кс","Йм","Шб"],
         abbreviatedMonthGenitiveNames: ["ғин","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек",""],
         abbreviatedMonthNames: ["ғин","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1251,
+        CultureName: "ba-RU",
+        EBCDICCodePage: 20880,
+        IsRightToLeft: false,
+        LCID: 1133,
+        listSeparator: ";",
+        MacCodePage: 10007,
+        OEMCodePage: 866,
+        IsReadOnly: true
     })
 });

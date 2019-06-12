@@ -1,67 +1,47 @@
-using Bridge;
 using System.Collections.Generic;
 
 namespace System.Linq
 {
-    [External]
-    [IgnoreGeneric]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.IgnoreGeneric]
+    [Bridge.Convention(Target = Bridge.ConventionTarget.Member, Member = Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
     public interface IOrderedEnumerable<TSource> : IEnumerable<TSource>
     {
+        [Bridge.Template("thenBy({keySelector})")]
         IOrderedEnumerable<TSource> ThenBy<TKey>(Func<TSource, TKey> keySelector);
 
+        [Bridge.Template("thenBy({keySelector}, {comparer})")]
         IOrderedEnumerable<TSource> ThenBy<TKey>(Func<TSource, TKey> keySelector, IComparer<TKey> comparer);
 
+        [Bridge.Template("thenByDescending({keySelector})")]
         IOrderedEnumerable<TSource> ThenByDescending<TKey>(Func<TSource, TKey> keySelector);
 
+        [Bridge.Template("thenByDescending({keySelector}, {comparer})")]
         IOrderedEnumerable<TSource> ThenByDescending<TKey>(Func<TSource, TKey> keySelector, IComparer<TKey> comparer);
     }
 
-    [External]
-    [IgnoreGeneric]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.IgnoreGeneric]
     public class OrderedEnumerable<TElement> : EnumerableInstance<TElement>, IOrderedEnumerable<TElement>
     {
-        internal OrderedEnumerable()
-        {
-        }
+        internal extern OrderedEnumerable();
 
-        IOrderedEnumerable<TElement> IOrderedEnumerable<TElement>.ThenBy<TKey>(Func<TElement, TKey> keySelector)
-        {
-            return null;
-        }
+        extern IOrderedEnumerable<TElement> IOrderedEnumerable<TElement>.ThenBy<TKey>(Func<TElement, TKey> keySelector);
 
-        IOrderedEnumerable<TElement> IOrderedEnumerable<TElement>.ThenBy<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
-        {
-            return null;
-        }
+        extern IOrderedEnumerable<TElement> IOrderedEnumerable<TElement>.ThenBy<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer);
 
-        IOrderedEnumerable<TElement> IOrderedEnumerable<TElement>.ThenByDescending<TKey>(Func<TElement, TKey> keySelector)
-        {
-            return null;
-        }
+        extern IOrderedEnumerable<TElement> IOrderedEnumerable<TElement>.ThenByDescending<TKey>(Func<TElement, TKey> keySelector);
 
-        IOrderedEnumerable<TElement> IOrderedEnumerable<TElement>.ThenByDescending<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
-        {
-            return null;
-        }
+        extern IOrderedEnumerable<TElement> IOrderedEnumerable<TElement>.ThenByDescending<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer);
 
-        public OrderedEnumerable<TElement> ThenBy<TKey>(Func<TElement, TKey> keySelector)
-        {
-            return null;
-        }
+        public extern OrderedEnumerable<TElement> ThenBy<TKey>(Func<TElement, TKey> keySelector);
 
-        public OrderedEnumerable<TElement> ThenBy<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
-        {
-            return null;
-        }
+        public extern OrderedEnumerable<TElement> ThenBy<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer);
 
-        public OrderedEnumerable<TElement> ThenByDescending<TKey>(Func<TElement, TKey> keySelector)
-        {
-            return null;
-        }
+        public extern OrderedEnumerable<TElement> ThenByDescending<TKey>(Func<TElement, TKey> keySelector);
 
-        public OrderedEnumerable<TElement> ThenByDescending<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
-        {
-            return null;
-        }
+        public extern OrderedEnumerable<TElement> ThenByDescending<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer);
     }
 }

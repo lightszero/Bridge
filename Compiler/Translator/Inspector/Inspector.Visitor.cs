@@ -1,6 +1,8 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.Semantics;
+using ICSharpCode.NRefactory.TypeSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,10 +24,13 @@ namespace Bridge.Translator
         {
             if (!String.IsNullOrEmpty(this.Namespace))
             {
-                throw (EmitterException)this.CreateException(namespaceDeclaration, "Nested namespaces are not supported");
+                //throw (EmitterException)this.CreateException(namespaceDeclaration, "Nested namespaces are not supported");
             }
 
-            ValidateNamespace(namespaceDeclaration);
+            if (!this.AssemblyInfo.Assembly.EnableReservedNamespaces)
+            {
+                ValidateNamespace(namespaceDeclaration);
+            }
 
             var prevNamespace = this.Namespace;
 
@@ -47,15 +52,37 @@ namespace Bridge.Translator
 
             ValidateNamespace(typeDeclaration);
 
-            if (this.HasIgnore(typeDeclaration) && !this.IsObjectLiteral(typeDeclaration))
-            {
-                return;
-            }
-
             var rr = this.Resolver.ResolveNode(typeDeclaration, null);
             var fullName = rr.Type.ReflectionName;
             var partialType = this.Types.FirstOrDefault(t => t.Key == fullName);
             var add = true;
+            var ignored = this.IgnoredTypes.Contains(fullName);
+            var external = this.HasExternal(typeDeclaration);
+
+            if (!external)
+            {
+                var resolveResult = this.Resolver.ResolveNode(typeDeclaration, null);
+                if (resolveResult != null && resolveResult.Type != null)
+                {
+                    var def = resolveResult.Type.GetDefinition();
+                    external = def != null && def.ParentAssembly.AssemblyAttributes.Any(a => a.AttributeType.FullName == "Bridge.ExternalAttribute");
+                }
+            }
+
+            if ((external || ignored || this.IsNonScriptable(typeDeclaration)) && !this.IsObjectLiteral(typeDeclaration))
+            {
+                if (partialType != null)
+                {
+                    this.Types.Remove(partialType);
+                }
+
+                if (!ignored)
+                {
+                    this.IgnoredTypes.Add(fullName);
+                }
+
+                return;
+            }
 
             if (partialType == null)
             {
@@ -81,11 +108,6 @@ namespace Bridge.Translator
                     IsObjectLiteral = this.IsObjectLiteral(typeDeclaration),
                     Type = rr.Type
                 };
-
-                if (parentTypeInfo != null && Emitter.reservedStaticNames.Any(n => String.Equals(this.CurrentType.Name, n, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    throw new EmitterException(typeDeclaration, "Nested class cannot have such name: " + this.CurrentType.Name + ". Please rename it.");
-                }
             }
             else
             {
@@ -108,6 +130,11 @@ namespace Bridge.Translator
                 this.Types.Add(this.CurrentType);
             }
 
+            if (typeDeclaration.ClassType != ClassType.Interface)
+            {
+                this.AddMissingAliases(typeDeclaration);
+            }
+
             this.CurrentType = null;
 
             while (this.NestedTypes != null && this.NestedTypes.Count > 0)
@@ -121,6 +148,62 @@ namespace Bridge.Translator
             }
         }
 
+        private void AddMissingAliases(TypeDeclaration typeDeclaration)
+        {
+            var type = this.Resolver.ResolveNode(typeDeclaration, null).Type;
+            var interfaces = type.DirectBaseTypes.Where(t => t.Kind == TypeKind.Interface).ToArray();
+            var members = type.GetMembers(null, GetMemberOptions.IgnoreInheritedMembers).ToArray();
+            var baseTypes = type.GetNonInterfaceBaseTypes().ToArray().Reverse();
+
+            if (interfaces.Length > 0)
+            {
+                foreach (var baseInterface in interfaces)
+                {
+                    var interfaceMembers = baseInterface.GetMembers().Where(m => m.DeclaringTypeDefinition.Kind == TypeKind.Interface);
+                    foreach (var interfaceMember in interfaceMembers)
+                    {
+                        var isDirectlyImplemented = members.Any(m => m.ImplementedInterfaceMembers.Contains(interfaceMember));
+                        if (!isDirectlyImplemented)
+                        {
+                            foreach (var baseType in baseTypes)
+                            {
+                                //var derivedMember = InheritanceHelper.GetDerivedMember(interfaceMember, baseType.GetDefinition());
+                                IMember derivedMember = null;
+                                IEnumerable<IMember> baseMembers;
+                                if (interfaceMember.SymbolKind == SymbolKind.Accessor)
+                                {
+                                    baseMembers = baseType.GetAccessors(null, GetMemberOptions.IgnoreInheritedMembers).Where(m => m.Name == interfaceMember.Name && TypeComparer.Equals(m.ReturnType, interfaceMember.ReturnType));
+                                }
+                                else
+                                {
+                                    baseMembers = baseType.GetMembers(null, GetMemberOptions.IgnoreInheritedMembers).Where(m => m.Name == interfaceMember.Name && TypeComparer.Equals(m.ReturnType, interfaceMember.ReturnType));
+                                }
+
+                                foreach (IMember baseMember in baseMembers)
+                                {
+                                    if (baseMember.IsPrivate)
+                                    {
+                                        continue;
+                                    }
+                                    if (SignatureComparer.Ordinal.Equals(interfaceMember, baseMember))
+                                    {
+                                        derivedMember = baseMember.Specialize(interfaceMember.Substitution);
+                                        break;
+                                    }
+                                }
+
+                                if (derivedMember != null && !derivedMember.ImplementedInterfaceMembers.Contains(interfaceMember) && !this.CurrentType.InstanceConfig.Alias.Any(a => typeDeclaration.Equals(a.Entity) && interfaceMember.Equals(a.InterfaceMember) && derivedMember.Equals(a.DerivedMember)))
+                                {
+                                    this.CurrentType.InstanceConfig.Alias.Add(new TypeConfigItem { Entity = typeDeclaration, InterfaceMember = interfaceMember, DerivedMember = derivedMember });
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public override void VisitFieldDeclaration(FieldDeclaration fieldDeclaration)
         {
             bool isStatic = this.CurrentType.ClassType == ClassType.Enum
@@ -129,6 +212,12 @@ namespace Bridge.Translator
 
             foreach (var item in fieldDeclaration.Variables)
             {
+                var rr = this.Resolver.ResolveNode(item, null) as MemberResolveResult;
+                if (fieldDeclaration.HasModifier(Modifiers.Const) && rr != null && rr.Member.Attributes.Any(a => a.AttributeType.FullName == Bridge.Translator.Translator.Bridge_ASSEMBLY + ".InlineConstAttribute"))
+                {
+                    continue;
+                }
+
                 Expression initializer = item.Initializer;
 
                 if (initializer.IsNull)
@@ -143,11 +232,33 @@ namespace Bridge.Translator
 
                 this.CurrentType.FieldsDeclarations.Add(item.Name, fieldDeclaration);
 
+                string prefix = SharpSixRewriter.AutoInitFieldPrefix;
+                bool autoInitializer = item.Name.StartsWith(prefix);
+                string name = autoInitializer ? item.Name.Substring(prefix.Length) : item.Name;
+
                 if (isStatic)
                 {
-                    this.CurrentType.StaticConfig.Fields.Add(new TypeConfigItem
+                    var collection = this.CurrentType.StaticConfig.Fields;
+                    if (autoInitializer)
                     {
-                        Name = item.Name,
+                        collection = this.CurrentType.StaticConfig.AutoPropertyInitializers;
+                        var prop = this.CurrentType.StaticConfig.Properties.FirstOrDefault(p => p.Name == name);
+
+                        if (prop == null)
+                        {
+                            prop = this.CurrentType.StaticConfig.Fields.FirstOrDefault(p => p.Name == name);
+                        }
+
+                        if (prop != null)
+                        {
+                            prop.Initializer = initializer;
+                            prop.IsPropertyInitializer = true;
+                        }
+                    }
+
+                    collection.Add(new TypeConfigItem
+                    {
+                        Name = name,
                         Entity = fieldDeclaration,
                         IsConst = fieldDeclaration.HasModifier(Modifiers.Const),
                         VarInitializer = item,
@@ -156,19 +267,50 @@ namespace Bridge.Translator
                 }
                 else
                 {
-                    this.CurrentType.InstanceConfig.Fields.Add(new TypeConfigItem
+                    var collection = this.CurrentType.InstanceConfig.Fields;
+                    if (autoInitializer)
+                    {
+                        collection = this.CurrentType.InstanceConfig.AutoPropertyInitializers;
+                        var prop = this.CurrentType.InstanceConfig.Properties.FirstOrDefault(p => p.Name == name);
+
+                        if (prop == null)
+                        {
+                            prop = this.CurrentType.InstanceConfig.Fields.FirstOrDefault(p => p.Name == name);
+                        }
+
+                        if (prop != null)
+                        {
+                            prop.Initializer = initializer;
+                            prop.IsPropertyInitializer = true;
+                        }
+                    }
+
+                    collection.Add(new TypeConfigItem
+                    {
+                        Name = name,
+                        Entity = fieldDeclaration,
+                        VarInitializer = item,
+                        Initializer = initializer
+                    });
+                }
+
+                if (OverloadsCollection.NeedCreateAlias(rr))
                 {
-                    Name = item.Name,
-                    Entity = fieldDeclaration,
-                    VarInitializer = item,
-                    Initializer = initializer
-                });
+                    var config = isStatic
+                    ? CurrentType.StaticConfig
+                    : CurrentType.InstanceConfig;
+                    config.Alias.Add(new TypeConfigItem { Entity = fieldDeclaration, VarInitializer = item });
                 }
             }
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclaration constructorDeclaration)
         {
+            if (this.HasTemplate(constructorDeclaration) || constructorDeclaration.HasModifier(Modifiers.Extern) && !this.HasScript(constructorDeclaration))
+            {
+                return;
+            }
+
             bool isStatic = constructorDeclaration.HasModifier(Modifiers.Static);
 
             this.FixMethodParameters(constructorDeclaration.Parameters, constructorDeclaration.Body);
@@ -185,14 +327,12 @@ namespace Bridge.Translator
 
         public override void VisitOperatorDeclaration(OperatorDeclaration operatorDeclaration)
         {
-            if (this.HasInline(operatorDeclaration))
+            if (this.HasTemplate(operatorDeclaration))
             {
                 return;
             }
 
             this.FixMethodParameters(operatorDeclaration.Parameters, operatorDeclaration.Body);
-
-            bool isStatic = operatorDeclaration.HasModifier(Modifiers.Static);
 
             Dictionary<OperatorType, List<OperatorDeclaration>> dict = this.CurrentType.Operators;
 
@@ -226,11 +366,20 @@ namespace Bridge.Translator
             {
                 dict.Add(key, new List<EntityDeclaration>(new[] { indexerDeclaration }));
             }
+
+            var rr = this.Resolver.ResolveNode(indexerDeclaration, null) as MemberResolveResult;
+            if (OverloadsCollection.NeedCreateAlias(rr))
+            {
+                var config = rr.Member.IsStatic
+                ? CurrentType.StaticConfig
+                : CurrentType.InstanceConfig;
+                config.Alias.Add(new TypeConfigItem { Entity = indexerDeclaration });
+            }
         }
 
         public override void VisitMethodDeclaration(MethodDeclaration methodDeclaration)
         {
-            if (methodDeclaration.HasModifier(Modifiers.Abstract) || this.HasInline(methodDeclaration))
+            if (methodDeclaration.HasModifier(Modifiers.Abstract) || this.HasTemplate(methodDeclaration))
             {
                 return;
             }
@@ -252,6 +401,16 @@ namespace Bridge.Translator
             else
             {
                 dict.Add(key, new List<MethodDeclaration>(new[] { methodDeclaration }));
+            }
+
+            var memberrr = Resolver.ResolveNode(methodDeclaration, null) as MemberResolveResult;
+
+            if (OverloadsCollection.NeedCreateAlias(memberrr))
+            {
+                var config = isStatic
+                ? CurrentType.StaticConfig
+                : CurrentType.InstanceConfig;
+                config.Alias.Add(new TypeConfigItem { Entity = methodDeclaration });
             }
         }
 
@@ -277,6 +436,15 @@ namespace Bridge.Translator
             else
             {
                 dict.Add(key, new List<EntityDeclaration>(new[] { customEventDeclaration }));
+            }
+
+            var rr = this.Resolver.ResolveNode(customEventDeclaration, null) as MemberResolveResult;
+            if (OverloadsCollection.NeedCreateAlias(rr))
+            {
+                var config = rr.Member.IsStatic
+                ? CurrentType.StaticConfig
+                : CurrentType.InstanceConfig;
+                config.Alias.Add(new TypeConfigItem { Entity = customEventDeclaration });
             }
         }
 
@@ -304,21 +472,64 @@ namespace Bridge.Translator
                 dict.Add(key, new List<EntityDeclaration>(new[] { propertyDeclaration }));
             }
 
-            if (!propertyDeclaration.Getter.IsNull
-                && !this.HasIgnore(propertyDeclaration)
-                && !this.HasInline(propertyDeclaration.Getter)
-                && propertyDeclaration.Getter.Body.IsNull
-                && !this.HasScript(propertyDeclaration.Getter))
+            var rr = this.Resolver.ResolveNode(propertyDeclaration, null) as MemberResolveResult;
+            if (OverloadsCollection.NeedCreateAlias(rr))
+            {
+                var config = rr.Member.IsStatic
+                ? CurrentType.StaticConfig
+                : CurrentType.InstanceConfig;
+                config.Alias.Add(new TypeConfigItem { Entity = propertyDeclaration });
+            }
+
+            if (!this.HasExternal(propertyDeclaration)
+                && !this.HasTemplate(propertyDeclaration.Getter))
             {
                 Expression initializer = this.GetDefaultFieldInitializer(propertyDeclaration.ReturnType);
                 TypeConfigInfo info = isStatic ? this.CurrentType.StaticConfig : this.CurrentType.InstanceConfig;
-                if (!this.AssemblyInfo.AutoPropertyToField)
+
+                bool autoPropertyToField = false;
+                if (rr != null && rr.Member != null && Helpers.IsAutoProperty((IProperty)rr.Member))
+                {
+                    var rules = Rules.Get(this.Emitter, rr.Member);
+
+                    if (rules.AutoProperty.HasValue)
+                    {
+                        autoPropertyToField = rules.AutoProperty.Value == AutoPropertyRule.Plain;
+                    }
+                    else
+                    {
+                        autoPropertyToField = this.HasFieldAttribute(rr.Member);
+
+                        if (!autoPropertyToField && rr.Member.ImplementedInterfaceMembers.Count > 0)
+                        {
+                            foreach (var interfaceMember in rr.Member.ImplementedInterfaceMembers)
+                            {
+                                autoPropertyToField = this.HasFieldAttribute(interfaceMember, false);
+
+                                if (autoPropertyToField)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var autoInitializer = info.AutoPropertyInitializers.FirstOrDefault(f => f.Name == key);
+
+                if (autoInitializer != null)
+                {
+                    initializer = autoInitializer.Initializer;
+                }
+
+                if (!autoPropertyToField)
                 {
                     info.Properties.Add(new TypeConfigItem
                     {
                         Name = key,
                         Entity = propertyDeclaration,
-                        Initializer = initializer
+                        Initializer = initializer,
+                        IsPropertyInitializer = autoInitializer != null
                     });
                 }
                 else
@@ -333,6 +544,59 @@ namespace Bridge.Translator
             }
         }
 
+        private bool HasFieldAttribute(IMember member, bool checkAssembly = true)
+        {
+
+
+            var fieldAttributeName = "Bridge.FieldAttribute";
+            var autoPropertyToField = member.Attributes.Any(a => a.AttributeType.FullName == fieldAttributeName);
+
+            if (!autoPropertyToField)
+            {
+                autoPropertyToField = member.DeclaringTypeDefinition.Attributes.Any(a => a.AttributeType.FullName == fieldAttributeName);
+            }
+
+            if (!autoPropertyToField && checkAssembly)
+            {
+                autoPropertyToField = member.DeclaringTypeDefinition.ParentAssembly.AssemblyAttributes.Any(a => a.AttributeType.FullName == fieldAttributeName);
+            }
+
+            return autoPropertyToField;
+        }
+
+        private void CheckFieldProperty(PropertyDeclaration propertyDeclaration, MemberResolveResult resolvedProperty)
+        {
+            if (this.HasExternal(propertyDeclaration) || this.CurrentType.IsObjectLiteral)
+            {
+                return;
+            }
+
+            if (resolvedProperty != null && resolvedProperty.Member != null)
+            {
+                var possiblyWrongGetter = !propertyDeclaration.Getter.IsNull
+                        && !propertyDeclaration.Getter.Body.IsNull
+                        && !this.HasTemplate(propertyDeclaration.Getter)
+                        && !this.HasScript(propertyDeclaration.Getter);
+
+                var possiblyWrongSetter = !propertyDeclaration.Setter.IsNull
+                    && !propertyDeclaration.Setter.Body.IsNull
+                    && !this.HasTemplate(propertyDeclaration.Setter)
+                    && !this.HasScript(propertyDeclaration.Setter);
+
+                if (possiblyWrongGetter || possiblyWrongSetter)
+                {
+                    var message = string.Format(
+                            Bridge.Translator.Constants.Messages.Exceptions.FIELD_PROPERTY_MARKED_ADVISE,
+                            resolvedProperty.Member.ToString(),
+                            possiblyWrongGetter ? "getter" : string.Empty,
+                            possiblyWrongSetter ? (possiblyWrongGetter ? " and " : string.Empty) + "setter" : string.Empty
+                        );
+
+                    throw new EmitterException(propertyDeclaration, message);
+                }
+            }
+        }
+
         public override void VisitDelegateDeclaration(DelegateDeclaration delegateDeclaration)
         {
         }
@@ -340,33 +604,103 @@ namespace Bridge.Translator
         public override void VisitEnumMemberDeclaration(EnumMemberDeclaration enumMemberDeclaration)
         {
             Expression initializer = enumMemberDeclaration.Initializer;
-            if (enumMemberDeclaration.Initializer.IsNull)
+            var member = this.Resolver.ResolveNode(enumMemberDeclaration, null) as MemberResolveResult;
+            var initializerIsString = false;
+            if (member != null)
             {
-                if (this.CurrentType.Type.GetDefinition().Attributes.Any(attr => attr.AttributeType.FullName == "System.FlagsAttribute"))
+                var enumMode = Helpers.EnumEmitMode(member.Member.DeclaringTypeDefinition);
+
+                if (enumMode >= 3 && enumMode < 7)
                 {
-                    if (this.CurrentType.LastEnumValue <= 0)
+                    initializerIsString = true;
+                    string enumStringName = member.Member.Name;
+                    var attr = Helpers.GetInheritedAttribute(member.Member, Translator.Bridge_ASSEMBLY + ".NameAttribute");
+
+                    if (attr != null)
                     {
-                        this.CurrentType.LastEnumValue = 1;
+                        var value = attr.PositionalArguments.First().ConstantValue;
+                        string name = null;
+                        if (value is string)
+                        {
+                            name = value.ToString();
+                            name = Helpers.ConvertNameTokens(name, enumStringName);
+                        }
+                        else if (value is bool)
+                        {
+                            name = (bool)value ? Object.Net.Utilities.StringUtils.ToLowerCamelCase(member.Member.Name) : member.Member.Name;
+                        }
+
+                        if (member.Member.IsStatic && Helpers.IsReservedStaticName(name, false))
+                        {
+                            name = Helpers.ChangeReservedWord(name);
+                        }
+                        initializer = new PrimitiveExpression(name);
                     }
                     else
                     {
-                        this.CurrentType.LastEnumValue *= 2;
-                    }
+                        switch (enumMode)
+                        {
+                            case 3:
+                                enumStringName = Object.Net.Utilities.StringUtils.ToLowerCamelCase(member.Member.Name);
+                                break;
 
-                    initializer = new PrimitiveExpression(this.CurrentType.LastEnumValue);
+                            case 4:
+                                break;
+
+                            case 5:
+                                enumStringName = enumStringName.ToLowerInvariant();
+                                break;
+
+                            case 6:
+                                enumStringName = enumStringName.ToUpperInvariant();
+                                break;
+                        }
+
+                        initializer = new PrimitiveExpression(enumStringName);
+                    }
+                }
+            }
+
+            if (!initializerIsString)
+            {
+                if (enumMemberDeclaration.Initializer.IsNull)
+                {
+                    dynamic i = this.CurrentType.LastEnumValue;
+                    ++i;
+                    this.CurrentType.LastEnumValue = i;
+
+                    if (member != null && member.Member.DeclaringTypeDefinition.EnumUnderlyingType.IsKnownType(KnownTypeCode.Int64))
+                    {
+                        initializer = new PrimitiveExpression(Convert.ToInt64(this.CurrentType.LastEnumValue));
+                    }
+                    else if (member != null && member.Member.DeclaringTypeDefinition.EnumUnderlyingType.IsKnownType(KnownTypeCode.UInt64))
+                    {
+                        initializer = new PrimitiveExpression(Convert.ToUInt64(this.CurrentType.LastEnumValue));
+                    }
+                    else
+                    {
+                        initializer = new PrimitiveExpression(this.CurrentType.LastEnumValue);
+                    }
                 }
                 else
                 {
-                    initializer = new PrimitiveExpression(++this.CurrentType.LastEnumValue);
-                }
-            }
-            else
-            {
-                var rr = this.Resolver.ResolveNode(enumMemberDeclaration.Initializer, null) as ConstantResolveResult;
-                if (rr != null)
-                {
-                    initializer = new PrimitiveExpression(rr.ConstantValue);
-                    this.CurrentType.LastEnumValue = (int)rr.ConstantValue;
+                    var rr = this.Resolver.ResolveNode(enumMemberDeclaration.Initializer, null) as ConstantResolveResult;
+                    if (rr != null)
+                    {
+                        if (member != null && member.Member.DeclaringTypeDefinition.EnumUnderlyingType.IsKnownType(KnownTypeCode.Int64))
+                        {
+                            initializer = new PrimitiveExpression(Convert.ToInt64(rr.ConstantValue));
+                        }
+                        else if (member != null && member.Member.DeclaringTypeDefinition.EnumUnderlyingType.IsKnownType(KnownTypeCode.UInt64))
+                        {
+                            initializer = new PrimitiveExpression(Convert.ToUInt64(rr.ConstantValue));
+                        }
+                        else
+                        {
+                            initializer = new PrimitiveExpression(rr.ConstantValue);
+                        }
+                        this.CurrentType.LastEnumValue = rr.ConstantValue;
+                    }
                 }
             }
 
@@ -405,6 +739,15 @@ namespace Bridge.Translator
                         VarInitializer = item
                     });
                 }
+
+                var rr = this.Resolver.ResolveNode(item, null) as MemberResolveResult;
+                if (OverloadsCollection.NeedCreateAlias(rr))
+                {
+                    var config = rr.Member.IsStatic
+                    ? CurrentType.StaticConfig
+                    : CurrentType.InstanceConfig;
+                    config.Alias.Add(new TypeConfigItem { Entity = eventDeclaration, VarInitializer = item });
+                }
             }
         }
 
@@ -420,13 +763,81 @@ namespace Bridge.Translator
                 var name = attr.Type.ToString();
                 var resolveResult = this.Resolver.ResolveNode(attr, null);
 
-                var handled = //this.ReadAspect(attr, name, resolveResult, AttributeTargets.Assembly, null) ||
-                              this.ReadModuleInfo(attr, name, resolveResult) ||
-                              this.ReadFileNameInfo(attr, name, resolveResult) ||
-                              this.ReadOutputPathInfo(attr, name, resolveResult) ||
-                              this.ReadFileHierarchyInfo(attr, name, resolveResult) ||
-                              this.ReadModuleDependency(attr, name, resolveResult);
+                this.ReadModuleInfo(attr, name, resolveResult);
+                this.ReadFileNameInfo(attr, name, resolveResult);
+                this.ReadOutputPathInfo(attr, name, resolveResult);
+                this.ReadOutputByInfo(attr, name, resolveResult);
+                this.ReadModuleDependency(attr, name, resolveResult);
+                this.ReadReflectionInfo(attr, name, resolveResult);
             }
+        }
+
+        protected virtual bool ReadReflectionInfo(ICSharpCode.NRefactory.CSharp.Attribute attr, string name, ResolveResult resolveResult)
+        {
+            if (resolveResult != null && resolveResult.Type != null && resolveResult.Type.FullName == Translator.Bridge_ASSEMBLY + ".ReflectableAttribute")
+            {
+                var config = ((AssemblyInfo)this.AssemblyInfo).ReflectionInternal;
+
+                if (attr.Arguments.Count > 0)
+                {
+                    if (attr.Arguments.Count > 1)
+                    {
+                        var list = new List<MemberAccessibility>();
+                        for (int i = 0; i < attr.Arguments.Count; i++)
+                        {
+                            object v = this.GetAttributeArgumentValue(attr, resolveResult, i);
+                            list.Add((MemberAccessibility)(int)v);
+                        }
+
+                        config.MemberAccessibility = list.ToArray();
+                    }
+                    else
+                    {
+                        object v = this.GetAttributeArgumentValue(attr, resolveResult, 0);
+
+                        if (v is bool)
+                        {
+                            config.Disabled = !(bool)v;
+                        }
+                        else if (v is string)
+                        {
+                            if (string.IsNullOrEmpty(config.Filter))
+                            {
+                                config.Filter = v.ToString();
+                            }
+                            else
+                            {
+                                config.Filter += ";" + v.ToString();
+                            }
+                        }
+                        else if (v is int)
+                        {
+                            IType t = this.GetAttributeArgumentType(attr, resolveResult, 0);
+
+                            if (t.FullName == "Bridge.TypeAccessibility")
+                            {
+                                config.TypeAccessibility = (TypeAccessibility)(int)v;
+                            }
+                            else
+                            {
+                                config.MemberAccessibility = new[] { (MemberAccessibility)(int)v };
+                            }
+                        }
+                        else if (v is int[])
+                        {
+                            config.MemberAccessibility = ((int[])v).Cast<MemberAccessibility>().ToArray();
+                        }
+                    }
+                }
+                else
+                {
+                    config.Disabled = false;
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         protected virtual bool ReadModuleInfo(ICSharpCode.NRefactory.CSharp.Attribute attr, string name, ResolveResult resolveResult)
@@ -434,15 +845,92 @@ namespace Bridge.Translator
             if ((name == (Translator.Bridge_ASSEMBLY + ".Module")) ||
                 (resolveResult != null && resolveResult.Type != null && resolveResult.Type.FullName == (Translator.Bridge_ASSEMBLY + ".ModuleAttribute")))
             {
-                if (attr.Arguments.Count > 0)
+                Module module = null;
+                var args = ((InvocationResolveResult) resolveResult).Arguments.Select(a=> a.ConstantValue).ToList();
+                var positionArgs =
+                    ((InvocationResolveResult) resolveResult).InitializerStatements.Select(s => new
+                    {
+                        Name = ((MemberResolveResult)((OperatorResolveResult)s).Operands[0]).Member.Name,
+                        Value = ((OperatorResolveResult)s).Operands[1].ConstantValue
+                    }).ToList();
+
+                if (args.Count == 1)
                 {
-                    object nameObj = this.GetAttributeArgumentValue(attr, resolveResult, 0);
-                    this.AssemblyInfo.Module = nameObj != null ? nameObj.ToString() : "";
+                    var obj = args[0];
+
+                    if (obj is bool)
+                    {
+                        module = new Module((bool)obj, null);
+                    }
+                    else if (obj is string)
+                    {
+                        module = new Module(obj.ToString(), null);
+                    }
+                    else if (obj is int)
+                    {
+                        module = new Module("", (ModuleType)(int)obj, null);
+                    }
+                    else
+                    {
+                        module = new Module(null);
+                    }
+                }
+                else if (args.Count == 2)
+                {
+                    var first = args[0];
+                    var second = args[1];
+
+                    if (first is string)
+                    {
+                        var mname = first;
+                        var preventName = second;
+
+                        module = new Module(mname != null ? mname.ToString() : "", null, (bool)preventName);
+                    }
+                    else if (second is bool)
+                    {
+                        var mtype = first;
+                        var preventName = second;
+
+                        module = new Module("", (ModuleType)(int)mtype, null, (bool)preventName);
+                    }
+                    else
+                    {
+                        var mtype = first;
+                        var mname = second;
+
+                        module = new Module(mname != null ? mname.ToString() : "", (ModuleType)(int)mtype, null);
+                    }
+                }
+                else if (args.Count == 3)
+                {
+                    var mtype = args[0];
+                    var mname = args[1];
+                    var preventName = args[2];
+
+                    module = new Module(mname != null ? mname.ToString() : "", (ModuleType)(int)mtype, null, (bool)preventName);
                 }
                 else
                 {
-                    this.AssemblyInfo.Module = "";
+                    module = new Module(null);
                 }
+
+                if (positionArgs.Count > 0)
+                {
+                    foreach (var arg in positionArgs)
+                    {
+                        if (arg.Name == "Name")
+                        {
+                            module.Name = arg.Value != null ? (string)arg.Value : "";
+                        }
+                        else if (arg.Name == "ExportAsNamespace")
+                        {
+                            module.ExportAsNamespace = arg.Value != null ? (string)arg.Value : "";
+                        }
+                    }
+                }
+
+                this.AssemblyInfo.Module = module;
 
                 return true;
             }
@@ -473,6 +961,8 @@ namespace Bridge.Translator
 
         protected virtual bool ReadOutputPathInfo(ICSharpCode.NRefactory.CSharp.Attribute attr, string name, ResolveResult resolveResult)
         {
+            var configHelper = new ConfigHelper();
+
             if ((name == (Translator.Bridge_ASSEMBLY + ".Output")) ||
                 (resolveResult != null && resolveResult.Type != null && resolveResult.Type.FullName == (Translator.Bridge_ASSEMBLY + ".OutputPathAttribute")))
             {
@@ -482,7 +972,7 @@ namespace Bridge.Translator
 
                     if (nameObj is string)
                     {
-                        this.AssemblyInfo.Output = nameObj.ToString();
+                        this.AssemblyInfo.Output = configHelper.ConvertPath(nameObj.ToString());
                     }
                 }
 
@@ -492,10 +982,10 @@ namespace Bridge.Translator
             return false;
         }
 
-        protected virtual bool ReadFileHierarchyInfo(ICSharpCode.NRefactory.CSharp.Attribute attr, string name, ResolveResult resolveResult)
+        protected virtual bool ReadOutputByInfo(ICSharpCode.NRefactory.CSharp.Attribute attr, string name, ResolveResult resolveResult)
         {
-            if ((name == (Translator.Bridge_ASSEMBLY + ".FilesHierarchy")) ||
-                (resolveResult != null && resolveResult.Type != null && resolveResult.Type.FullName == (Translator.Bridge_ASSEMBLY + ".FilesHierarchyAttribute")))
+            if ((name == (Translator.Bridge_ASSEMBLY + ".OutputBy")) ||
+                (resolveResult != null && resolveResult.Type != null && resolveResult.Type.FullName == (Translator.Bridge_ASSEMBLY + ".OutputByAttribute")))
             {
                 if (attr.Arguments.Count > 0)
                 {
@@ -544,6 +1034,10 @@ namespace Bridge.Translator
                     {
                         dependency.VariableName = nameObj.ToString();
                     }
+                    else
+                    {
+                        dependency.VariableName = Module.EscapeName(dependency.DependencyName);
+                    }
 
                     this.AssemblyInfo.Dependencies.Add(dependency);
                 }
@@ -573,6 +1067,26 @@ namespace Bridge.Translator
                 }
             }
             return nameObj;
+        }
+
+        protected virtual IType GetAttributeArgumentType(ICSharpCode.NRefactory.CSharp.Attribute attr, ResolveResult resolveResult, int index)
+        {
+            if (!(resolveResult is ErrorResolveResult) && (resolveResult is InvocationResolveResult))
+            {
+                var arg = ((InvocationResolveResult)resolveResult).Arguments.Skip(index).Take(1).First();
+                return arg.Type;
+            }
+            else
+            {
+                var arg = attr.Arguments.Skip(index).Take(1).First();
+
+                if (arg is PrimitiveExpression)
+                {
+                    var primitive = (PrimitiveExpression)arg;
+                    return this.Resolver.ResolveNode(primitive, null).Type;
+                }
+            }
+            return null;
         }
     }
 }

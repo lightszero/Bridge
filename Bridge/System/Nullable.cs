@@ -1,55 +1,54 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Constructor("")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Reflectable]
     public struct Nullable<T> where T : struct
     {
-        [Template("{0}")]
-        public Nullable(T value)
+        [Bridge.Template("{0}")]
+        public extern Nullable(T value);
+
+        public extern bool HasValue
         {
+            [Bridge.Template("System.Nullable.hasValue({this})")]
+            get;
         }
 
-        public bool HasValue
+        public extern T Value
         {
-            [Template("Bridge.Nullable.hasValue({this})")]
-            get
-            {
-                return false;
-            }
+            [Bridge.Template("System.Nullable.getValue({this})")]
+            get;
         }
 
-        public T Value
-        {
-            [Template("Bridge.Nullable.getValue({this})")]
-            get
-            {
-                return default(T);
-            }
-        }
+        [Bridge.Template("System.Nullable.getValueOrDefault({this}, {T:default})")]
+        public extern T GetValueOrDefault();
 
-        [Template("Bridge.Nullable.getValueOrDefault({this})")]
-        public T GetValueOrDefault()
-        {
-            return default(T);
-        }
+        [Bridge.Template("System.Nullable.getValueOrDefault({this}, {0})")]
+        public extern T GetValueOrDefault(T defaultValue);
 
-        [Template("Bridge.Nullable.getValueOrDefault({this}, {0})")]
-        public T GetValueOrDefault(T defaultValue)
-        {
-            return default(T);
-        }
+        public static extern implicit operator T? (T value);
 
-        public static implicit operator T?(T value)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Nullable.getValue({this})")]
+        public static extern explicit operator T(T? value);
 
-        [Template("Bridge.Nullable.getValue({this})")]
-        public static explicit operator T(T? value)
-        {
-            return default(T);
-        }
+        [Bridge.Template("System.Nullable.equalsT({this}, {other})")]
+        public override extern bool Equals(object other);
+
+        [Bridge.Template("System.Nullable.getHashCode({this}, {T:GetHashCode})", Fn = "System.Nullable.getHashCodeFn({T:GetHashCode})")]
+        public override extern int GetHashCode();
+
+        [Bridge.Template("System.Nullable.toString({this}, {T:ToString})", Fn = "System.Nullable.toStringFn({T:ToString})")]
+        public override extern string ToString();
+    }
+
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    public static class Nullable
+    {
+        public static extern int Compare<T>(Nullable<T> n1, Nullable<T> n2) where T : struct;
+
+        public static extern bool Equals<T>(Nullable<T> n1, Nullable<T> n2) where T : struct;
+
+        public static extern Type GetUnderlyingType(Type nullableType);
     }
 }

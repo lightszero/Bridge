@@ -1,5 +1,7 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
+using ICSharpCode.NRefactory.CSharp.Resolver;
 using ICSharpCode.NRefactory.Semantics;
 using ICSharpCode.NRefactory.TypeSystem;
 using ICSharpCode.NRefactory.TypeSystem.Implementation;
@@ -9,6 +11,8 @@ namespace Bridge.Translator
 {
     public class IdentifierBlock : ConversionBlock
     {
+        private bool isRefArg;
+
         public IdentifierBlock(IEmitter emitter, IdentifierExpression identifierExpression)
             : base(emitter, identifierExpression)
         {
@@ -35,8 +39,10 @@ namespace Bridge.Translator
         protected void VisitIdentifierExpression()
         {
             IdentifierExpression identifierExpression = this.IdentifierExpression;
-
+            int pos = this.Emitter.Output.Length;
             ResolveResult resolveResult = null;
+            this.isRefArg = this.Emitter.IsRefArg;
+            this.Emitter.IsRefArg = false;
 
             resolveResult = this.Emitter.Resolver.ResolveNode(identifierExpression, this.Emitter);
 
@@ -45,11 +51,12 @@ namespace Bridge.Translator
             var isResolved = resolveResult != null && !(resolveResult is ErrorResolveResult);
             var memberResult = resolveResult as MemberResolveResult;
 
-            if (this.Emitter.Locals != null && this.Emitter.Locals.ContainsKey(id))
+            if (this.Emitter.Locals != null && this.Emitter.Locals.ContainsKey(id) && resolveResult is LocalResolveResult)
             {
-                if (this.Emitter.LocalsMap != null && this.Emitter.LocalsMap.ContainsKey(id) && !(identifierExpression.Parent is DirectionExpression))
+                var lrr = (LocalResolveResult)resolveResult;
+                if (this.Emitter.LocalsMap != null && this.Emitter.LocalsMap.ContainsKey(lrr.Variable) && !(identifierExpression.Parent is DirectionExpression))
                 {
-                    this.Write(this.Emitter.LocalsMap[id]);
+                    this.Write(this.Emitter.LocalsMap[lrr.Variable]);
                 }
                 else if (this.Emitter.LocalsNamesMap != null && this.Emitter.LocalsNamesMap.ContainsKey(id))
                 {
@@ -60,76 +67,180 @@ namespace Bridge.Translator
                     this.Write(id);
                 }
 
-                Helpers.CheckValueTypeClone(resolveResult, identifierExpression, this);
+                Helpers.CheckValueTypeClone(resolveResult, identifierExpression, this, pos);
 
                 return;
             }
 
             if (resolveResult is TypeResolveResult)
             {
-                if (this.Emitter.Validator.IsIgnoreType(resolveResult.Type.GetDefinition()))
+                this.Write(BridgeTypes.ToJsName(resolveResult.Type, this.Emitter));
+                /*if (this.Emitter.Validator.IsExternalType(resolveResult.Type.GetDefinition()) || resolveResult.Type.Kind == TypeKind.Enum)
                 {
                     this.Write(BridgeTypes.ToJsName(resolveResult.Type, this.Emitter));
                 }
                 else
                 {
                     this.Write("Bridge.get(" + BridgeTypes.ToJsName(resolveResult.Type, this.Emitter) + ")");
-                }
-                
+                }*/
+
                 return;
             }
 
             string inlineCode = memberResult != null ? this.Emitter.GetInline(memberResult.Member) : null;
+
+            var isInvoke = identifierExpression.Parent is InvocationExpression && (((InvocationExpression)(identifierExpression.Parent)).Target == identifierExpression);
+            if (memberResult != null && memberResult.Member is IMethod && isInvoke)
+            {
+                var i_rr = this.Emitter.Resolver.ResolveNode(identifierExpression.Parent, this.Emitter) as CSharpInvocationResolveResult;
+
+                if (i_rr != null && !i_rr.IsExpandedForm)
+                {
+                    var tpl = this.Emitter.GetAttribute(memberResult.Member.Attributes, JS.NS.BRIDGE + ".TemplateAttribute");
+
+                    if (tpl != null && tpl.PositionalArguments.Count == 2)
+                    {
+                        inlineCode = tpl.PositionalArguments[1].ConstantValue.ToString();
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(inlineCode) && memberResult != null &&
+                memberResult.Member is IMethod &&
+                !(memberResult is InvocationResolveResult) &&
+                !(
+                    identifierExpression.Parent is InvocationExpression &&
+                    identifierExpression.NextSibling != null &&
+                    identifierExpression.NextSibling.Role is TokenRole &&
+                    ((TokenRole)identifierExpression.NextSibling.Role).Token == "("
+                    )
+                )
+            {
+                var parentInvocation = identifierExpression.Parent as InvocationExpression;
+                if (parentInvocation == null || parentInvocation.Target != identifierExpression)
+                {
+                    var method = (IMethod)memberResult.Member;
+                    if (method.TypeArguments.Count > 0)
+                    {
+                        inlineCode = MemberReferenceBlock.GenerateInlineForMethodReference(method, this.Emitter);
+                    }
+                }
+            }
+
             bool hasInline = !string.IsNullOrEmpty(inlineCode);
-            bool hasThis = hasInline && inlineCode.Contains("{this}");
+            inlineCode = hasInline ? Helpers.ConvertTokens(this.Emitter, inlineCode, memberResult.Member) : inlineCode;
+            bool hasThis = hasInline && Helpers.HasThis(inlineCode);
+
+            if (hasInline && inlineCode.StartsWith("<self>"))
+            {
+                hasThis = true;
+                inlineCode = inlineCode.Substring(6);
+            }
 
             if (hasThis)
             {
+                Emitter.ThisRefCounter++;
                 this.Write("");
                 var oldBuilder = this.Emitter.Output;
                 this.Emitter.Output = new StringBuilder();
 
                 if (memberResult.Member.IsStatic)
                 {
-                    if (!this.Emitter.Validator.IsIgnoreType(memberResult.Member.DeclaringTypeDefinition))
+                    this.Write(BridgeTypes.ToJsName(memberResult.Member.DeclaringType, this.Emitter, ignoreLiteralName: false));
+                    /*if (!this.Emitter.Validator.IsExternalType(memberResult.Member.DeclaringTypeDefinition) && memberResult.Member.DeclaringTypeDefinition.Kind != TypeKind.Enum)
                     {
                         this.Write("(Bridge.get(" + BridgeTypes.ToJsName(memberResult.Member.DeclaringType, this.Emitter) + "))");
                     }
                     else
                     {
                         this.Write(BridgeTypes.ToJsName(memberResult.Member.DeclaringType, this.Emitter));
-                    }
+                    }*/
                 }
                 else
                 {
                     this.WriteThis();
                 }
 
-                inlineCode = inlineCode.Replace("{this}", this.Emitter.Output.ToString());
+                var oldInline = inlineCode;
+                var thisArg = this.Emitter.Output.ToString();
+                int thisIndex = inlineCode.IndexOf("{this}");
+                inlineCode = inlineCode.Replace("{this}", thisArg);
                 this.Emitter.Output = oldBuilder;
+
+                int[] range = null;
+
+                if (thisIndex > -1)
+                {
+                    range = new[] { thisIndex, thisIndex + thisArg.Length };
+                }
 
                 if (resolveResult is InvocationResolveResult)
                 {
-                    this.PushWriter(inlineCode);
+                    this.PushWriter(inlineCode, null, thisArg, range);
                 }
                 else
                 {
-                    this.Write(inlineCode);
+                    if (memberResult.Member is IMethod)
+                    {
+                        ResolveResult targetrr = null;
+                        if (memberResult.Member.IsStatic)
+                        {
+                            targetrr = new TypeResolveResult(memberResult.Member.DeclaringType);
+                        }
+
+                        new InlineArgumentsBlock(this.Emitter, new ArgumentsInfo(this.Emitter, this.IdentifierExpression, resolveResult), oldInline, (IMethod)memberResult.Member, targetrr).EmitFunctionReference();
+                    }
+                    else if (memberResult != null && memberResult.Member is IField && inlineCode.Contains("{0}"))
+                    {
+                        this.PushWriter(inlineCode, null, thisArg, range);
+                    }
+                    else if (InlineArgumentsBlock.FormatArgRegex.IsMatch(inlineCode))
+                    {
+                        this.PushWriter(inlineCode, null, thisArg, range);
+                    }
+                    else
+                    {
+                        this.Write(inlineCode);
+                    }
                 }
 
                 return;
             }
 
-            if (hasInline && memberResult.Member.IsStatic)
+            if (hasInline)
             {
+                if (!memberResult.Member.IsStatic)
+                {
+                    inlineCode = "this." + inlineCode;
+                }
+
                 if (resolveResult is InvocationResolveResult)
                 {
                     this.PushWriter(inlineCode);
                 }
                 else
                 {
-                    this.Write(inlineCode);
+                    if (memberResult.Member is IMethod)
+                    {
+                        ResolveResult targetrr = null;
+                        if (memberResult.Member.IsStatic)
+                        {
+                            targetrr = new TypeResolveResult(memberResult.Member.DeclaringType);
+                        }
+
+                        new InlineArgumentsBlock(this.Emitter, new ArgumentsInfo(this.Emitter, this.IdentifierExpression, resolveResult), inlineCode, (IMethod)memberResult.Member, targetrr).EmitFunctionReference();
+                    }
+                    else if (InlineArgumentsBlock.FormatArgRegex.IsMatch(inlineCode))
+                    {
+                        this.PushWriter(inlineCode);
+                    }
+                    else
+                    {
+                        this.Write(inlineCode);
+                    }
                 }
+
+                return;
             }
 
             string appendAdditionalCode = null;
@@ -144,20 +255,45 @@ namespace Bridge.Translator
                         )
                 )
             {
-                var resolvedMethod = (IMethod)memberResult.Member;
-                bool isStatic = resolvedMethod != null && resolvedMethod.IsStatic;
-
-                if (!isStatic)
+                var parentInvocation = identifierExpression.Parent as InvocationExpression;
+                if (parentInvocation == null || parentInvocation.Target != identifierExpression)
                 {
-                    var isExtensionMethod = resolvedMethod.IsExtensionMethod;
-                    this.Write(Bridge.Translator.Emitter.ROOT + "." + (isExtensionMethod ? Bridge.Translator.Emitter.DELEGATE_BIND_SCOPE : Bridge.Translator.Emitter.DELEGATE_BIND) + "(");
-                    this.WriteThis();
-                    this.Write(", ");
-                    appendAdditionalCode = ")";
+                    if (!string.IsNullOrEmpty(inlineCode))
+                    {
+                        ResolveResult targetrr = null;
+                        if (memberResult.Member.IsStatic)
+                        {
+                            targetrr = new TypeResolveResult(memberResult.Member.DeclaringType);
+                        }
+
+                        new InlineArgumentsBlock(this.Emitter,
+                                new ArgumentsInfo(this.Emitter, identifierExpression, resolveResult), inlineCode,
+                                (IMethod)memberResult.Member, targetrr).EmitFunctionReference();
+                    }
+                    else
+                    {
+                        var resolvedMethod = (IMethod)memberResult.Member;
+                        bool isStatic = resolvedMethod != null && resolvedMethod.IsStatic;
+
+                        if (!isStatic)
+                        {
+                            var isExtensionMethod = resolvedMethod.IsExtensionMethod;
+                            this.Write(isExtensionMethod ? JS.Funcs.BRIDGE_BIND_SCOPE : JS.Funcs.BRIDGE_CACHE_BIND);
+                            this.WriteOpenParentheses();
+                            this.WriteThis();
+                            this.Write(", ");
+                            appendAdditionalCode = ")";
+                        }
+                    }
                 }
             }
-            
-            
+
+            if (memberResult != null && memberResult.Member.SymbolKind == SymbolKind.Field && this.Emitter.IsMemberConst(memberResult.Member) && this.Emitter.IsInlineConst(memberResult.Member))
+            {
+                this.WriteScript(memberResult.ConstantValue);
+                return;
+            }
+
             if (memberResult != null && memberResult.Member.SymbolKind == SymbolKind.Property && memberResult.TargetResult.Type.Kind != TypeKind.Anonymous)
             {
                 bool isStatement = false;
@@ -187,37 +323,48 @@ namespace Bridge.Translator
 
                 if (!string.IsNullOrWhiteSpace(inlineCode))
                 {
-                    this.Write(inlineCode);
+                    //this.Write(inlineCode);
+                    if (resolveResult is InvocationResolveResult || (memberResult.Member.SymbolKind == SymbolKind.Property && this.Emitter.IsAssignment))
+                    {
+                        this.PushWriter(inlineCode);
+                    }
+                    else
+                    {
+                        this.Write(inlineCode);
+                    }
                 }
-                else if (Helpers.IsFieldProperty(memberResult.Member, this.Emitter))
+                else if (memberResult.Member is IProperty)
                 {
-                    this.Write(Helpers.GetPropertyRef(memberResult.Member, this.Emitter));
+                    var name = Helpers.GetPropertyRef(memberResult.Member, this.Emitter);
+
+                    this.WriteIdentifier(name);
                 }
                 else if (!this.Emitter.IsAssignment)
                 {
                     if (this.Emitter.IsUnaryAccessor)
                     {
                         bool isDecimal = Helpers.IsDecimalType(memberResult.Member.ReturnType, this.Emitter.Resolver);
+                        bool isLong = Helpers.Is64Type(memberResult.Member.ReturnType, this.Emitter.Resolver);
                         bool isNullable = NullableType.IsNullable(memberResult.Member.ReturnType);
                         if (isStatement)
                         {
                             this.Write(Helpers.GetPropertyRef(memberResult.Member, this.Emitter, true));
                             this.WriteOpenParentheses();
 
-                            if (isDecimal)
+                            if (isDecimal || isLong)
                             {
                                 if (isNullable)
                                 {
-                                    this.Write("Bridge.Nullable.lift1");
+                                    this.Write(JS.Types.SYSTEM_NULLABLE + "." + JS.Funcs.Math.LIFT1);
                                     this.WriteOpenParentheses();
                                     if (this.Emitter.UnaryOperatorType == UnaryOperatorType.Increment ||
                                         this.Emitter.UnaryOperatorType == UnaryOperatorType.PostIncrement)
                                     {
-                                        this.WriteScript("inc");
+                                        this.WriteScript(JS.Funcs.Math.INC);
                                     }
                                     else
                                     {
-                                        this.WriteScript("dec");
+                                        this.WriteScript(JS.Funcs.Math.DEC);
                                     }
 
                                     this.WriteComma();
@@ -240,11 +387,11 @@ namespace Bridge.Translator
                                     if (this.Emitter.UnaryOperatorType == UnaryOperatorType.Increment ||
                                         this.Emitter.UnaryOperatorType == UnaryOperatorType.PostIncrement)
                                     {
-                                        this.Write("inc");
+                                        this.Write(JS.Funcs.Math.INC);
                                     }
                                     else
                                     {
-                                        this.Write("dec");
+                                        this.Write(JS.Funcs.Math.DEC);
                                     }
 
                                     this.WriteOpenParentheses();
@@ -284,20 +431,20 @@ namespace Bridge.Translator
                             this.Write(Helpers.GetPropertyRef(memberResult.Member, this.Emitter, true));
                             this.WriteOpenParentheses();
 
-                            if (isDecimal)
+                            if (isDecimal || isLong)
                             {
                                 if (isNullable)
                                 {
-                                    this.Write("Bridge.Nullable.lift1");
+                                    this.Write(JS.Types.SYSTEM_NULLABLE + "." + JS.Funcs.Math.LIFT1);
                                     this.WriteOpenParentheses();
                                     if (this.Emitter.UnaryOperatorType == UnaryOperatorType.Increment ||
                                         this.Emitter.UnaryOperatorType == UnaryOperatorType.PostIncrement)
                                     {
-                                        this.WriteScript("inc");
+                                        this.WriteScript(JS.Funcs.Math.INC);
                                     }
                                     else
                                     {
-                                        this.WriteScript("dec");
+                                        this.WriteScript(JS.Funcs.Math.DEC);
                                     }
 
                                     this.WriteComma();
@@ -313,11 +460,11 @@ namespace Bridge.Translator
                                     if (this.Emitter.UnaryOperatorType == UnaryOperatorType.Increment ||
                                         this.Emitter.UnaryOperatorType == UnaryOperatorType.PostIncrement)
                                     {
-                                        this.Write("inc");
+                                        this.Write(JS.Funcs.Math.INC);
                                     }
                                     else
                                     {
-                                        this.Write("dec");
+                                        this.Write(JS.Funcs.Math.DEC);
                                     }
 
                                     this.WriteOpenParentheses();
@@ -377,27 +524,46 @@ namespace Bridge.Translator
 
                     if (memberResult.Member.IsStatic)
                     {
-                        trg = BridgeTypes.ToJsName(memberResult.Member.DeclaringType, this.Emitter);
+                        trg = BridgeTypes.ToJsName(memberResult.Member.DeclaringType, this.Emitter, ignoreLiteralName: false);
                     }
                     else
                     {
                         trg = "this";
                     }
 
-                    this.PushWriter(string.Concat(Helpers.GetPropertyRef(memberResult.Member, this.Emitter, true),
+                    bool isBool = memberResult != null && NullableType.IsNullable(memberResult.Member.ReturnType) ? NullableType.GetUnderlyingType(memberResult.Member.ReturnType).IsKnownType(KnownTypeCode.Boolean) : memberResult.Member.ReturnType.IsKnownType(KnownTypeCode.Boolean);
+                    bool skipGet = false;
+                    var orr = this.Emitter.Resolver.ResolveNode(identifierExpression.Parent, this.Emitter) as OperatorResolveResult;
+                    bool special = orr != null && orr.IsLiftedOperator;
+
+                    if (!special && isBool &&
+                        (this.Emitter.AssignmentType == AssignmentOperatorType.BitwiseAnd ||
+                         this.Emitter.AssignmentType == AssignmentOperatorType.BitwiseOr))
+                    {
+                        skipGet = true;
+                    }
+
+                    if (skipGet)
+                    {
+                        this.PushWriter(string.Concat(Helpers.GetPropertyRef(memberResult.Member, this.Emitter, true), "({0})"));
+                    }
+                    else
+                    {
+                        this.PushWriter(string.Concat(Helpers.GetPropertyRef(memberResult.Member, this.Emitter, true),
                         "(",
                         trg,
                         ".",
                         Helpers.GetPropertyRef(memberResult.Member, this.Emitter, false),
                         "()",
                         "{0})"));
+                    }
                 }
                 else
                 {
                     this.PushWriter(Helpers.GetPropertyRef(memberResult.Member, this.Emitter, true) + "({0})");
                 }
             }
-            else if (memberResult != null && memberResult.Member is DefaultResolvedEvent)
+            else if (memberResult != null && memberResult.Member is IEvent)
             {
                 if (this.Emitter.IsAssignment &&
                     (this.Emitter.AssignmentType == AssignmentOperatorType.Add ||
@@ -411,7 +577,7 @@ namespace Bridge.Translator
                     }
                     else
                     {
-                        this.Write(this.Emitter.AssignmentType == AssignmentOperatorType.Add ? "add" : "remove");
+                        this.Write(Helpers.GetAddOrRemove(this.Emitter.AssignmentType == AssignmentOperatorType.Add));
                         this.Write(
                             OverloadsCollection.Create(this.Emitter, memberResult.Member,
                                 this.Emitter.AssignmentType == AssignmentOperatorType.Subtract).GetOverloadName());
@@ -422,7 +588,7 @@ namespace Bridge.Translator
                 else
                 {
                     this.WriteTarget(memberResult);
-                    this.Write(this.Emitter.GetEntityName(memberResult.Member, true));
+                    this.Write(this.Emitter.GetEntityName(memberResult.Member));
                 }
             }
             else
@@ -433,34 +599,7 @@ namespace Bridge.Translator
                 }
                 else if (isResolved)
                 {
-                    if (resolveResult is TypeResolveResult)
-                    {
-                        var typeResolveResult = (TypeResolveResult)resolveResult;
-
-                        var isNative = this.Emitter.Validator.IsIgnoreType(typeResolveResult.Type.GetDefinition());
-                        if (!isNative)
-                        {
-                            this.Write("Bridge.get(" + BridgeTypes.ToJsName(typeResolveResult.Type, this.Emitter));
-                        }
-                        else
-                        {
-                            this.Write(BridgeTypes.ToJsName(typeResolveResult.Type, this.Emitter));
-                        }
-                        
-
-                        if (typeResolveResult.Type.TypeParameterCount > 0)
-                        {
-                            this.WriteOpenParentheses();
-                            new TypeExpressionListBlock(this.Emitter, this.IdentifierExpression.TypeArguments).Emit();
-                            this.WriteCloseParentheses();
-                        }
-
-                        if (!isNative)
-                        {
-                            this.Write(")");
-                        }                        
-                    }
-                    else if (resolveResult is LocalResolveResult)
+                    if (resolveResult is LocalResolveResult)
                     {
                         var localResolveResult = (LocalResolveResult)resolveResult;
                         this.Write(localResolveResult.Variable.Name);
@@ -468,14 +607,24 @@ namespace Bridge.Translator
                     else if (memberResult != null)
                     {
                         this.WriteTarget(memberResult);
-                        this.Write(OverloadsCollection.Create(this.Emitter, memberResult.Member).GetOverloadName());
+                        string name = OverloadsCollection.Create(this.Emitter, memberResult.Member).GetOverloadName();
+                        if (isRefArg)
+                        {
+                            this.WriteScript(name);
+                        }
+                        else if (memberResult.Member is IField)
+                        {
+                            this.WriteIdentifier(name);
+                        }
+                        else
+                        {
+                            this.Write(name);
+                        }
                     }
                     else
                     {
                         this.Write(resolveResult.ToString());
                     }
-
-                    Helpers.CheckValueTypeClone(resolveResult, identifierExpression, this);
                 }
                 else
                 {
@@ -487,27 +636,32 @@ namespace Bridge.Translator
             {
                 this.Write(appendAdditionalCode);
             }
+
+            Helpers.CheckValueTypeClone(resolveResult, identifierExpression, this, pos);
         }
 
         protected void WriteTarget(MemberResolveResult memberResult)
-        {            
+        {
+            bool noTarget = false;
             if (memberResult.Member.IsStatic)
             {
-                if (!this.Emitter.Validator.IsIgnoreType(memberResult.Member.DeclaringTypeDefinition))
-                {
-                    this.Write("Bridge.get(" + BridgeTypes.ToJsName(memberResult.Member.DeclaringType, this.Emitter) + ")");
-                }
-                else
-                {
-                    this.Write(BridgeTypes.ToJsName(memberResult.Member.DeclaringType, this.Emitter));
-                }
+                var target = BridgeTypes.ToJsName(memberResult.Member.DeclaringType, this.Emitter, ignoreLiteralName: false);
+                noTarget = string.IsNullOrWhiteSpace(target);
+                this.Write(target);
             }
             else
             {
                 this.WriteThis();
             }
 
-            this.WriteDot();
+            if (this.isRefArg)
+            {
+                this.WriteComma();
+            }
+            else if (!noTarget)
+            {
+                this.WriteDot();
+            }
         }
     }
 }

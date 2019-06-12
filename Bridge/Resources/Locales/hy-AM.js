@@ -1,20 +1,20 @@
-﻿Bridge.merge(new Bridge.CultureInfo("hy-AM", true), {
+Bridge.merge(new System.Globalization.CultureInfo("hy-AM", true), {
     englishName: "Armenian (Armenia)",
     nativeName: "Հայերեն (Հայաստան)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "ՈչԹ",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-Infinity",
-        positiveInfinitySymbol: "Infinity",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
-        percentPositivePattern: 0,
-        percentNegativePattern: 0,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "֏",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Կիր","Երկ","Երք","Չրք","Հնգ","Ուր","Շբթ"],
         abbreviatedMonthGenitiveNames: ["Հնվ","Փտվ","Մրտ","Ապր","Մյս","Հնս","Հլս","Օգս","Սպտ","Հկտ","Նյմ","Դկտ",""],
         abbreviatedMonthNames: ["Հնվ","Փտվ","Մրտ","Ապր","Մյս","Հնս","Հլս","Օգս","Սպտ","Հկտ","Նյմ","Դկտ",""],
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 0,
+        CultureName: "hy-AM",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1067,
+        listSeparator: ",",
+        MacCodePage: 2,
+        OEMCodePage: 1,
+        IsReadOnly: true
     })
 });

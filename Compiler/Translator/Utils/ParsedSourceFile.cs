@@ -14,7 +14,7 @@ namespace Bridge.Translator
         public SyntaxTree SyntaxTree
         {
             get;
-            private set;
+            set;
         }
 
         public CSharpUnresolvedFile ParsedFile

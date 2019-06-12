@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ga", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ga", true), {
     englishName: "Irish",
     nativeName: "Gaeilge",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "nach uimhir",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "Éigríoch dhiúltach",
-        positiveInfinitySymbol: "Éigríoch dheimhneach",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,30 +29,42 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
-        abbreviatedDayNames: ["Domh","Luan","Máirt","Céad","Déar","Aoi","Sath"],
-        abbreviatedMonthGenitiveNames: ["Ean","Feabh","Már","Aib","Bealt","Meith","Iúil","Lún","M.Fómh","D.Fómh","Samh","Noll",""],
-        abbreviatedMonthNames: ["Ean","Feabh","Már","Aib","Bealt","Meith","Iúil","Lún","M.Fómh","D.Fómh","Samh","Noll",""],
-        amDesignator: "r.n.",
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
+        abbreviatedDayNames: ["Domh","Luan","Máirt","Céad","Déar","Aoine","Sath"],
+        abbreviatedMonthGenitiveNames: ["Ean","Feabh","Márta","Aib","Beal","Meith","Iúil","Lún","MFómh","DFómh","Samh","Noll",""],
+        abbreviatedMonthNames: ["Ean","Feabh","Márta","Aib","Beal","Meith","Iúil","Lún","MFómh","DFómh","Samh","Noll",""],
+        amDesignator: "a.m.",
         dateSeparator: "/",
-        dayNames: ["Domhnach","Luan","Máirt","Céadaoin","Déardaoin","Aoine","Satharn"],
-        firstDayOfWeek: 1,
-        fullDateTimePattern: "d MMMM yyyy HH:mm:ss",
-        longDatePattern: "d MMMM yyyy",
+        dayNames: ["Dé Domhnaigh","Dé Luain","Dé Máirt","Dé Céadaoin","Déardaoin","Dé hAoine","Dé Sathairn"],
+        firstDayOfWeek: 0,
+        fullDateTimePattern: "dddd d MMMM yyyy HH:mm:ss",
+        longDatePattern: "dddd d MMMM yyyy",
         longTimePattern: "HH:mm:ss",
         monthDayPattern: "d MMMM",
         monthGenitiveNames: ["Eanáir","Feabhra","Márta","Aibreán","Bealtaine","Meitheamh","Iúil","Lúnasa","Meán Fómhair","Deireadh Fómhair","Samhain","Nollaig",""],
         monthNames: ["Eanáir","Feabhra","Márta","Aibreán","Bealtaine","Meitheamh","Iúil","Lúnasa","Meán Fómhair","Deireadh Fómhair","Samhain","Nollaig",""],
-        pmDesignator: "i.n.",
+        pmDesignator: "p.m.",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
         shortDatePattern: "dd/MM/yyyy",
-        shortestDayNames: ["Do","Lu","Má","Cé","De","Ao","Sa"],
+        shortestDayNames: ["Do","Lu","Má","Cé","Dé","Ao","Sa"],
         shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "ga-IE",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 2108,
+        listSeparator: ";",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

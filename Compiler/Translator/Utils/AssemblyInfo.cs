@@ -6,22 +6,24 @@ namespace Bridge.Translator
     public class AssemblyInfo : IAssemblyInfo
     {
         public const string DEFAULT_FILENAME = "---";
-        public const string JAVASCRIPT_EXTENSION = "js";
+        public const string DEFAULT_OUTPUT = "$(OutDir)/bridge/";
 
         public AssemblyInfo()
         {
             this.Dependencies = new List<IPluginDependency>();
-            this.InjectScriptToAssembly = true;
-        }
-
-        /// <summary>
-        /// True to preserve case of the first letter of generated JavaScript members - methods, constructors, etc.
-        /// Defaults to false - the members will be forced to start with a lowercase letter.
-        /// </summary>
-        public bool PreserveMemberCase
-        {
-            get;
-            set;
+            this.DefineConstants = new List<string>();
+            this.Logging = new LoggingOptions();
+            this.Reflection = new ReflectionConfig();
+            this.ReflectionInternal = new ReflectionConfig();
+            this.Assembly = new AssemblyConfig();
+            this.Resources = new ResourceConfig();
+            this.Loader = new ModuleLoader();
+            this.Output = DEFAULT_OUTPUT;
+            this.SourceMap = new SourceMapConfig();
+            this.Html = new HtmlConfig();
+            this.Console = new ConsoleConfig();
+            this.Report = new ReportConfig();
+            this.Rules = new CompilerRule();
         }
 
         /// <summary>
@@ -31,8 +33,7 @@ namespace Bridge.Translator
         /// </summary>
         public string FileName
         {
-            get;
-            set;
+            get; set;
         }
 
         /// <summary>
@@ -41,11 +42,10 @@ namespace Bridge.Translator
         /// </summary>
         public string Output
         {
-            get;
-            set;
+            get; set;
         }
 
-        private OutputBy outputBy = OutputBy.Namespace;
+        private OutputBy outputBy = OutputBy.Project;
 
         /// <summary>
         /// The option to manage JavaScript output folders and files.
@@ -55,6 +55,11 @@ namespace Bridge.Translator
         {
             get
             {
+                if (this.CombineScripts || !string.IsNullOrEmpty(this.FileName))
+                {
+                    return OutputBy.Project;
+                }
+
                 return this.outputBy;
             }
             set
@@ -63,7 +68,7 @@ namespace Bridge.Translator
             }
         }
 
-        private FileNameCaseConvert jsFileCasing = FileNameCaseConvert.CamelCase;
+        private FileNameCaseConvert jsFileCasing = FileNameCaseConvert.None;
 
         /// <summary>
         /// The option to manage JavaScript file name case converting for class grouping.
@@ -105,18 +110,16 @@ namespace Bridge.Translator
         /// </summary>
         public int StartIndexInName
         {
-            get;
-            set;
+            get; set;
         }
 
         /// <summary>
         /// The global Module setting. The entire project is considered as one Module.
         /// Though, you are still able to define a Module attribute on the class level.
         /// </summary>
-        public string Module
+        public Module Module
         {
-            get;
-            set;
+            get; set;
         }
 
         /// <summary>
@@ -124,8 +127,7 @@ namespace Bridge.Translator
         /// </summary>
         public List<IPluginDependency> Dependencies
         {
-            get;
-            set;
+            get; set;
         }
 
         /// <summary>
@@ -134,8 +136,7 @@ namespace Bridge.Translator
         /// </summary>
         public string BeforeBuild
         {
-            get;
-            set;
+            get; set;
         }
 
         /// <summary>
@@ -144,26 +145,22 @@ namespace Bridge.Translator
         /// </summary>
         public string AfterBuild
         {
-            get;
-            set;
+            get; set;
         }
 
         public bool AutoPropertyToField
         {
-            get;
-            set;
+            get; set;
         }
 
         public string PluginsPath
         {
-            get;
-            set;
+            get; set;
         }
 
         public bool GenerateTypeScript
         {
-            get;
-            set;
+            get; set;
         }
 
         private Bridge.Contract.DocumentationMode generateDocumentation = Bridge.Contract.DocumentationMode.Basic;
@@ -186,63 +183,159 @@ namespace Bridge.Translator
         /// </summary>
         public string BuildArguments
         {
-            get;
-            set;
+            get; set;
         }
 
         /// <summary>
-        /// Deletes files and folders from output directory before build (before extracting scripts after translation).
+        /// Deletes files from output directory using pattern "*.js|*.d.ts" before build (before extracting scripts after translation).
         /// It is useful to replace BeforeBuild event if it just contain commands to clean the output folder.
+        /// Default value is null. It can be used either as string or bool value. True means "*.js|*.d.ts"
         /// </summary>
-        public bool CleanOutputFolderBeforeBuild
+        public string CleanOutputFolderBeforeBuild
         {
-            get;
-            set;
+            get; set;
+        }
+
+        /// <summary>
+        /// Sets pattern for cleaning output directory.
+        /// </summary>
+        public string CleanOutputFolderBeforeBuildPattern
+        {
+            get; set;
         }
 
         public string Configuration
         {
-            get;
-            set;
+            get; set;
         }
 
         public List<string> DefineConstants
         {
-            get;
-            set;
-        }
-
-        public bool InjectScriptToAssembly
-        {
-            get;
-            set;
+            get; set;
         }
 
         public string Locales
         {
-            get;
-            set;
+            get; set;
         }
 
         public string LocalesOutput
         {
-            get;
-            set;
+            get; set;
         }
 
         public string LocalesFileName
         {
-            get;
-            set;
+            get; set;
         }
 
         public bool CombineLocales
+        {
+            get; set;
+        }
+
+        public bool CombineScripts
+        {
+            get; set;
+        }
+
+        public bool UseTypedArrays
+        {
+            get; set;
+        }
+
+        public bool IgnoreCast
+        {
+            get; set;
+        }
+
+        public LoggingOptions Logging
+        {
+            get; set;
+        }
+
+        public OverflowMode? OverflowMode
+        {
+            get; set;
+        }
+
+        public bool? NoLoggerTimeStamps
+        {
+            get; set;
+        }
+
+        public bool StrictNullChecks
+        {
+            get; set;
+        }
+
+        public IReflectionConfig Reflection
+        {
+            get; set;
+        }
+
+        internal IReflectionConfig ReflectionInternal
+        {
+            get; set;
+        }
+
+        public AssemblyConfig Assembly
+        {
+            get; set;
+        }
+
+        public ResourceConfig Resources
+        {
+            get; set;
+        }
+
+        public IModuleLoader Loader
+        {
+            get; set;
+        }
+
+        public NamedFunctionMode NamedFunctions
         {
             get;
             set;
         }
 
-        public bool CombineScripts
+        [Newtonsoft.Json.JsonConverter(typeof(SourceMapConfigConverter))]
+        public SourceMapConfig SourceMap
+        {
+            get; set;
+        }
+
+        [Newtonsoft.Json.JsonConverter(typeof(HtmlConfigConverter))]
+        public HtmlConfig Html
+        {
+            get; set;
+        }
+
+        [Newtonsoft.Json.JsonConverter(typeof(ConsoleConfigConverter))]
+        public ConsoleConfig Console
+        {
+            get; set;
+        }
+
+        [Newtonsoft.Json.JsonConverter(typeof(ReportConfigConverter))]
+        public ReportConfig Report
+        {
+            get; set;
+        }
+
+        public CompilerRule Rules
+        {
+            get; set;
+        }
+
+        public string ReferencesPath
+        {
+            get;
+            set;
+        }
+
+        public string[] References
         {
             get;
             set;

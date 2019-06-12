@@ -1,9 +1,13 @@
+using System;
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.Semantics;
+using ICSharpCode.NRefactory.TypeSystem;
 using ICSharpCode.NRefactory.TypeSystem.Implementation;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Win32.SafeHandles;
 
 namespace Bridge.Translator
 {
@@ -36,6 +40,7 @@ namespace Bridge.Translator
 
         public virtual void ResetLocals()
         {
+            this.Emitter.NamedTempVariables = new Dictionary<string, string>();
             this.Emitter.TempVariables = new Dictionary<string, bool>();
             this.Emitter.Locals = new Dictionary<string, AstType>();
             this.Emitter.IteratorCount = 0;
@@ -43,55 +48,86 @@ namespace Bridge.Translator
 
         public virtual void AddLocals(IEnumerable<ParameterDeclaration> declarations, AstNode statement)
         {
+            var visitor = new ReferenceArgumentVisitor(this.Emitter);
+            statement.AcceptVisitor(visitor);
+
             declarations.ToList().ForEach(item =>
             {
-                var name = this.Emitter.GetEntityName(item);
-                var vName = this.AddLocal(item.Name, item.Type);
+                var rr = item.Parent != null ? (LocalResolveResult)this.Emitter.Resolver.ResolveNode(item, this.Emitter) : null;
+                var name = this.Emitter.GetParameterName(item);
+                var vName = this.AddLocal(item.Name, item, item.Type, name);
+
+                if (item.Parent == null && item.Name == "value" && visitor.DirectionExpression.Any(expr => expr is IdentifierExpression && ((IdentifierExpression)expr).Identifier == "value"))
+                {
+                    return;
+                }
 
                 if (item.ParameterModifier == ParameterModifier.Out || item.ParameterModifier == ParameterModifier.Ref)
                 {
-                    this.Emitter.LocalsMap[item.Name] = name + ".v";
+                    this.Emitter.LocalsMap[rr != null ? rr.Variable : new DefaultVariable(ReflectionHelper.FindType(this.Emitter.Resolver.Compilation, TypeCode.Object), name)] = vName + ".v";
                 }
                 else
                 {
-                    this.Emitter.LocalsMap[item.Name] = name;
+                    this.Emitter.LocalsMap[rr != null ? rr.Variable : new DefaultVariable(ReflectionHelper.FindType(this.Emitter.Resolver.Compilation, TypeCode.Object), name)] = vName;
                 }
             });
-
-            var visitor = new ReferenceArgumentVisitor();
-            statement.AcceptVisitor(visitor);
 
             foreach (var expr in visitor.DirectionExpression)
             {
                 var rr = this.Emitter.Resolver.ResolveNode(expr, this.Emitter);
 
-                if (rr is LocalResolveResult && expr is IdentifierExpression)
+                IdentifierExpression identifierExpression;
+                var lrr = rr as LocalResolveResult;
+                if (lrr != null && ((identifierExpression = expr as IdentifierExpression) != null))
                 {
-                    var ie = (IdentifierExpression)expr;
-                    this.Emitter.LocalsMap[ie.Identifier] = ie.Identifier + ".v";
+                    var name = identifierExpression.Identifier;
+                    if (Helpers.IsReservedWord(this.Emitter, name))
+                    {
+                        name = Helpers.ChangeReservedWord(name);
+                    }
+                    this.Emitter.LocalsMap[lrr.Variable] = name + ".v";
                 }
-                else
+            }
+
+            foreach (var variable in visitor.DirectionVariables)
+            {
+                var name = variable.Name;
+
+                if (Helpers.IsReservedWord(this.Emitter, name))
                 {
-                    throw new EmitterException(expr, "Only local variables can be passed by reference");
+                    name = Helpers.ChangeReservedWord(name);
                 }
+                this.Emitter.LocalsMap[variable] = name + ".v";
             }
         }
 
-        public string AddLocal(string name, AstType type)
+        public string AddLocal(string name, AstNode node, AstType type, string valueName = null)
         {
+            if (this.Emitter.Locals.ContainsKey(name))
+            {
+                throw new EmitterException(node, string.Format(Constants.Messages.Exceptions.DUPLICATE_LOCAL_VARIABLE, name));
+            }
+
             this.Emitter.Locals.Add(name, type);
 
-            name = name.StartsWith(Bridge.Translator.Emitter.FIX_ARGUMENT_NAME) ? name.Substring(Bridge.Translator.Emitter.FIX_ARGUMENT_NAME.Length) : name;
-            string vName = name;
+            name = name.StartsWith(JS.Vars.FIX_ARGUMENT_NAME) ? name.Substring(JS.Vars.FIX_ARGUMENT_NAME.Length) : name;
+            string vName = valueName ?? name;
 
-            if (Helpers.IsReservedWord(name))
+            if (Helpers.IsReservedWord(this.Emitter, vName))
             {
-                vName = this.GetUniqueName(name);
+                vName = Helpers.ChangeReservedWord(vName);
             }
 
             if (!this.Emitter.LocalsNamesMap.ContainsKey(name))
             {
-                this.Emitter.LocalsNamesMap.Add(name, vName);
+                if (this.Emitter.LocalsNamesMap.ContainsValue(name))
+                {
+                    this.Emitter.LocalsNamesMap.Add(name, this.GetUniqueNameByValue(vName));
+                }
+                else
+                {
+                    this.Emitter.LocalsNamesMap.Add(name, vName);
+                }
             }
             else
             {
@@ -99,13 +135,33 @@ namespace Bridge.Translator
             }
 
             var result = this.Emitter.LocalsNamesMap[name];
+            var lrr = node != null && node.Parent != null ? this.Emitter.Resolver.ResolveNode(node, this.Emitter) as LocalResolveResult : null;
 
-            if (this.Emitter.IsAsync && !this.Emitter.AsyncVariables.Contains(result))
+            if (this.Emitter.LocalsMap != null && lrr != null && this.Emitter.LocalsMap.ContainsKey(lrr.Variable))
+            {
+                var oldValue = this.Emitter.LocalsMap[lrr.Variable];
+                this.Emitter.LocalsMap[lrr.Variable] = result + (oldValue.EndsWith(".v") ? ".v" : "");
+            }
+
+            if (this.Emitter.IsAsync && !this.Emitter.AsyncVariables.Contains(result) && (lrr == null || !lrr.IsParameter))
             {
                 this.Emitter.AsyncVariables.Add(result);
             }
 
             return result;
+        }
+
+        protected virtual string GetUniqueNameByValue(string name)
+        {
+            int index = 1;
+            string tempName = name + index;
+
+            while (this.Emitter.LocalsNamesMap.ContainsValue(tempName) || Helpers.IsReservedWord(this.Emitter, tempName))
+            {
+                tempName = name + ++index;
+            }
+
+            return tempName;
         }
 
         protected virtual string GetUniqueName(string name)
@@ -131,7 +187,7 @@ namespace Bridge.Translator
 
             string tempName = name + index;
 
-            while (this.Emitter.LocalsNamesMap.ContainsValue(tempName))
+            while (this.Emitter.LocalsNamesMap.ContainsValue(tempName) || Helpers.IsReservedWord(this.Emitter, tempName))
             {
                 tempName = name + ++index;
             }
@@ -139,23 +195,23 @@ namespace Bridge.Translator
             return tempName;
         }
 
-        public virtual Dictionary<string, string> BuildLocalsMap()
+        public virtual Dictionary<IVariable, string> BuildLocalsMap()
         {
             var prevMap = this.Emitter.LocalsMap;
 
             if (prevMap == null)
             {
-                this.Emitter.LocalsMap = new Dictionary<string, string>();
+                this.Emitter.LocalsMap = new Dictionary<IVariable, string>();
             }
             else
             {
-                this.Emitter.LocalsMap = new Dictionary<string, string>(prevMap);
+                this.Emitter.LocalsMap = new Dictionary<IVariable, string>(prevMap);
             }
 
             return prevMap;
         }
 
-        public virtual void ClearLocalsMap(Dictionary<string, string> prevMap = null)
+        public virtual void ClearLocalsMap(Dictionary<IVariable, string> prevMap = null)
         {
             this.Emitter.LocalsMap = prevMap;
         }
@@ -196,13 +252,72 @@ namespace Bridge.Translator
 
                         if (method != null)
                         {
+                            var expandParams = method.Attributes.Any(a => a.AttributeType.FullName == "Bridge.ExpandParamsAttribute");
                             foreach (var prm in method.Parameters)
                             {
                                 if (prm.IsOptional)
                                 {
-                                    this.Write(string.Format("if ({0} === void 0) {{ {0} = ", prm.Name));
-                                    this.WriteScript(prm.ConstantValue);
+                                    var name = prm.Name;
+                                    if (Helpers.IsReservedWord(this.Emitter, name))
+                                    {
+                                        name = Helpers.ChangeReservedWord(name);
+                                    }
+
+                                    this.Write(string.Format("if ({0} === void 0) {{ {0} = ", name));
+                                    if (prm.ConstantValue == null && prm.Type.Kind == TypeKind.Struct && !prm.Type.IsKnownType(KnownTypeCode.NullableOfT))
+                                    {
+                                        this.Write(Inspector.GetStructDefaultValue(prm.Type, this.Emitter));
+                                    }
+                                    else if (prm.ConstantValue == null && prm.Type.Kind == TypeKind.TypeParameter)
+                                    {
+                                        this.Write(JS.Funcs.BRIDGE_GETDEFAULTVALUE + "(" + BridgeTypes.ToJsName(prm.Type, this.Emitter) + ")");
+                                    }
+                                    else if (prm.Type.Kind == TypeKind.Enum)
+                                    {
+                                        var enumMode = Helpers.EnumEmitMode(prm.Type);
+
+                                        if (enumMode == -1 || enumMode == 2)
+                                        {
+                                            this.WriteScript(prm.ConstantValue);
+                                        } else if (enumMode >= 3 && enumMode < 7)
+                                        {
+                                            var members = prm.Type.GetMembers(options: GetMemberOptions.IgnoreInheritedMembers);
+                                            var member = members.FirstOrDefault(m => m is IField field && field.ConstantValue == prm.ConstantValue);
+
+                                            if (member != null)
+                                            {
+                                                string enumStringName = this.Emitter.GetEntityName(member);
+                                                this.WriteScript(enumStringName);
+                                            } else {
+                                                this.WriteScript(prm.ConstantValue);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        this.WriteScript(prm.ConstantValue);
+                                    }
+
                                     this.Write("; }");
+                                    this.WriteNewLine();
+                                }
+                                else if (prm.IsParams)
+                                {
+                                    var name = prm.Name;
+                                    if (Helpers.IsReservedWord(this.Emitter, name))
+                                    {
+                                        name = Helpers.ChangeReservedWord(name);
+                                    }
+
+                                    if (expandParams)
+                                    {
+                                        this.Write(string.Format("{0} = " + JS.Types.ARRAY + "." + JS.Fields.PROTOTYPE + "." + JS.Funcs.SLICE + "." + JS.Funcs.CALL + "(" + JS.Vars.ARGUMENTS + ", {1});", name, method.Parameters.IndexOf(prm) + method.TypeParameters.Count));
+                                    }
+                                    else
+                                    {
+                                        this.Write(string.Format("if ({0} === void 0) {{ {0} = []; }}", name));
+                                    }
+
                                     this.WriteNewLine();
                                 }
                             }
@@ -213,7 +328,17 @@ namespace Bridge.Translator
 
             declarations.ToList().ForEach(item =>
             {
-                var isReferenceLocal = this.Emitter.LocalsMap.ContainsKey(item.Name) && this.Emitter.LocalsMap[item.Name].EndsWith(".v");
+                var lrr = item.Parent != null ? (LocalResolveResult)this.Emitter.Resolver.ResolveNode(item, this.Emitter) : null;
+                var isReferenceLocal = lrr != null && this.Emitter.LocalsMap.ContainsKey(lrr.Variable) && this.Emitter.LocalsMap[lrr.Variable].EndsWith(".v");
+
+                if (item.Parent == null && item.Name == "value")
+                {
+                    var p = this.Emitter.LocalsMap.FirstOrDefault(pair => pair.Key.Name == "value");
+                    if (p.Value != null && p.Value.EndsWith(".v"))
+                    {
+                        isReferenceLocal = true;
+                    }
+                }
 
                 if (isReferenceLocal && !(item.ParameterModifier == ParameterModifier.Out || item.ParameterModifier == ParameterModifier.Ref))
                 {
@@ -233,13 +358,18 @@ namespace Bridge.Translator
             }
         }
 
-        protected virtual void RemoveTempVar(string name)
+        public virtual void RemoveTempVar(string name)
         {
             this.Emitter.TempVariables[name] = false;
         }
 
-        protected virtual string GetTempVarName()
+        public virtual string GetTempVarName()
         {
+            if (this.Emitter.TempVariables == null)
+            {
+                this.ResetLocals();
+            }
+
             foreach (var pair in this.Emitter.TempVariables)
             {
                 if (!pair.Value)
@@ -249,32 +379,37 @@ namespace Bridge.Translator
                 }
             }
 
-            string name = "$t";
+            string name = JS.Vars.T;
             int i = 0;
 
             while (this.Emitter.TempVariables.ContainsKey(name) || (this.Emitter.ParentTempVariables != null && this.Emitter.ParentTempVariables.ContainsKey(name)))
             {
-                name = "$t" + ++i;
+                name = JS.Vars.T + ++i;
             }
 
-            name = "$t" + (i > 0 ? i.ToString() : "");
+            name = JS.Vars.T + (i > 0 ? i.ToString() : "");
 
             this.IntroduceTempVar(name);
 
             return name;
         }
 
-        protected virtual void EmitTempVars(int pos)
+        protected virtual void EmitTempVars(int pos, bool skipIndent = false)
         {
             if (this.Emitter.TempVariables.Count > 0)
             {
                 var newLine = this.Emitter.IsNewLine;
-                string temp = this.Emitter.Output.ToString(pos, this.Emitter.Output.Length - pos);
+                var temp = this.Emitter.Output.ToString(pos, this.Emitter.Output.Length - pos);
                 this.Emitter.Output.Length = pos;
 
                 this.Emitter.IsNewLine = true;
-                this.Indent();
-                this.WriteIndent();
+                this.Emitter.Comma = false;
+
+                if (!skipIndent)
+                {
+                    this.Indent();
+                    this.WriteIndent();
+                }
                 this.WriteVar(true);
 
                 foreach (var localVar in this.Emitter.TempVariables)
@@ -291,6 +426,28 @@ namespace Bridge.Translator
 
                 this.Emitter.Output.Append(temp);
                 this.Emitter.IsNewLine = newLine;
+            }
+        }
+
+        protected virtual void SimpleEmitTempVars(bool newline = true)
+        {
+            if (this.Emitter.TempVariables.Count > 0)
+            {
+                this.WriteVar(true);
+
+                foreach (var localVar in this.Emitter.TempVariables)
+                {
+                    this.EnsureComma(false);
+                    this.Write(localVar.Key);
+                    this.Emitter.Comma = true;
+                }
+
+                this.Emitter.Comma = false;
+                this.WriteSemiColon();
+                if (newline)
+                {
+                    this.WriteNewLine();
+                }
             }
         }
     }

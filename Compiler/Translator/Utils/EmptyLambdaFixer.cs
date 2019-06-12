@@ -12,6 +12,21 @@ namespace Bridge.Translator
             set;
         }
 
+        public override void VisitIfElseStatement(IfElseStatement ifElseStatement)
+        {
+            if (!(ifElseStatement.TrueStatement is BlockStatement))
+            {
+                this.Found = true;
+            }
+
+            if (ifElseStatement.FalseStatement != null && !ifElseStatement.FalseStatement.IsNull && !(ifElseStatement.FalseStatement is BlockStatement || ifElseStatement.FalseStatement is IfElseStatement))
+            {
+                this.Found = true;
+            }
+
+            base.VisitIfElseStatement(ifElseStatement);
+        }
+
         public override void VisitLambdaExpression(LambdaExpression lambdaExpression)
         {
             if (lambdaExpression.Body.IsNull)
@@ -26,13 +41,7 @@ namespace Bridge.Translator
         {
             if (!(forStatement.EmbeddedStatement is BlockStatement))
             {
-                var visitor = new LambdaVisitor();
-                forStatement.EmbeddedStatement.AcceptVisitor(visitor);
-
-                if (visitor.LambdaExpression.Count > 0)
-                {
-                    this.Found = true;
-                }
+                this.Found = true;
             }
 
             base.VisitForStatement(forStatement);
@@ -42,13 +51,6 @@ namespace Bridge.Translator
         {
             if (!(foreachStatement.EmbeddedStatement is BlockStatement))
             {
-                /*var visitor = new LambdaVisitor();
-                foreachStatement.EmbeddedStatement.AcceptVisitor(visitor);
-
-                if (visitor.LambdaExpression.Count > 0)
-                {
-                    this.Found = true;
-                }*/
                 this.Found = true;
             }
 
@@ -59,13 +61,7 @@ namespace Bridge.Translator
         {
             if (!(whileStatement.EmbeddedStatement is BlockStatement))
             {
-                var visitor = new LambdaVisitor();
-                whileStatement.EmbeddedStatement.AcceptVisitor(visitor);
-
-                if (visitor.LambdaExpression.Count > 0)
-                {
-                    this.Found = true;
-                }
+                this.Found = true;
             }
 
             base.VisitWhileStatement(whileStatement);
@@ -75,13 +71,7 @@ namespace Bridge.Translator
         {
             if (!(whileStatement.EmbeddedStatement is BlockStatement))
             {
-                var visitor = new LambdaVisitor();
-                whileStatement.EmbeddedStatement.AcceptVisitor(visitor);
-
-                if (visitor.LambdaExpression.Count > 0)
-                {
-                    this.Found = true;
-                }
+                this.Found = true;
             }
 
             base.VisitDoWhileStatement(whileStatement);
@@ -152,10 +142,7 @@ namespace Bridge.Translator
 
         public override AstNode VisitForStatement(ForStatement forStatement)
         {
-            var visitor = new LambdaVisitor();
-            forStatement.EmbeddedStatement.AcceptVisitor(visitor);
-
-            if (visitor.LambdaExpression.Count == 0)
+            if (forStatement.EmbeddedStatement is BlockStatement)
             {
                 return base.VisitForStatement(forStatement);
             }
@@ -204,10 +191,7 @@ namespace Bridge.Translator
 
         public override AstNode VisitDoWhileStatement(DoWhileStatement forStatement)
         {
-            var visitor = new LambdaVisitor();
-            forStatement.EmbeddedStatement.AcceptVisitor(visitor);
-
-            if (visitor.LambdaExpression.Count == 0)
+            if (forStatement.EmbeddedStatement is BlockStatement)
             {
                 return base.VisitDoWhileStatement(forStatement);
             }
@@ -234,10 +218,7 @@ namespace Bridge.Translator
 
         public override AstNode VisitWhileStatement(WhileStatement forStatement)
         {
-            var visitor = new LambdaVisitor();
-            forStatement.EmbeddedStatement.AcceptVisitor(visitor);
-
-            if (visitor.LambdaExpression.Count == 0)
+            if (forStatement.EmbeddedStatement is BlockStatement)
             {
                 return base.VisitWhileStatement(forStatement);
             }
@@ -260,6 +241,47 @@ namespace Bridge.Translator
             }
 
             return forStatement.Clone();
+        }
+
+        public override AstNode VisitIfElseStatement(IfElseStatement ifElseStatement)
+        {
+            IfElseStatement cloneIf = null;
+            var hasFalse = ifElseStatement.FalseStatement != null && !ifElseStatement.FalseStatement.IsNull;
+
+            if (ifElseStatement.TrueStatement is BlockStatement && (!hasFalse || ifElseStatement.FalseStatement is BlockStatement || ifElseStatement.FalseStatement is IfElseStatement))
+            {
+                return base.VisitIfElseStatement(ifElseStatement);
+            }
+
+            var clonForStatement = (IfElseStatement)base.VisitIfElseStatement(ifElseStatement);
+
+            if (clonForStatement != null)
+            {
+                ifElseStatement = clonForStatement;
+            }
+
+            var noblock = !(ifElseStatement.TrueStatement is BlockStatement) ||
+                          (hasFalse && !(ifElseStatement.FalseStatement is BlockStatement));
+            if (noblock)
+            {
+                cloneIf = (IfElseStatement)ifElseStatement.Clone();
+            }
+
+            if (!(ifElseStatement.TrueStatement is BlockStatement))
+            {
+                var block = new BlockStatement();
+                block.Statements.Add(ifElseStatement.TrueStatement.Clone());
+                cloneIf.TrueStatement = block;
+            }
+
+            if (hasFalse && !(ifElseStatement.FalseStatement is BlockStatement))
+            {
+                var block = new BlockStatement();
+                block.Statements.Add(ifElseStatement.FalseStatement.Clone());
+                cloneIf.FalseStatement = block;
+            }
+
+            return noblock ? cloneIf : ifElseStatement.Clone();
         }
     }
 }

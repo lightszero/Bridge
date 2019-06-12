@@ -1,68 +1,72 @@
-using Bridge;
+using System.Reflection;
 
 namespace System
 {
-    [External]
-    [IgnoreCast]
-    [Name("Function")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.IgnoreCast]
+    [Bridge.Name("Function")]
     public class Delegate
     {
-        public readonly int Length = 0;
-
-        protected Delegate()
+        public extern int Length
         {
+            [Bridge.Template("{this}.length")]
+            get;
         }
 
-        public virtual object Apply(object thisArg)
-        {
-            return null;
-        }
+        protected extern Delegate(object target, string method);
 
-        public virtual object Apply()
-        {
-            return null;
-        }
+        protected extern Delegate(Type target, string method);
 
-        public virtual object Apply(object thisArg, Array args)
-        {
-            return null;
-        }
+        protected extern Delegate();
 
-        public virtual object Call(object thisArg, params object[] args)
-        {
-            return null;
-        }
+        public virtual extern object Apply(object thisArg);
 
-        public virtual object Call(object thisArg)
-        {
-            return null;
-        }
+        public virtual extern object Apply();
 
-        public virtual object Call()
-        {
-            return null;
-        }
+        public virtual extern object Apply(object thisArg, Array args);
 
-        [Template("Bridge.fn.combine({0}, {1});")]
-        public static Delegate Combine(Delegate a, Delegate b)
-        {
-            return null;
-        }
+        public virtual extern object Call(object thisArg, params object[] args);
 
-        [Template("Bridge.fn.remove({0}, {1});")]
-        public static Delegate Remove(Delegate source, Delegate value)
-        {
-            return null;
-        }
+        public virtual extern object Call(object thisArg);
+
+        public virtual extern object Call();
+
+        [Bridge.Template("Bridge.fn.combine({0}, {1})")]
+        public static extern Delegate Combine(Delegate a, Delegate b);
+
+        [Bridge.Template("Bridge.fn.remove({0}, {1})")]
+        public static extern Delegate Remove(Delegate source, Delegate value);
+
+        [Bridge.Template("Bridge.staticEquals({a}, {b})")]
+        public static extern bool operator ==(Delegate a, Delegate b);
+
+        [Bridge.Template("!Bridge.staticEquals({a}, {b})")]
+        public static extern bool operator !=(Delegate a, Delegate b);
+
+        [Bridge.Template("Bridge.Reflection.createDelegate({method}, {firstArgument})")]
+        public static extern Delegate CreateDelegate(Type type, object firstArgument, MethodInfo method);
+
+        [Bridge.Template("Bridge.fn.getInvocationList({this})")]
+        public extern Delegate[] GetInvocationList();
     }
 
-    [External]
-    [IgnoreCast]
-    [Name("Function")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.IgnoreCast]
+    [Bridge.Name("Function")]
     public class MulticastDelegate : Delegate
     {
-        protected MulticastDelegate()
-        {
-        }
+        protected extern MulticastDelegate();
+
+        protected extern MulticastDelegate(object target, string method);
+
+        protected extern MulticastDelegate(Type target, string method);
+
+        [Bridge.Template("Bridge.staticEquals({a}, {b})")]
+        public static extern bool operator ==(MulticastDelegate a, MulticastDelegate b);
+
+        [Bridge.Template("!Bridge.staticEquals({a}, {b})")]
+        public static extern bool operator !=(MulticastDelegate a, MulticastDelegate b);
     }
 }

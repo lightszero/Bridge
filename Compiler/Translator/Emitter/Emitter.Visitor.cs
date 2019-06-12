@@ -1,3 +1,6 @@
+using System.Linq;
+using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 
 namespace Bridge.Translator
@@ -16,7 +19,7 @@ namespace Bridge.Translator
 
         public override void VisitPropertyDeclaration(PropertyDeclaration propertyDeclaration)
         {
-            new VisitorPropertyBlock(this, propertyDeclaration).Emit();
+            //new VisitorPropertyBlock(this, propertyDeclaration).Emit();
         }
 
         public override void VisitCustomEventDeclaration(CustomEventDeclaration customEventDeclaration)
@@ -241,7 +244,7 @@ namespace Bridge.Translator
 
         public override void VisitTypeOfExpression(TypeOfExpression typeOfExpression)
         {
-            typeOfExpression.Type.AcceptVisitor(this);
+            new TypeOfExpressionBlock(this, typeOfExpression).Emit();
         }
 
         public override void VisitComment(Comment comment)
@@ -288,7 +291,17 @@ namespace Bridge.Translator
         {
             if (newLineNode.PrevSibling == null || newLineNode.PrevSibling is NewLineNode || newLineNode.PrevSibling.EndLocation.Line != newLineNode.StartLocation.Line)
             {
-                this.Output.Append('\n');
+                if (this.IsAsync && this.AsyncBlock != null)
+                {
+                    var step = this.AsyncBlock.Steps.LastOrDefault();
+
+                    if (step != null && this.ContainsOnlyOrEmpty(step.Output, ' '))
+                    {
+                        return;
+                    }
+                }
+
+                this.Output.Append(NEW_LINE);
                 this.IsNewLine = true;
             }
         }
@@ -311,6 +324,57 @@ namespace Bridge.Translator
         public override void VisitUncheckedExpression(UncheckedExpression uncheckedExpression)
         {
             uncheckedExpression.Expression.AcceptVisitor(this);
+        }
+
+        public override void VisitUncheckedStatement(UncheckedStatement uncheckedStatement)
+        {
+            this.NoBraceBlock = uncheckedStatement.Body;
+            uncheckedStatement.Body.AcceptVisitor(this);
+        }
+
+        public override void VisitLockStatement(LockStatement lockStatement)
+        {
+            lockStatement.Expression.AcceptVisitor(this);
+            this.Output.Append(";");
+            this.Output.Append(NEW_LINE);
+            this.IsNewLine = true;
+            lockStatement.EmbeddedStatement.AcceptVisitor(this);
+        }
+
+        public override void VisitCheckedExpression(CheckedExpression checkedExpression)
+        {
+            checkedExpression.Expression.AcceptVisitor(this);
+        }
+
+        public override void VisitCheckedStatement(CheckedStatement checkedStatement)
+        {
+            this.NoBraceBlock = checkedStatement.Body;
+            checkedStatement.Body.AcceptVisitor(this);
+        }
+
+        public override void VisitGotoCaseStatement(GotoCaseStatement gotoCaseStatement)
+        {
+            new GotoBlock(this, gotoCaseStatement).Emit();
+        }
+
+        public override void VisitGotoDefaultStatement(GotoDefaultStatement gotoDefaultStatement)
+        {
+            new GotoBlock(this, gotoDefaultStatement).Emit();
+        }
+
+        public override void VisitGotoStatement(GotoStatement gotoStatement)
+        {
+            new GotoBlock(this, gotoStatement).Emit();
+        }
+
+        public override void VisitLabelStatement(LabelStatement labelStatement)
+        {
+            if (this.AsyncBlock != null)
+            {
+                var step = this.AsyncBlock.AddAsyncStep();
+                step.Label = labelStatement.Label;
+                step.Node = labelStatement;
+            }
         }
     }
 }

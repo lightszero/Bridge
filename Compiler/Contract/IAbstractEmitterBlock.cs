@@ -1,18 +1,20 @@
 using System;
+using ICSharpCode.NRefactory.CSharp;
+using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Bridge.Contract
 {
     public interface IAbstractEmitterBlock
     {
-        string AddLocal(string name, ICSharpCode.NRefactory.CSharp.AstType type);
+        string AddLocal(string name, AstNode node, ICSharpCode.NRefactory.CSharp.AstType type, string valueName = null);
 
         void AddLocals(System.Collections.Generic.IEnumerable<ICSharpCode.NRefactory.CSharp.ParameterDeclaration> declarations, ICSharpCode.NRefactory.CSharp.AstNode statement);
 
         void BeginBlock();
 
-        System.Collections.Generic.Dictionary<string, string> BuildLocalsMap();
+        System.Collections.Generic.Dictionary<IVariable, string> BuildLocalsMap();
 
-        void ClearLocalsMap(System.Collections.Generic.Dictionary<string, string> prevMap = null);
+        void ClearLocalsMap(System.Collections.Generic.Dictionary<IVariable, string> prevMap = null);
 
         System.Collections.Generic.Dictionary<string, string> BuildLocalsNamesMap();
 
@@ -28,6 +30,11 @@ namespace Bridge.Contract
             set;
         }
 
+        int Level
+        {
+            get;
+        }
+
         void EndBlock();
 
         void EnsureComma(bool newLine = true);
@@ -36,7 +43,7 @@ namespace Bridge.Contract
 
         void Indent();
 
-        bool IsOnlyWhitespaceOnPenultimateLine(bool lastTwoLines = true);
+        bool IsOnlyWhitespaceOnPenultimateLine(bool lastTwoLines = true, string output = null);
 
         System.Text.StringBuilder NewWriter();
 
@@ -50,7 +57,7 @@ namespace Bridge.Contract
 
         void PushLocals();
 
-        void PushWriter(string format, Action callback = null);
+        void PushWriter(string format, Action callback = null, string thisArg = null, int[] ignoreRange = null);
 
         bool RemovePenultimateEmptyLines(bool withLast = false);
 

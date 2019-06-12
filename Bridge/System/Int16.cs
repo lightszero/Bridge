@@ -1,93 +1,57 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Name("Bridge.Int")]
-    [Constructor("Number")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Constructor("Number")]
+    [Bridge.Reflectable]
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     public struct Int16 : IComparable, IComparable<Int16>, IEquatable<Int16>, IFormattable
     {
-        private Int16(int i)
-        {
-        }
+        private extern Int16(int i);
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const short MinValue = -32768;
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const short MaxValue = 32767;
 
-        [Template("Bridge.Int.parseInt({s}, -32768, 32767)")]
-        public static short Parse(string s)
-        {
-            return 0;
-        }
+        [Bridge.Template("System.Int16.parse({s})")]
+        public static extern short Parse(string s);
 
-        [Template("Bridge.Int.parseInt({s}, -32768, 32767, {radix})")]
-        public static short Parse(string s, int radix)
-        {
-            return 0;
-        }
+        [Bridge.Template("System.Int16.parse({s}, {radix})")]
+        public static extern short Parse(string s, int radix);
 
-        [Template("Bridge.Int.tryParseInt({s}, {result}, -32768, 32767)")]
-        public static bool TryParse(string s, out short result)
-        {
-            result = 0;
-            return false;
-        }
+        [Bridge.Template("System.Int16.tryParse({s}, {result})")]
+        public static extern bool TryParse(string s, out short result);
 
-        [Template("Bridge.Int.tryParseInt({s}, {result}, -32768, 32767, {radix})")]
-        public static bool TryParse(string s, out short result, int radix)
-        {
-            result = 0;
-            return false;
-        }
+        [Bridge.Template("System.Int16.tryParse({s}, {result}, {radix})")]
+        public static extern bool TryParse(string s, out short result, int radix);
 
-        public string ToString(int radix)
-        {
-            return null;
-        }
+        public extern string ToString(int radix);
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string Format(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Int16.format({this}, {format})")]
+        public extern string Format(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string Format(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Int16.format({this}, {format}, {provider})")]
+        public extern string Format(string format, IFormatProvider provider);
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string ToString(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Int16.format({this}, {format})")]
+        public extern string ToString(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string ToString(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Int16.format({this}, {format}, {provider})")]
+        public extern string ToString(string format, IFormatProvider provider);
 
-        [Template("Bridge.compare({this}, {other})")]
-        public int CompareTo(short other)
-        {
-            return 0;
-        }
+        [Bridge.Template("Bridge.compare({this}, {other})")]
+        public extern int CompareTo(short other);
 
-        [Template("Bridge.compare({this}, {obj})")]
-        public int CompareTo(object obj)
-        {
-            return 0;
-        }
+        [Bridge.Template("Bridge.compare({this}, {obj})")]
+        public extern int CompareTo(object obj);
 
-        [Template("Bridge.equalsT({this}, {other})")]
-        public bool Equals(short other)
-        {
-            return false;
-        }
+        [Bridge.Template("{this} === {other}")]
+        public extern bool Equals(short other);
+
+        [Bridge.Template("System.Int16.equals({this}, {other})")]
+        public override extern bool Equals(object other);
     }
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
 }

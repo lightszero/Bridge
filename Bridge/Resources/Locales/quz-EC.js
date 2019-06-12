@@ -1,20 +1,20 @@
-﻿Bridge.merge(new Bridge.CultureInfo("quz-EC", true), {
+Bridge.merge(new System.Globalization.CultureInfo("quz-EC", true), {
     englishName: "Quichua (Ecuador)",
-    nativeName: "runa shimi (Ecuador Suyu)",
+    nativeName: "Runasimi (Ecuador)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "-ifedh",
-        positiveInfinitySymbol: "+ifedh",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ",",
         percentGroupSeparator: ".",
-        percentPositivePattern: 1,
-        percentNegativePattern: 1,
+        percentPositivePattern: 0,
+        percentNegativePattern: 0,
         currencySymbol: "$",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["int","awk","wan","chy","kuk","cha","wak"],
         abbreviatedMonthGenitiveNames: ["kull","pan","paw","ayr","aym","ray","sit","kar","kus","way","sas","kap",""],
         abbreviatedMonthNames: ["kull","pan","paw","ayr","aym","ray","sit","kar","kus","way","sas","kap",""],
@@ -40,7 +40,7 @@
         fullDateTimePattern: "dddd, dd' de 'MMMM' de 'yyyy H:mm:ss",
         longDatePattern: "dddd, dd' de 'MMMM' de 'yyyy",
         longTimePattern: "H:mm:ss",
-        monthDayPattern: "d' de 'MMMM",
+        monthDayPattern: "d 'de' MMMM",
         monthGenitiveNames: ["kulla","panchi","pawkar","ayriwa","aymuray","raymi","sitwa","karwa","kuski","wayru","sasi","kapak",""],
         monthNames: ["kulla","panchi","pawkar","ayriwa","aymuray","raymi","sitwa","karwa","kuski","wayru","sasi","kapak",""],
         pmDesignator: "",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM' de 'yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "quz-EC",
+        EBCDICCodePage: 20284,
+        IsRightToLeft: false,
+        LCID: 2155,
+        listSeparator: ",",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

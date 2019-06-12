@@ -1,254 +1,141 @@
-using Bridge;
-
 namespace System
 {
-    [External]
-    [Name("Bridge.Int")]
-    [Constructor("Number")]
+    [Bridge.Convention(Member = Bridge.ConventionMember.Field | Bridge.ConventionMember.Method, Notation = Bridge.Notation.CamelCase)]
+    [Bridge.External]
+    [Bridge.Constructor("Number")]
+    [Bridge.Reflectable]
     public struct Char : IComparable, IComparable<Char>, IEquatable<Char>, IFormattable
     {
-        private Char(int i)
-        {
-        }
+        private extern Char(int i);
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const char MinValue = '\0';
 
-        [InlineConst]
+        [Bridge.InlineConst]
         public const char MaxValue = '\xFFFF';
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string Format(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Char.format({this}, {0})")]
+        public extern string Format(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string Format(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Char.format({this}, {0}, {1})")]
+        public extern string Format(string format, IFormatProvider provider);
 
-        [Template("Bridge.Char.charCodeAt({s}, 0)")]
-        public static char Parse(string s)
-        {
-            return '\0';
-        }
+        [Bridge.Template("System.Char.charCodeAt({0}, 0)")]
+        public static extern char Parse(string s);
 
-        [Template("String.fromCharCode({this})")]
-        public override string ToString()
-        {
-            return null;
-        }
+        [Bridge.Template(Fn = "String.fromCharCode")]
+        public override extern string ToString();
 
-        [Template("Bridge.Int.format({this}, {format})")]
-        public string ToString(string format)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Char.format({this}, {format})")]
+        public extern string ToString(string format);
 
-        [Template("Bridge.Int.format({this}, {format}, {provider})")]
-        public string ToString(string format, IFormatProvider provider)
-        {
-            return null;
-        }
+        [Bridge.Template("System.Char.format({this}, {format}, {provider})")]
+        public extern string ToString(string format, IFormatProvider provider);
 
-        [Template("Bridge.compare({this}, {other})")]
-        public int CompareTo(char other)
-        {
-            return 0;
-        }
+        [Bridge.Template("Bridge.compare({this}, {0})")]
+        public extern int CompareTo(char value);
 
-        [Template("Bridge.compare({this}, {obj})")]
-        public int CompareTo(object obj)
-        {
-            return 0;
-        }
+        [Bridge.Template("Bridge.compare({this}, {0})")]
+        public extern int CompareTo(object value);
 
-        [Template("Bridge.equalsT({this}, {other})")]
-        public bool Equals(char other)
-        {
-            return false;
-        }
+        [Bridge.Template("{this} === {0}")]
+        public extern bool Equals(char obj);
 
-        [Template("Bridge.isLower({ch})")]
-        public static bool IsLower(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("Bridge.isLower({0})")]
+        public static extern bool IsLower(char s);
 
-        [Template("Bridge.isUpper({ch})")]
-        public static bool IsUpper(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("Bridge.isUpper({0})")]
+        public static extern bool IsUpper(char s);
 
-        [Template("String.fromCharCode({ch}).toLowerCase().charCodeAt(0)")]
-        public static char ToLower(char ch)
-        {
-            return (char)0;
-        }
+        /// <summary>
+        /// Indicates whether the character at the specified position in a specified string is categorized as an uppercase letter.
+        /// </summary>
+        /// <param name="s">A string.</param>
+        /// <param name="index">The position of the character to evaluate in s.</param>
+        /// <returns>true if the character at position index in s is an uppercase letter; otherwise, false.</returns>
+        public extern static bool IsUpper(String s, int index);
 
-        [Template("String.fromCharCode({ch}).toUpperCase().charCodeAt(0)")]
-        public static char ToUpper(char ch)
-        {
-            return (char)0;
-        }
+        [Bridge.Template("String.fromCharCode({0}).toLowerCase().charCodeAt(0)")]
+        public static extern char ToLower(char c);
 
-        [Template("Bridge.Char.isLetter({ch})")]
-        public static bool IsLetter(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("String.fromCharCode({0}).toUpperCase().charCodeAt(0)")]
+        public static extern char ToUpper(char c);
 
-        [Template("Bridge.Char.isLetter({s}.charCodeAt({index}))")]
-        public static bool IsLetter(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsLetter(char c);
 
-        [Template("Bridge.Char.isDigit({ch})")]
-        public static bool IsDigit(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isLetter(({0}).charCodeAt({1}))")]
+        public static extern bool IsLetter(string s, int index);
 
-        [Template("Bridge.Char.isDigit({s}.charCodeAt({index}))")]
-        public static bool IsDigit(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsDigit(char c);
 
-        [Template("Bridge.Char.isDigit({ch}) || Bridge.Char.isLetter({ch})")]
-        public static bool IsLetterOrDigit(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isDigit(({0}).charCodeAt({1}))")]
+        public static extern bool IsDigit(string s, int index);
 
-        [Template("Bridge.Char.isDigit({s}.charCodeAt({index})) || Bridge.Char.isLetter({s}.charCodeAt({index}))")]
-        public static bool IsLetterOrDigit(string s, int index)
-        {
-            return false;
-        }
+        [Bridge.Template("(System.Char.isDigit({0}) || System.Char.isLetter({0}))")]
+        public static extern bool IsLetterOrDigit(char c);
 
-        [Template("Bridge.Char.isWhiteSpace(String.fromCharCode({ch}))")]
-        public static bool IsWhiteSpace(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("(System.Char.isDigit(({0}).charCodeAt({1})) || System.Char.isLetter(({0}).charCodeAt({1})))")]
+        public static extern bool IsLetterOrDigit(string s, int index);
 
-        [Template("Bridge.Char.isWhiteSpace({s}.charAt({index}))")]
-        public static bool IsWhiteSpace(string s, int index)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isWhiteSpace(String.fromCharCode({0}))")]
+        public static extern bool IsWhiteSpace(char c);
 
-        [Template("Bridge.Char.isHighSurrogate({ch})")]
-        public static bool IsHighSurrogate(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isWhiteSpace(({0}).charAt({1}))")]
+        public static extern bool IsWhiteSpace(string s, int index);
 
-        [Template("Bridge.Char.isHighSurrogate({s}.charCodeAt({index}))")]
-        public static bool IsHighSurrogate(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsHighSurrogate(char c);
 
-        [Template("Bridge.Char.isLowSurrogate({ch})")]
-        public static bool IsLowSurrogate(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isHighSurrogate(({0}).charCodeAt({1}))")]
+        public static extern bool IsHighSurrogate(string s, int index);
 
-        [Template("Bridge.Char.isLowSurrogate({s}.charCodeAt({index}))")]
-        public static bool IsLowSurrogate(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsLowSurrogate(char c);
 
-        [Template("Bridge.Char.isSurrogate({ch})")]
-        public static bool IsSurrogate(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isLowSurrogate(({0}).charCodeAt({1}))")]
+        public static extern bool IsLowSurrogate(string s, int index);
 
-        [Template("Bridge.Char.isSurrogate({s}.charCodeAt({index}))")]
-        public static bool IsSurrogate(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsSurrogate(char c);
 
-        [Template("Bridge.Char.isHighSurrogate({ch1}) && Bridge.Char.isLowSurrogate({ch2})")]
-        public static bool IsSurrogatePair(char ch1, char ch2)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isSurrogate(({0}).charCodeAt({1}))")]
+        public static extern bool IsSurrogate(string s, int index);
 
-        [Template("Bridge.Char.isHighSurrogate({s}.charCodeAt({index})) && Bridge.Char.isLowSurrogate({s}.charCodeAt({index}+1))")]
-        public static bool IsSurrogatePair(string s, int index)
-        {
-            return false;
-        }
+        [Bridge.Template("(System.Char.isHighSurrogate({0}) && System.Char.isLowSurrogate({1}))")]
+        public static extern bool IsSurrogatePair(char highSurrogate, char lowSurrogate);
 
-        [Template("Bridge.Char.isSymbol({ch})")]
-        public static bool IsSymbol(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("(System.Char.isHighSurrogate(({0}).charCodeAt({1})) && System.Char.isLowSurrogate(({0}).charCodeAt({1} + 1)))")]
+        public static extern bool IsSurrogatePair(string s, int index);
 
-        [Template("Bridge.Char.isSymbol({s}.charCodeAt({index}))")]
-        public static bool IsSymbol(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsSymbol(char c);
 
-        [Template("Bridge.Char.isSeparator({ch})")]
-        public static bool IsSeparator(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isSymbol(({0}).charCodeAt({1}))")]
+        public static extern bool IsSymbol(string s, int index);
 
-        [Template("Bridge.Char.isSeparator({s}.charCodeAt({index}))")]
-        public static bool IsSeparator(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsSeparator(char c);
 
-        [Template("Bridge.Char.isPunctuation({ch})")]
-        public static bool IsPunctuation(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isSeparator(({0}).charCodeAt({1}))")]
+        public static extern bool IsSeparator(string s, int index);
 
-        [Template("Bridge.Char.isPunctuation({s}.charCodeAt({index}))")]
-        public static bool IsPunctuation(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsPunctuation(char c);
 
-        [Template("Bridge.Char.isNumber({ch})")]
-        public static bool IsNumber(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isPunctuation(({0}).charCodeAt({1}))")]
+        public static extern bool IsPunctuation(string s, int index);
 
-        [Template("Bridge.Char.isNumber({s}.charCodeAt({index}))")]
-        public static bool IsNumber(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsNumber(char c);
 
-        [Template("Bridge.Char.isControl({ch})")]
-        public static bool IsControl(char ch)
-        {
-            return false;
-        }
+        [Bridge.Template("System.Char.isNumber(({0}).charCodeAt({1}))")]
+        public static extern bool IsNumber(string s, int index);
 
-        [Template("Bridge.Char.isControl({s}.charCodeAt({index}))")]
-        public static bool IsControl(string s, int index)
-        {
-            return false;
-        }
+        public static extern bool IsControl(char c);
+
+        [Bridge.Template("System.Char.isControl(({0}).charCodeAt({1}))")]
+        public static extern bool IsControl(string s, int index);
+
+        [Bridge.Template("System.Char.equals({this}, {0})")]
+        public override extern bool Equals(object obj);
+
+        [Bridge.Template(Fn = "System.Char.getHashCode")]
+        public override extern int GetHashCode();
+
+        [Bridge.Template("String.fromCharCode({c})")]
+        public static extern string ToString(Char c);
     }
 }

@@ -1,17 +1,25 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
+
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.TypeSystem;
 using System.Collections.Generic;
+using System.Linq;
 using NRAttribute = ICSharpCode.NRefactory.CSharp.Attribute;
 
 namespace Bridge.Translator
 {
     public partial class Inspector : Visitor
     {
-        public Inspector()
+        internal IEmitter Emitter { get; private set; }
+
+        public Inspector(IAssemblyInfo config = null)
         {
             this.Types = new List<ITypeInfo>();
-            this.AssemblyInfo = new AssemblyInfo();
+            this.IgnoredTypes = new List<string>();
+            this.AssemblyInfo = config ?? new AssemblyInfo();
+
+            this.Emitter = new TempEmitter { AssemblyInfo = this.AssemblyInfo };
         }
 
         protected virtual bool HasAttribute(EntityDeclaration type, string name)
@@ -62,12 +70,31 @@ namespace Bridge.Translator
             return this.HasAttribute(declaration, Translator.Bridge_ASSEMBLY + ".ObjectLiteral");
         }
 
-        protected virtual bool HasIgnore(EntityDeclaration declaration)
+        protected virtual bool IsNonScriptable(EntityDeclaration declaration)
         {
-            return this.HasAttribute(declaration, Translator.Bridge_ASSEMBLY + ".External") || this.HasAttribute(declaration, Translator.Bridge_ASSEMBLY + ".Ignore");
+            return this.HasAttribute(declaration, Translator.Bridge_ASSEMBLY + ".NonScriptable");
         }
 
-        protected virtual bool HasInline(EntityDeclaration declaration)
+        protected virtual bool HasExternal(EntityDeclaration declaration)
+        {
+            return this.HasAttribute(declaration, Translator.Bridge_ASSEMBLY + ".External") ||
+                   this.HasAttribute(declaration, Translator.Bridge_ASSEMBLY + ".Ignore") ||
+                   this.IsVirtual(declaration as TypeDeclaration);
+        }
+
+        protected virtual bool IsVirtual(TypeDeclaration typeDeclaration)
+        {
+            if (typeDeclaration == null)
+            {
+                return false;
+            }
+
+            var resolveResult = this.Resolver.ResolveNode(typeDeclaration, null);
+            var typeDef = resolveResult?.Type?.GetDefinition();
+            return typeDef != null && Validator.IsVirtualTypeStatic(typeDef);
+        }
+
+        protected virtual bool HasTemplate(EntityDeclaration declaration)
         {
             return this.HasAttribute(declaration, Translator.Bridge_ASSEMBLY + ".Template");
         }
@@ -93,12 +120,16 @@ namespace Bridge.Translator
                     case KnownTypeCode.Decimal:
                         return 0m;
 
+                    case KnownTypeCode.Int64:
+                        return 0L;
+
+                    case KnownTypeCode.UInt64:
+                        return 0UL;
+
                     case KnownTypeCode.Int16:
                     case KnownTypeCode.Int32:
-                    case KnownTypeCode.Int64:
                     case KnownTypeCode.UInt16:
                     case KnownTypeCode.UInt32:
-                    case KnownTypeCode.UInt64:
                     case KnownTypeCode.Byte:
                     case KnownTypeCode.Double:
                     case KnownTypeCode.SByte:
@@ -112,12 +143,19 @@ namespace Bridge.Translator
 
             var resolveResult = resolver.ResolveNode(type, null);
 
+            var o = GetDefaultFieldValue(resolveResult.Type, type, false);
+
+            if (o != null)
+            {
+                return o;
+            }
+
             if (!resolveResult.IsError && NullableType.IsNullable(resolveResult.Type))
             {
                 return null;
             }
 
-            if (!resolveResult.IsError && resolveResult.Type.Kind == TypeKind.Enum)
+            if (!resolveResult.IsError && (resolveResult.Type.IsKnownType(KnownTypeCode.Enum) || resolveResult.Type.Kind == TypeKind.Enum))
             {
                 return 0;
             }
@@ -130,17 +168,42 @@ namespace Bridge.Translator
             return null;
         }
 
-        public static object GetDefaultFieldValue(IType type)
+        public static object GetDefaultFieldValue(IType type, AstType astType, bool wrapType = true)
         {
-            if (type.IsKnownType(KnownTypeCode.Int16) ||
+            if (type.Kind == TypeKind.TypeParameter && astType != null)
+            {
+                var parameter = type as ITypeParameter;
+                if (parameter != null && (
+                    parameter.Owner.Attributes.Any(a => a.AttributeType.FullName == "Bridge.IgnoreGenericAttribute") ||
+                    parameter.Owner.DeclaringTypeDefinition != null && parameter.Owner.DeclaringTypeDefinition.Attributes.Any(a => a.AttributeType.FullName == "Bridge.IgnoreGenericAttribute")))
+                {
+                    return null;
+                }
+                return new RawValue(JS.Funcs.BRIDGE_GETDEFAULTVALUE + "(" + type.Name + ")");
+            }
+
+            if (type.IsKnownType(KnownTypeCode.Decimal))
+            {
+                return 0m;
+            }
+
+            if (type.IsKnownType(KnownTypeCode.Int64))
+            {
+                return 0L;
+            }
+
+            if (type.IsKnownType(KnownTypeCode.UInt64))
+            {
+                return 0UL;
+            }
+
+            if (type.IsKnownType(KnownTypeCode.Char) ||
+                type.IsKnownType(KnownTypeCode.Int16) ||
                 type.IsKnownType(KnownTypeCode.Int32) ||
-                type.IsKnownType(KnownTypeCode.Int64) ||
                 type.IsKnownType(KnownTypeCode.UInt16) ||
                 type.IsKnownType(KnownTypeCode.UInt32) ||
-                type.IsKnownType(KnownTypeCode.UInt64) ||
                 type.IsKnownType(KnownTypeCode.Byte) ||
                 type.IsKnownType(KnownTypeCode.Double) ||
-                type.IsKnownType(KnownTypeCode.Decimal) ||
                 type.IsKnownType(KnownTypeCode.SByte) ||
                 type.IsKnownType(KnownTypeCode.Single) ||
                 type.IsKnownType(KnownTypeCode.Enum))
@@ -158,12 +221,40 @@ namespace Bridge.Translator
                 return false;
             }
 
-            if (type.Kind == TypeKind.Struct)
+            if (type.IsKnownType(KnownTypeCode.Enum) || type.Kind == TypeKind.Enum)
+            {
+                return 0;
+            }
+
+            if (type.Kind == TypeKind.Struct && wrapType)
             {
                 return type;
             }
 
             return null;
+        }
+
+        public static string GetStructDefaultValue(AstType type, IEmitter emitter)
+        {
+            var rr = emitter.Resolver.ResolveNode(type, emitter);
+            return GetStructDefaultValue(rr.Type, emitter);
+        }
+
+        public static string GetStructDefaultValue(IType type, IEmitter emitter)
+        {
+            if (type.IsKnownType(KnownTypeCode.DateTime))
+            {
+                return string.Format("{0}()", JS.Types.System.DateTime.GET_DEFAULT_VALUE);
+            }
+
+            var isGeneric = type.TypeArguments.Count > 0 && !Helpers.IsIgnoreGeneric(type, emitter);
+
+            if (emitter.Validator.IsObjectLiteral(emitter.GetTypeDefinition(type)))
+            {
+                return "{}";
+            }
+
+            return string.Concat("new ", isGeneric ? "(" : "", BridgeTypes.ToJsName(type, emitter), isGeneric ? ")" : "", "()");
         }
 
         protected virtual bool IsValidStaticInitializer(Expression expr)
@@ -186,7 +277,7 @@ namespace Bridge.Translator
 
                 return true;
             }
-            catch (Exception)
+            catch (TranslatorException)
             {
                 return false;
             }
@@ -201,7 +292,7 @@ namespace Bridge.Translator
 
             foreach (var p in parameters)
             {
-                string newName = Emitter.FIX_ARGUMENT_NAME + p.Name;
+                string newName = JS.Vars.FIX_ARGUMENT_NAME + p.Name;
                 string oldName = p.Name;
 
                 VariableDeclarationStatement varState = new VariableDeclarationStatement(p.Type.Clone(), oldName, new CastExpression(p.Type.Clone(), new IdentifierExpression(newName)));
@@ -219,7 +310,7 @@ namespace Bridge.Translator
         /// <returns></returns>
         protected static bool IsConflictingNamespace(string namespaceName)
         {
-            return (namespaceName == "Bridge");
+            return (namespaceName == Translator.Bridge_ASSEMBLY);
         }
 
         /// <summary>
@@ -228,6 +319,11 @@ namespace Bridge.Translator
         /// <param name="tpDecl">The TypeDefinition object of the validated item.</param>
         private void ValidateNamespace(TypeDeclaration tpDecl)
         {
+            if (this.AssemblyInfo.Assembly.EnableReservedNamespaces)
+            {
+                return;
+            }
+
             ICSharpCode.NRefactory.CSharp.Attribute nsAt;
             if (this.TryGetAttribute(tpDecl, "Namespace", out nsAt))
             {
@@ -235,8 +331,9 @@ namespace Bridge.Translator
                 if (Bridge.Translator.Inspector.IsConflictingNamespace(nsName))
                 {
                     throw new EmitterException(nsAt, "Custom attribute '[" + nsAt.ToString() +
-                        "]' uses reserved namespace name 'Bridge'.\n" +
-                        "This name is reserved for Bridge.NET core.");
+                        "]' uses reserved namespace name 'Bridge'."
+                        + Bridge.Translator.Emitter.NEW_LINE
+                        + "This name is reserved for Bridge.NET core.");
                 }
             }
         }
@@ -250,8 +347,9 @@ namespace Bridge.Translator
             if (Bridge.Translator.Inspector.IsConflictingNamespace(nsDecl.FullName))
             {
                 throw new EmitterException(nsDecl, "Namespace '" + nsDecl.FullName +
-                    "' uses reserved name 'Bridge'.\n" +
-                    "This name is reserved for Bridge.NET core.");
+                    "' uses reserved name 'Bridge'."
+                    + Bridge.Translator.Emitter.NEW_LINE
+                    + "This name is reserved for Bridge.NET core.");
             }
         }
     }

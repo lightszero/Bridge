@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("lv-LV", true), {
+Bridge.merge(new System.Globalization.CultureInfo("lv-LV", true), {
     englishName: "Latvian (Latvia)",
     nativeName: "latviešu (Latvija)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "Nav skaitlis",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NS",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
@@ -20,8 +20,8 @@
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
         currencyGroupSeparator: " ",
-        currencyNegativePattern: 9,
-        currencyPositivePattern: 2,
+        currencyNegativePattern: 8,
+        currencyPositivePattern: 3,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
@@ -29,30 +29,42 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
-        abbreviatedDayNames: ["sv","pr","ot","tr","ce","pk","se"],
-        abbreviatedMonthGenitiveNames: ["jan","feb","mar","apr","mai","jūn","jūl","aug","sep","okt","nov","dec",""],
-        abbreviatedMonthNames: ["jan","feb","mar","apr","mai","jūn","jūl","aug","sep","okt","nov","dec",""],
-        amDesignator: "",
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
+        abbreviatedDayNames: ["svētd.","pirmd.","otrd.","trešd.","ceturtd.","piektd.","sestd."],
+        abbreviatedMonthGenitiveNames: ["janv.","febr.","marts","apr.","maijs","jūn.","jūl.","aug.","sept.","okt.","nov.","dec.",""],
+        abbreviatedMonthNames: ["janv.","febr.","marts","apr.","maijs","jūn.","jūl.","aug.","sept.","okt.","nov.","dec.",""],
+        amDesignator: "priekšp.",
         dateSeparator: ".",
         dayNames: ["svētdiena","pirmdiena","otrdiena","trešdiena","ceturtdiena","piektdiena","sestdiena"],
         firstDayOfWeek: 1,
-        fullDateTimePattern: "dddd, yyyy'. gada 'd. MMMM H:mm:ss",
-        longDatePattern: "dddd, yyyy'. gada 'd. MMMM",
-        longTimePattern: "H:mm:ss",
+        fullDateTimePattern: "dddd, yyyy. 'gada' d. MMMM HH:mm:ss",
+        longDatePattern: "dddd, yyyy. 'gada' d. MMMM",
+        longTimePattern: "HH:mm:ss",
         monthDayPattern: "d. MMMM",
         monthGenitiveNames: ["janvāris","februāris","marts","aprīlis","maijs","jūnijs","jūlijs","augusts","septembris","oktobris","novembris","decembris",""],
         monthNames: ["janvāris","februāris","marts","aprīlis","maijs","jūnijs","jūlijs","augusts","septembris","oktobris","novembris","decembris",""],
-        pmDesignator: "",
+        pmDesignator: "pēcp.",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "dd.MM.yyyy.",
-        shortestDayNames: ["sv","pr","ot","tr","ce","pk","se"],
-        shortTimePattern: "H:mm",
+        shortDatePattern: "dd.MM.yyyy",
+        shortestDayNames: ["Sv","Pr","Ot","Tr","Ce","Pk","Se"],
+        shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
         sortableDateTimePattern1: "yyyy'-'MM'-'dd",
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
-        yearMonthPattern: "yyyy'. gada 'MMMM",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        yearMonthPattern: "yyyy. 'g'. MMMM",
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1257,
+        CultureName: "lv-LV",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1062,
+        listSeparator: ";",
+        MacCodePage: 10029,
+        OEMCodePage: 775,
+        IsReadOnly: true
     })
 });

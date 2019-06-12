@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("arn", true), {
+Bridge.merge(new System.Globalization.CultureInfo("arn", true), {
     englishName: "Mapudungun",
     nativeName: "Mapudungun",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NeuN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NeuN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-Infinito",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Kiñe","Epu","Kila","Meli","Kechu","Cayu","Regle"],
         abbreviatedMonthGenitiveNames: ["Kiñe Tripantu","Epu","Kila","Meli","Kechu","Cayu","Regle","Purha","Aiya","Marhi","Marhi Kiñe","Marhi Epu",""],
         abbreviatedMonthNames: ["Kiñe Tripantu","Epu","Kila","Meli","Kechu","Cayu","Regle","Purha","Aiya","Marhi","Marhi Kiñe","Marhi Epu",""],
@@ -40,7 +40,7 @@
         fullDateTimePattern: "dddd, dd' de 'MMMM' de 'yyyy H:mm:ss",
         longDatePattern: "dddd, dd' de 'MMMM' de 'yyyy",
         longTimePattern: "H:mm:ss",
-        monthDayPattern: "d' de 'MMMM",
+        monthDayPattern: "d 'de' MMMM",
         monthGenitiveNames: ["Kiñe Tripantu","Epu","Kila","Meli","Kechu","Cayu","Regle","Purha","Aiya","Marhi","Marhi Kiñe","Marhi Epu",""],
         monthNames: ["Kiñe Tripantu","Epu","Kila","Meli","Kechu","Cayu","Regle","Purha","Aiya","Marhi","Marhi Kiñe","Marhi Epu",""],
         pmDesignator: "",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM' de 'yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1252,
+        CultureName: "arn-CL",
+        EBCDICCodePage: 20284,
+        IsRightToLeft: false,
+        LCID: 1146,
+        listSeparator: ",",
+        MacCodePage: 10000,
+        OEMCodePage: 850,
+        IsReadOnly: true
     })
 });

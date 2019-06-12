@@ -1,15 +1,14 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
-[assembly: AssemblyTitle("Bridge.Translator")]
-[assembly: AssemblyProduct("Bridge.Translator")]
-[assembly: AssemblyDescription("Bridge.NET Translator")]
+[assembly: AssemblyTitle("Bridge.Compiler")]
+[assembly: AssemblyProduct("Bridge.Compiler")]
+[assembly: AssemblyDescription("Bridge.NET Compiler")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Object.NET, Inc.")]
-[assembly: AssemblyCopyright("Copyright 2008-2015 Object.NET, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: Guid("ac6f7c4d-87e1-4f66-912b-6fe33383543c")]
-[assembly: AssemblyVersion("1.10")]
-[assembly: AssemblyFileVersion("1.10.2")]
+
+[assembly: InternalsVisibleTo("Bridge.Translator.Tests")]

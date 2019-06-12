@@ -8,6 +8,12 @@ namespace Bridge.Contract
 {
     public interface IEmitter : ILog, IAstVisitor
     {
+        string Tag
+        {
+            get;
+            set;
+        }
+
         IAssemblyInfo AssemblyInfo
         {
             get;
@@ -76,7 +82,7 @@ namespace Bridge.Contract
             set;
         }
 
-        System.Collections.Generic.Dictionary<string, string> Emit();
+        List<TranslatorOutputItem> Emit();
 
         bool EnableSemicolon
         {
@@ -94,23 +100,27 @@ namespace Bridge.Contract
 
         Mono.Cecil.TypeDefinition GetBaseTypeDefinition(Mono.Cecil.TypeDefinition type);
 
-        string GetEntityName(ICSharpCode.NRefactory.CSharp.EntityDeclaration entity, bool cancelChangeCase = false, bool ignoreInterface = false);
+        string GetEntityName(ICSharpCode.NRefactory.CSharp.EntityDeclaration entity);
 
-        string GetEntityName(ICSharpCode.NRefactory.CSharp.ParameterDeclaration entity, bool cancelChangeCase = false);
+        string GetParameterName(ICSharpCode.NRefactory.CSharp.ParameterDeclaration entity);
 
-        string GetEntityName(ICSharpCode.NRefactory.TypeSystem.IEntity member, bool forcePreserveMemberCase = false, bool ignoreInterface = false);
+        NameSemantic GetNameSemantic(IEntity member);
+
+        string GetEntityName(ICSharpCode.NRefactory.TypeSystem.IEntity member);
+
+        string GetTypeName(ICSharpCode.NRefactory.TypeSystem.ITypeDefinition type, TypeDefinition typeDefinition);
+
+        string GetLiteralEntityName(ICSharpCode.NRefactory.TypeSystem.IEntity member);
 
         string GetInline(ICSharpCode.NRefactory.CSharp.EntityDeclaration method);
 
         string GetInline(ICSharpCode.NRefactory.TypeSystem.IEntity entity);
 
-        string GetInline(Mono.Cecil.ICustomAttributeProvider provider);
-
         Tuple<bool, bool, string> GetInlineCode(ICSharpCode.NRefactory.CSharp.InvocationExpression node);
 
-        bool IsForbiddenInvocation(InvocationExpression node);
+        Tuple<bool, bool, string> GetInlineCode(ICSharpCode.NRefactory.CSharp.MemberReferenceExpression node);
 
-        string GetDefinitionName(IEmitter emitter, IMemberDefinition member, bool changeCase = true);
+        bool IsForbiddenInvocation(InvocationExpression node);
 
         System.Collections.Generic.IEnumerable<string> GetScript(ICSharpCode.NRefactory.CSharp.EntityDeclaration method);
 
@@ -137,6 +147,12 @@ namespace Bridge.Contract
         }
 
         bool IsAsync
+        {
+            get;
+            set;
+        }
+
+        bool IsYield
         {
             get;
             set;
@@ -175,6 +191,18 @@ namespace Bridge.Contract
         int Level
         {
             get;
+        }
+
+        int InitialLevel
+        {
+            get;
+        }
+
+        int ResetLevel(int? level = null);
+
+        InitPosition? InitPosition
+        {
+            get;
             set;
         }
 
@@ -184,7 +212,7 @@ namespace Bridge.Contract
             set;
         }
 
-        System.Collections.Generic.Dictionary<string, string> LocalsMap
+        System.Collections.Generic.Dictionary<IVariable, string> LocalsMap
         {
             get;
             set;
@@ -202,7 +230,7 @@ namespace Bridge.Contract
             set;
         }
 
-        Action<string, string> Log
+        ILogger Log
         {
             get;
             set;
@@ -238,7 +266,31 @@ namespace Bridge.Contract
             set;
         }
 
+        string SourceFileName
+        {
+            get;
+            set;
+        }
+
+        int SourceFileNameIndex
+        {
+            get;
+            set;
+        }
+
+        string LastSequencePoint
+        {
+            get;
+            set;
+        }
+
         IEmitterOutputs Outputs
+        {
+            get;
+            set;
+        }
+
+        IEmitterOutput EmitterOutput
         {
             get;
             set;
@@ -310,7 +362,7 @@ namespace Bridge.Contract
             get;
         }
 
-        System.Collections.Generic.Stack<Tuple<string, System.Text.StringBuilder, bool, Action>> Writers
+        System.Collections.Generic.Stack<IWriter> Writers
         {
             get;
             set;
@@ -326,7 +378,7 @@ namespace Bridge.Contract
             set;
         }
 
-        Dictionary<string, OverloadsCollection> OverloadsCache
+        EmitterCache Cache
         {
             get;
         }
@@ -336,6 +388,12 @@ namespace Bridge.Contract
         string GetEventName(EventDeclaration evt);
 
         Dictionary<string, bool> TempVariables
+        {
+            get;
+            set;
+        }
+
+        Dictionary<string, string> NamedTempVariables
         {
             get;
             set;
@@ -382,5 +440,102 @@ namespace Bridge.Contract
             get;
             set;
         }
+
+        string CatchBlockVariable
+        {
+            get;
+            set;
+        }
+
+        Dictionary<string, string> NamedFunctions
+        {
+            get; set;
+        }
+
+        Dictionary<IType, Dictionary<string, string>> NamedBoxedFunctions
+        {
+            get; set;
+        }
+
+        bool StaticBlock
+        {
+            get;
+            set;
+        }
+
+        bool IsJavaScriptOverflowMode
+        {
+            get;
+        }
+
+        bool IsRefArg
+        {
+            get;
+            set;
+        }
+
+        Dictionary<AnonymousType, IAnonymousTypeConfig> AnonymousTypes
+        {
+            get; set;
+        }
+
+        List<string> AutoStartupMethods
+        {
+            get;
+            set;
+        }
+
+        bool IsAnonymousReflectable
+        {
+            get; set;
+        }
+
+        string MetaDataOutputName
+        {
+            get; set;
+        }
+
+        IType[] ReflectableTypes
+        {
+            get; set;
+        }
+
+        Dictionary<string, int> NamespacesCache
+        {
+            get; set;
+        }
+
+        bool DisableDependencyTracking { get; set; }
+
+        void WriteIndented(string s, int? position = null);
+        string GetReflectionName(IType type);
+        bool ForbidLifting { get; set; }
+
+        Dictionary<IAssembly, NameRule[]> AssemblyNameRuleCache
+        {
+            get;
+        }
+
+        Dictionary<ITypeDefinition, NameRule[]> ClassNameRuleCache
+        {
+            get;
+        }
+
+        Dictionary<IAssembly, CompilerRule[]> AssemblyCompilerRuleCache
+        {
+            get;
+        }
+
+        Dictionary<ITypeDefinition, CompilerRule[]> ClassCompilerRuleCache
+        {
+            get;
+        }
+
+        bool InConstructor { get; set; }
+        CompilerRule Rules { get; set; }
+        bool HasModules { get; set; }
+        string TemplateModifier { get; set; }
+
+        int WrapRestCounter { get; set; }
     }
 }

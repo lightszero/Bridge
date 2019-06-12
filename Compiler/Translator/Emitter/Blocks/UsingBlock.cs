@@ -1,7 +1,9 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 using System.Collections.Generic;
 using System.Linq;
+using ICSharpCode.NRefactory.Semantics;
 
 namespace Bridge.Translator
 {
@@ -28,6 +30,7 @@ namespace Bridge.Translator
             var varStat = res as VariableDeclarationStatement;
             if (varStat != null)
             {
+                this.VariableDeclarationStatement = varStat;
                 inner = varStat.Variables.Skip(1);
                 res = varStat.Variables.First();
             }
@@ -35,27 +38,65 @@ namespace Bridge.Translator
             this.EmitUsing(res, inner);
         }
 
+        public VariableDeclarationStatement VariableDeclarationStatement
+        {
+            get; set;
+        }
+
         protected virtual void EmitUsing(AstNode expression, IEnumerable<AstNode> inner)
         {
             string temp = null;
             string name = null;
+            bool isReferenceLocal = false;
+
+            this.PushLocals();
 
             var varInit = expression as VariableInitializer;
             if (varInit != null)
             {
-                name = varInit.Name;
+                var block = new VariableBlock(this.Emitter, this.VariableDeclarationStatement);
+                block.Emit();
+                name = block.lastVarName;
+                isReferenceLocal = block.lastIsReferenceLocal;
+
+                if (isReferenceLocal)
+                {
+                    name = name + ".v";
+                }
+
+                /*name = this.AddLocal(varInit.Name, expression, this.VariableDeclarationStatement.Type);
+
                 this.WriteVar();
-                this.Write(varInit.Name);
+                this.Write(name);
                 this.Write(" = ");
                 varInit.Initializer.AcceptVisitor(this.Emitter);
                 this.WriteSemiColon();
-                this.WriteNewLine();
+                this.WriteNewLine();*/
             }
             else if (expression is IdentifierExpression)
             {
-                name = ((IdentifierExpression)expression).Identifier;
+                var resolveResult = this.Emitter.Resolver.ResolveNode(expression, this.Emitter);
+                var id = ((IdentifierExpression)expression).Identifier;
+
+                if (this.Emitter.Locals != null && this.Emitter.Locals.ContainsKey(id) && resolveResult is LocalResolveResult)
+                {
+                    var lrr = (LocalResolveResult)resolveResult;
+                    if (this.Emitter.LocalsMap != null && this.Emitter.LocalsMap.ContainsKey(lrr.Variable) && !(expression.Parent is DirectionExpression))
+                    {
+                        name = this.Emitter.LocalsMap[lrr.Variable];
+                    }
+                    else if (this.Emitter.LocalsNamesMap != null && this.Emitter.LocalsNamesMap.ContainsKey(id))
+                    {
+                        name = this.Emitter.LocalsNamesMap[id];
+                    }
+                    else
+                    {
+                        name = id;
+                    }
+                }
             }
-            else
+
+            if (name == null)
             {
                 temp = this.GetTempVarName();
                 name = temp;
@@ -96,10 +137,12 @@ namespace Bridge.Translator
             this.WriteFinally();
             this.BeginBlock();
 
-            this.Write("if (Bridge.hasValue(" + name + ")) ");
+            this.Write("if (" + JS.Funcs.BRIDGE_HASVALUE + "(" + name + ")) ");
             this.BeginBlock();
             this.Write(name);
-            this.Write(".dispose();");
+            this.Write(".");
+            this.Write(JS.Funcs.DISPOSE);
+            this.Write("();");
             this.WriteNewLine();
             this.EndBlock();
             this.WriteNewLine();
@@ -110,6 +153,8 @@ namespace Bridge.Translator
             {
                 this.RemoveTempVar(temp);
             }
+
+            this.PopLocals();
         }
     }
 }

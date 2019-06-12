@@ -10,35 +10,16 @@ namespace Bridge.Translator
 {
     public partial class Emitter : Visitor
     {
-        public const string ROOT = "Bridge";
-        public const string DELEGATE_BIND = "fn.bind";
-        public const string DELEGATE_BIND_SCOPE = "fn.bindScope";
-        public const string DELEGATE_COMBINE = "fn.combine";
-        public const string DELEGATE_REMOVE = "fn.remove";
-        public const string CAST = "cast";
-        public const string AS = "as";
-        public const string IS = "is";
-        public const string ENUMERATOR = "getEnumerator";
-        public const string MOVE_NEXT = "moveNext";
-        public const string GET_CURRENT = "getCurrent";
-        public const string APPLY_OBJECT = "apply";
-        public const string MERGE_OBJECT = "merge";
-        public const string FIX_ARGUMENT_NAME = "__autofix__";
-
-        internal static List<string> reservedStaticNames = new List<string> { "Name", "Arguments", "Caller", "Length", "Prototype" };
-
-        private Dictionary<string, OverloadsCollection> overloadsCache;
-
-        public Dictionary<string, OverloadsCollection> OverloadsCache
+        public string Tag
         {
-            get
-            {
-                if (this.overloadsCache == null)
-                {
-                    this.overloadsCache = new Dictionary<string, OverloadsCollection>();
-                }
-                return this.overloadsCache;
-            }
+            get;
+            set;
+        }
+
+        public EmitterCache Cache
+        {
+            get;
+            private set;
         }
 
         public IValidator Validator
@@ -83,7 +64,7 @@ namespace Bridge.Translator
             set;
         }
 
-        public Dictionary<string, string> LocalsMap
+        public Dictionary<IVariable, string> LocalsMap
         {
             get;
             set;
@@ -102,6 +83,48 @@ namespace Bridge.Translator
         }
 
         public int Level
+        {
+            get;
+            set;
+        }
+
+        public int initialLevel;
+        public int InitialLevel
+        {
+            get
+            {
+                return initialLevel;
+            }
+            set
+            {
+                this.initialLevel = value;
+                this.ResetLevel();
+            }
+        }
+
+        public int ResetLevel(int? level = null)
+        {
+            if (!level.HasValue)
+            {
+                level = InitialLevel;
+            }
+
+            if (level < InitialLevel && !this.InitPosition.HasValue )
+            {
+                level = InitialLevel;
+            }
+
+            if (level < 0)
+            {
+                level = 0;
+            }
+
+            this.Level = level.Value;
+
+            return this.Level;
+        }
+
+        public InitPosition? InitPosition
         {
             get;
             set;
@@ -149,7 +172,7 @@ namespace Bridge.Translator
             set;
         }
 
-        public Stack<Tuple<string, StringBuilder, bool, Action>> Writers
+        public Stack<IWriter> Writers
         {
             get;
             set;
@@ -198,14 +221,16 @@ namespace Bridge.Translator
                     return this.list;
                 }
 
-                this.list = Emitter.ToAssemblyReferences(this.References);
+                this.list = Emitter.ToAssemblyReferences(this.References, this.Log);
 
                 return this.list;
             }
         }
 
-        internal static List<IAssemblyReference> ToAssemblyReferences(IEnumerable<AssemblyDefinition> references)
+        internal static List<IAssemblyReference> ToAssemblyReferences(IEnumerable<AssemblyDefinition> references, ILogger logger)
         {
+            logger.Info("Assembly definition to references...");
+
             var list = new List<IAssemblyReference>();
 
             if (references == null)
@@ -215,10 +240,17 @@ namespace Bridge.Translator
 
             foreach (var reference in references)
             {
+                logger.Trace("\tLoading AssemblyDefinition " + (reference != null && reference.Name != null && reference.Name.Name != null ? reference.Name.Name : "") + " ...");
+
                 var loader = new CecilLoader();
                 loader.IncludeInternalMembers = true;
+
                 list.Add(loader.LoadAssembly(reference));
+
+                logger.Trace("\tLoading AssemblyDefinition done");
             }
+
+            logger.Info("Assembly definition to references done");
 
             return list;
         }
@@ -253,6 +285,12 @@ namespace Bridge.Translator
             set;
         }
 
+        public IEmitterOutput EmitterOutput
+        {
+            get;
+            set;
+        }
+
         public bool SkipSemiColon
         {
             get;
@@ -272,6 +310,12 @@ namespace Bridge.Translator
         }
 
         public bool IsAsync
+        {
+            get;
+            set;
+        }
+
+        public bool IsYield
         {
             get;
             set;
@@ -349,6 +393,12 @@ namespace Bridge.Translator
             set;
         }
 
+        public Dictionary<string, string> NamedTempVariables
+        {
+            get;
+            set;
+        }
+
         public Dictionary<string, bool> ParentTempVariables
         {
             get;
@@ -383,6 +433,154 @@ namespace Bridge.Translator
         {
             get;
             set;
+        }
+
+        public string CatchBlockVariable
+        {
+            get;
+            set;
+        }
+
+        public bool StaticBlock
+        {
+            get;
+            set;
+        }
+
+        public Dictionary<string, string> NamedFunctions
+        {
+            get;
+            set;
+        }
+
+        public Dictionary<IType, Dictionary<string, string>> NamedBoxedFunctions
+        {
+            get;
+            set;
+        }
+
+        public bool IsJavaScriptOverflowMode
+        {
+            get
+            {
+                return this.AssemblyInfo.OverflowMode.HasValue && this.AssemblyInfo.OverflowMode == OverflowMode.Javascript;
+            }
+        }
+
+        public bool IsRefArg
+        {
+            get;
+            set;
+        }
+
+        public Dictionary<AnonymousType, IAnonymousTypeConfig> AnonymousTypes
+        {
+            get;
+            set;
+        }
+
+        public List<string> AutoStartupMethods
+        {
+            get;
+            set;
+        }
+
+        public bool IsAnonymousReflectable
+        {
+            get; set;
+        }
+
+        public string MetaDataOutputName
+        {
+            get; set;
+        }
+
+        public IType[] ReflectableTypes
+        {
+            get; set;
+        }
+
+        public Dictionary<string, int> NamespacesCache
+        {
+            get; set;
+        }
+
+        private bool AssemblyJsDocWritten
+        {
+            get; set;
+        }
+
+        public bool ForbidLifting
+        {
+            get; set;
+        }
+
+        public bool DisableDependencyTracking
+        {
+            get; set;
+        }
+
+        public Dictionary<IAssembly, NameRule[]> AssemblyNameRuleCache
+        {
+            get;
+        }
+
+        public Dictionary<ITypeDefinition, NameRule[]> ClassNameRuleCache
+        {
+            get;
+        }
+
+        public Dictionary<IAssembly, CompilerRule[]> AssemblyCompilerRuleCache
+        {
+            get;
+        }
+
+        public Dictionary<ITypeDefinition, CompilerRule[]> ClassCompilerRuleCache
+        {
+            get;
+        }
+
+        public string SourceFileName
+        {
+            get;
+            set;
+        }
+
+        public int SourceFileNameIndex
+        {
+            get;
+            set;
+        }
+
+        public string LastSequencePoint
+        {
+            get;
+            set;
+        }
+
+        public bool InConstructor
+        {
+            get; set;
+        }
+
+        public CompilerRule Rules
+        {
+            get; set;
+        }
+
+        public bool HasModules
+        {
+            get; set;
+        }
+
+        public string TemplateModifier
+        {
+            get; set;
+        }
+
+        public int WrapRestCounter
+        {
+            get; set;
         }
     }
 }

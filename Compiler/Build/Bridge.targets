@@ -14,9 +14,9 @@
   <Target Name="AfterBuild">
     <GenerateScript
       OutputPath="$(OutputPath)"
-	  Configuration="$(Configuration)"
+	    Configuration="$(Configuration)"
       Assembly="@(IntermediateAssembly)"
-	  AssembliesPath="$(MSBuildThisFileDirectory)"
+	    AssembliesPath="$(MSBuildThisFileDirectory)"
       ProjectPath="$(MSBuildProjectFullPath)">
     </GenerateScript>
   </Target>

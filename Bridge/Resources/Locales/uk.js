@@ -1,9 +1,9 @@
-﻿Bridge.merge(new Bridge.CultureInfo("uk", true), {
+Bridge.merge(new System.Globalization.CultureInfo("uk", true), {
     englishName: "Ukrainian",
     nativeName: "українська",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
@@ -20,8 +20,8 @@
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ",",
         currencyGroupSeparator: " ",
-        currencyNegativePattern: 5,
-        currencyPositivePattern: 1,
+        currencyNegativePattern: 8,
+        currencyPositivePattern: 3,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: ",",
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["Нд","Пн","Вт","Ср","Чт","Пт","Сб"],
         abbreviatedMonthGenitiveNames: ["січ","лют","бер","кві","тра","чер","лип","сер","вер","жов","лис","гру",""],
         abbreviatedMonthNames: ["Січ","Лют","Бер","Кві","Тра","Чер","Лип","Сер","Вер","Жов","Лис","Гру",""],
@@ -42,7 +42,7 @@
         longTimePattern: "H:mm:ss",
         monthDayPattern: "d MMMM",
         monthGenitiveNames: ["січня","лютого","березня","квітня","травня","червня","липня","серпня","вересня","жовтня","листопада","грудня",""],
-        monthNames: ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень",""],
+        monthNames: ["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень",""],
         pmDesignator: "",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
         shortDatePattern: "dd.MM.yyyy",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy' р.'",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1251,
+        CultureName: "uk-UA",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 1058,
+        listSeparator: ";",
+        MacCodePage: 10017,
+        OEMCodePage: 866,
+        IsReadOnly: true
     })
 });

@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ta-LK", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ta-LK", true), {
     englishName: "Tamil (Sri Lanka)",
     nativeName: "தமிழ் (இலங்கை)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "(-) முடிவிலி",
-        positiveInfinitySymbol: "(+) முடிவிலி",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3,2],
         percentDecimalDigits: 2,
@@ -15,12 +15,12 @@
         percentGroupSeparator: ",",
         percentPositivePattern: 1,
         percentNegativePattern: 1,
-        currencySymbol: "Rs",
+        currencySymbol: "Rs.",
         currencyGroupSizes: [3,2],
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: ".",
         currencyGroupSeparator: ",",
-        currencyNegativePattern: 12,
+        currencyNegativePattern: 9,
         currencyPositivePattern: 2,
         numberGroupSizes: [3,2],
         numberDecimalDigits: 2,
@@ -29,23 +29,23 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
-        abbreviatedDayNames: ["ஞாயிறு","திங்கள்","செவ்வாய்","புதன்","வியாழன்","வெள்ளி","சனி"],
-        abbreviatedMonthGenitiveNames: ["ஜன.","பெப்.","மார்.","ஏப்","மே","ஜூன்","ஜூலை","ஓக.","செப்.","ஒக்.","நவ.","டிச.",""],
-        abbreviatedMonthNames: ["ஜன.","பெப்.","மார்.","ஏப்","மே","ஜூன்","ஜூலை","ஓக.","செப்.","ஒக்.","நவ.","டிச.",""],
-        amDesignator: "காலை",
-        dateSeparator: "-",
-        dayNames: ["ஞாயிற்றுக்கிழமை","திங்கட்கிழமை","செவ்வாய்க்கிழமை","புதன்கிழமை","வியாழக்கிழமை","வெள்ளிக்கிழமை","சனிக்கிழமை"],
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
+        abbreviatedDayNames: ["ஞாயி.","திங்.","செவ்.","புத.","வியா.","வெள்.","சனி"],
+        abbreviatedMonthGenitiveNames: ["ஜன.","பிப்.","மார்.","ஏப்.","மே","ஜூன்","ஜூலை","ஆக.","செப்.","அக்.","நவ.","டிச.",""],
+        abbreviatedMonthNames: ["ஜன.","பிப்.","மார்.","ஏப்.","மே","ஜூன்","ஜூலை","ஆக.","செப்.","அக்.","நவ.","டிச.",""],
+        amDesignator: "முற்பகல்",
+        dateSeparator: "/",
+        dayNames: ["ஞாயிறு","திங்கள்","செவ்வாய்","புதன்","வியாழன்","வெள்ளி","சனி"],
         firstDayOfWeek: 1,
-        fullDateTimePattern: "dd MMMM yyyy HH:mm:ss",
-        longDatePattern: "dd MMMM yyyy",
+        fullDateTimePattern: "dddd, d MMMM, yyyy HH:mm:ss",
+        longDatePattern: "dddd, d MMMM, yyyy",
         longTimePattern: "HH:mm:ss",
         monthDayPattern: "d MMMM",
-        monthGenitiveNames: ["ஜனவரி","பெப்ரவரி","மார்ச்","ஏப்ரல்","மே","ஜூன்","ஜூலை","ஓகஸ்ட்","செப்ரம்பர்","ஒக்ரோபர்","நவம்பர்","டிசம்பர்",""],
-        monthNames: ["ஜனவரி","பெப்ரவரி","மார்ச்","ஏப்ரல்","மே","ஜூன்","ஜூலை","ஓகஸ்ட்","செப்ரம்பர்","ஒக்ரோபர்","நவம்பர்","டிசம்பர்",""],
-        pmDesignator: "மாலை",
+        monthGenitiveNames: ["ஜனவரி","பிப்ரவரி","மார்ச்","ஏப்ரல்","மே","ஜூன்","ஜூலை","ஆகஸ்ட்","செப்டம்பர்","அக்டோபர்","நவம்பர்","டிசம்பர்",""],
+        monthNames: ["ஜனவரி","பிப்ரவரி","மார்ச்","ஏப்ரல்","மே","ஜூன்","ஜூலை","ஆகஸ்ட்","செப்டம்பர்","அக்டோபர்","நவம்பர்","டிசம்பர்",""],
+        pmDesignator: "பிற்பகல்",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-        shortDatePattern: "dd-MM-yyyy",
+        shortDatePattern: "d/M/yyyy",
         shortestDayNames: ["ஞா","தி","செ","பு","வி","வெ","ச"],
         shortTimePattern: "HH:mm",
         sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 0,
+        CultureName: "ta-LK",
+        EBCDICCodePage: 500,
+        IsRightToLeft: false,
+        LCID: 2121,
+        listSeparator: ";",
+        MacCodePage: 2,
+        OEMCodePage: 1,
+        IsReadOnly: true
     })
 });

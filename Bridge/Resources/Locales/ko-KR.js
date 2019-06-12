@@ -1,20 +1,20 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ko-KR", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ko-KR", true), {
     englishName: "Korean (Korea)",
     nativeName: "한국어(대한민국)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
-        positiveInfinitySymbol: "+∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: ".",
         percentGroupSeparator: ",",
-        percentPositivePattern: 0,
-        percentNegativePattern: 0,
+        percentPositivePattern: 1,
+        percentNegativePattern: 1,
         currencySymbol: "₩",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 0,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["일","월","화","수","목","금","토"],
         abbreviatedMonthGenitiveNames: ["1","2","3","4","5","6","7","8","9","10","11","12",""],
         abbreviatedMonthNames: ["1","2","3","4","5","6","7","8","9","10","11","12",""],
@@ -40,7 +40,7 @@
         fullDateTimePattern: "yyyy'년' M'월' d'일' dddd tt h:mm:ss",
         longDatePattern: "yyyy'년' M'월' d'일' dddd",
         longTimePattern: "tt h:mm:ss",
-        monthDayPattern: "M'월' d'일'",
+        monthDayPattern: "M월 d일",
         monthGenitiveNames: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월",""],
         monthNames: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월",""],
         pmDesignator: "오후",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "yyyy'년' M'월'",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 949,
+        CultureName: "ko-KR",
+        EBCDICCodePage: 20833,
+        IsRightToLeft: false,
+        LCID: 1042,
+        listSeparator: ",",
+        MacCodePage: 10003,
+        OEMCodePage: 949,
+        IsReadOnly: true
     })
 });

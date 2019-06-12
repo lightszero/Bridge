@@ -1,13 +1,13 @@
-﻿Bridge.merge(new Bridge.CultureInfo("ja", true), {
+Bridge.merge(new System.Globalization.CultureInfo("ja", true), {
     englishName: "Japanese",
     nativeName: "日本語",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "NaN (非数値)",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "NaN",
         negativeSign: "-",
         positiveSign: "+",
         negativeInfinitySymbol: "-∞",
-        positiveInfinitySymbol: "+∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
@@ -29,7 +29,7 @@
         numberNegativePattern: 1
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["日","月","火","水","木","金","土"],
         abbreviatedMonthGenitiveNames: ["1","2","3","4","5","6","7","8","9","10","11","12",""],
         abbreviatedMonthNames: ["1","2","3","4","5","6","7","8","9","10","11","12",""],
@@ -40,7 +40,7 @@
         fullDateTimePattern: "yyyy'年'M'月'd'日' H:mm:ss",
         longDatePattern: "yyyy'年'M'月'd'日'",
         longTimePattern: "H:mm:ss",
-        monthDayPattern: "M'月'd'日'",
+        monthDayPattern: "M月d日",
         monthGenitiveNames: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月",""],
         monthNames: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月",""],
         pmDesignator: "午後",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "yyyy'年'M'月'",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 932,
+        CultureName: "ja-JP",
+        EBCDICCodePage: 20290,
+        IsRightToLeft: false,
+        LCID: 1041,
+        listSeparator: ",",
+        MacCodePage: 10001,
+        OEMCodePage: 932,
+        IsReadOnly: true
     })
 });

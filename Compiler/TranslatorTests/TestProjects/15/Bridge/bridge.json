@@ -1,6 +1,11 @@
 {
   "output": "Bridge\\output",
-  "cleanOutputFolderBeforeBuild": true,
+  "cleanOutputFolderBeforeBuildPattern": "*.*",
   "fileName": "code.js",
-  "outputBy":  "project"
+  "preserveMemberCase": "true",
+  "outputFormatting": "Formatted",
+  "logging": {
+    "level":  "None"
+  },
+  "report": true
 }

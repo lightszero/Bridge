@@ -1,11 +1,13 @@
 using Bridge.Contract;
+using Bridge.Contract.Constants;
 using ICSharpCode.NRefactory.CSharp;
 using Object.Net.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Bridge.Translator.TypeScript
 {
-    public class MethodsBlock : AbstractEmitterBlock
+    public class MethodsBlock : TypeScriptBlock
     {
         public MethodsBlock(IEmitter emitter, ITypeInfo typeInfo, bool staticBlock)
             : base(emitter, typeInfo.TypeDeclaration)
@@ -42,9 +44,15 @@ namespace Bridge.Translator.TypeScript
         protected virtual void EmitMethods(Dictionary<string, List<MethodDeclaration>> methods, Dictionary<string, List<EntityDeclaration>> properties, Dictionary<OperatorType, List<OperatorDeclaration>> operators)
         {
             var names = new List<string>(properties.Keys);
+            var fields = this.StaticBlock ? this.TypeInfo.StaticConfig.Fields : this.TypeInfo.InstanceConfig.Fields;
 
             foreach (var name in names)
             {
+                if (fields.Any(f => f.Name == name))
+                {
+                    continue;
+                }
+
                 var props = properties[name];
 
                 foreach (var prop in props)
@@ -72,11 +80,21 @@ namespace Bridge.Translator.TypeScript
 
                 foreach (var method in group)
                 {
-                    if (!method.Body.IsNull || this.Emitter.TypeInfo.TypeDeclaration.ClassType == ClassType.Interface)
+                    if ((!method.Body.IsNull || this.Emitter.GetScript(method) != null) || this.Emitter.TypeInfo.TypeDeclaration.ClassType == ClassType.Interface)
                     {
                         new MethodBlock(this.Emitter, method).Emit();
                     }
                 }
+            }
+
+            var abstractMethods = this.TypeInfo.TypeDeclaration.Members.Where(m =>
+            {
+                return m is MethodDeclaration && m.HasModifier(Modifiers.Abstract) && !(this.StaticBlock ^ m.HasModifier(Modifiers.Static));
+            }).Cast<MethodDeclaration>();
+
+            foreach (var method in abstractMethods)
+            {
+                new MethodBlock(this.Emitter, method).Emit();
             }
 
             if (operators != null)
@@ -106,16 +124,11 @@ namespace Bridge.Translator.TypeScript
         protected virtual void EmitStructMethods()
         {
             var typeDef = this.Emitter.GetTypeDefinition();
-            string structName = this.Emitter.Validator.GetCustomTypeName(typeDef, this.Emitter);
-
-            if (structName.IsEmpty())
-            {
-                structName = BridgeTypes.ToJsName(this.TypeInfo.Type, this.Emitter);
-            }
+            string structName = BridgeTypes.ToTypeScriptName(this.TypeInfo.Type, this.Emitter);
 
             if (this.TypeInfo.InstanceConfig.Fields.Count == 0)
             {
-                this.Write("$clone(to");
+                this.Write(JS.Funcs.CLONE + "(to");
                 this.WriteColon();
                 this.Write(structName);
                 this.WriteCloseParentheses();
@@ -126,28 +139,28 @@ namespace Bridge.Translator.TypeScript
                 return;
             }
 
-            if (!this.TypeInfo.InstanceMethods.ContainsKey("GetHashCode"))
+            if (!this.TypeInfo.InstanceMethods.ContainsKey(CS.Methods.GETHASHCODE))
             {
-                this.Write("getHashCode()");
+                this.Write(JS.Funcs.GETHASHCODE + "()");
                 this.WriteColon();
-                this.Write(structName);
+                this.Write("number");
                 this.WriteSemiColon();
                 this.WriteNewLine();
             }
 
-            if (!this.TypeInfo.InstanceMethods.ContainsKey("Equals"))
+            if (!this.TypeInfo.InstanceMethods.ContainsKey(CS.Methods.EQUALS))
             {
-                this.Write("equals(o");
+                this.Write(JS.Funcs.EQUALS + "(o");
                 this.WriteColon();
                 this.Write(structName);
                 this.WriteCloseParentheses();
                 this.WriteColon();
-                this.Write("Boolean");
+                this.Write("boolean");
                 this.WriteSemiColon();
                 this.WriteNewLine();
             }
 
-            this.Write("$clone(to");
+            this.Write(JS.Funcs.CLONE + "(to");
             this.WriteColon();
             this.Write(structName);
             this.WriteCloseParentheses();

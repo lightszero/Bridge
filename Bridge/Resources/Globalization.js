@@ -1,8 +1,11 @@
-    /// <reference path="Init.js" />
-    // @source Globalization.js
+    Bridge.define("System.Globalization.DateTimeFormatInfo", {
+        inherits: [System.IFormatProvider, System.ICloneable],
 
-    Bridge.define("Bridge.DateTimeFormatInfo", {
-        inherits: [Bridge.IFormatProvider, Bridge.ICloneable],
+        config: {
+            alias: [
+                "getFormat", "System$IFormatProvider$getFormat"
+            ]
+        },
 
         statics: {
             $allStandardFormats: {
@@ -28,8 +31,8 @@
                 "Y": "yearMonthPattern"
             },
 
-            constructor: function () {
-                this.invariantInfo = Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+            ctor: function () {
+                this.invariantInfo = Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
                     abbreviatedDayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
                     abbreviatedMonthGenitiveNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", ""],
                     abbreviatedMonthNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", ""],
@@ -37,30 +40,30 @@
                     dateSeparator: "/",
                     dayNames: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
                     firstDayOfWeek: 0,
-                    fullDateTimePattern: "dddd, MMMM dd, yyyy h:mm:ss tt",
-                    longDatePattern: "dddd, MMMM dd, yyyy",
-                    longTimePattern: "h:mm:ss tt",
+                    fullDateTimePattern: "dddd, dd MMMM yyyy HH:mm:ss",
+                    longDatePattern: "dddd, dd MMMM yyyy",
+                    longTimePattern: "HH:mm:ss",
                     monthDayPattern: "MMMM dd",
                     monthGenitiveNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", ""],
                     monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", ""],
                     pmDesignator: "PM",
                     rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
-                    shortDatePattern: "M/d/yyyy",
+                    shortDatePattern: "MM/dd/yyyy",
                     shortestDayNames: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
-                    shortTimePattern: "h:mm tt",
+                    shortTimePattern: "HH:mm",
                     sortableDateTimePattern: "yyyy'-'MM'-'dd'T'HH':'mm':'ss",
                     sortableDateTimePattern1: "yyyy'-'MM'-'dd",
                     timeSeparator: ":",
                     universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
-                    yearMonthPattern: "MMMM, yyyy",
-                    roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+                    yearMonthPattern: "yyyy MMMM",
+                    roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
                 });
             }
         },
 
         getFormat: function (type) {
             switch (type) {
-                case Bridge.DateTimeFormatInfo:
+                case System.Globalization.DateTimeFormatInfo:
                     return this;
                 default:
                     return null;
@@ -69,7 +72,7 @@
 
         getAbbreviatedDayName: function (dayofweek) {
             if (dayofweek < 0 || dayofweek > 6) {
-                throw new Bridge.ArgumentOutOfRangeException("dayofweek");
+                throw new System.ArgumentOutOfRangeException$ctor1("dayofweek");
             }
 
             return this.abbreviatedDayNames[dayofweek];
@@ -77,14 +80,14 @@
 
         getAbbreviatedMonthName: function (month) {
             if (month < 1 || month > 13) {
-                throw new Bridge.ArgumentOutOfRangeException("month");
+                throw new System.ArgumentOutOfRangeException.$ctor1("month");
             }
 
             return this.abbreviatedMonthNames[month - 1];
         },
 
         getAllDateTimePatterns: function (format, returnNull) {
-            var f = Bridge.DateTimeFormatInfo.$allStandardFormats,
+            var f = System.Globalization.DateTimeFormatInfo.$allStandardFormats,
                 formats,
                 names,
                 pattern,
@@ -97,10 +100,10 @@
                         return null;
                     }
 
-                    throw new Bridge.ArgumentException(null, "format");
+                    throw new System.ArgumentException.$ctor3("", "format");
                 }
 
-                formats = { };
+                formats = {};
                 formats[format] = f[format];
             } else {
                 formats = f;
@@ -122,7 +125,7 @@
 
         getDayName: function (dayofweek) {
             if (dayofweek < 0 || dayofweek > 6) {
-                throw new Bridge.ArgumentOutOfRangeException("dayofweek");
+                throw new System.ArgumentOutOfRangeException.$ctor1("dayofweek");
             }
 
             return this.dayNames[dayofweek];
@@ -130,22 +133,22 @@
 
         getMonthName: function (month) {
             if (month < 1 || month > 13) {
-                throw new Bridge.ArgumentOutOfRangeException("month");
+                throw new System.ArgumentOutOfRangeException.$ctor1("month");
             }
 
-            return this.monthNames[month-1];
+            return this.monthNames[month - 1];
         },
 
         getShortestDayName: function (dayOfWeek) {
             if (dayOfWeek < 0 || dayOfWeek > 6) {
-                throw new Bridge.ArgumentOutOfRangeException("dayOfWeek");
+                throw new System.ArgumentOutOfRangeException.$ctor1("dayOfWeek");
             }
 
             return this.shortestDayNames[dayOfWeek];
         },
 
         clone: function () {
-            return Bridge.copy(new Bridge.DateTimeFormatInfo(), this, [
+            return Bridge.copy(new System.Globalization.DateTimeFormatInfo(), this, [
                 "abbreviatedDayNames",
                 "abbreviatedMonthGenitiveNames",
                 "abbreviatedMonthNames",
@@ -173,18 +176,24 @@
         }
     });
 
-    Bridge.define("Bridge.NumberFormatInfo", {
-        inherits: [Bridge.IFormatProvider, Bridge.ICloneable],
+    Bridge.define("System.Globalization.NumberFormatInfo", {
+        inherits: [System.IFormatProvider, System.ICloneable],
+
+        config: {
+            alias: [
+                "getFormat", "System$IFormatProvider$getFormat"
+            ]
+        },
 
         statics: {
-            constructor: function () {
-                this.numberNegativePatterns =  ["(n)", "-n", "- n", "n-", "n -"];
+            ctor: function () {
+                this.numberNegativePatterns = ["(n)", "-n", "- n", "n-", "n -"];
                 this.currencyNegativePatterns = ["($n)", "-$n", "$-n", "$n-", "(n$)", "-n$", "n-$", "n$-", "-n $", "-$ n", "n $-", "$ n-", "$ -n", "n- $", "($ n)", "(n $)"];
                 this.currencyPositivePatterns = ["$n", "n$", "$ n", "n $"];
                 this.percentNegativePatterns = ["-n %", "-n%", "-%n", "%-n", "%n-", "n-%", "n%-", "-% n", "n %-", "% n-", "% -n", "n- %"];
                 this.percentPositivePatterns = ["n %", "n%", "%n", "% n"];
 
-                this.invariantInfo = Bridge.merge(new Bridge.NumberFormatInfo(), {
+                this.invariantInfo = Bridge.merge(new System.Globalization.NumberFormatInfo(), {
                     nanSymbol: "NaN",
                     negativeSign: "-",
                     positiveSign: "+",
@@ -218,7 +227,7 @@
 
         getFormat: function (type) {
             switch (type) {
-                case Bridge.NumberFormatInfo:
+                case System.Globalization.NumberFormatInfo:
                     return this;
                 default:
                     return null;
@@ -226,7 +235,7 @@
         },
 
         clone: function () {
-            return Bridge.copy(new Bridge.NumberFormatInfo(), this, [
+            return Bridge.copy(new System.Globalization.NumberFormatInfo(), this, [
                 "nanSymbol",
                 "negativeSign",
                 "positiveSign",
@@ -255,21 +264,40 @@
         }
     });
 
-    Bridge.define("Bridge.CultureInfo", {
-        inherits: [Bridge.IFormatProvider, Bridge.ICloneable],
+    Bridge.define("System.Globalization.CultureInfo", {
+        inherits: [System.IFormatProvider, System.ICloneable],
+
+        config: {
+            alias: [
+                "getFormat", "System$IFormatProvider$getFormat"
+            ]
+        },
+
+        $entryPoint: true,
 
         statics: {
-            constructor: function () {
+            ctor: function () {
                 this.cultures = this.cultures || {};
 
-                this.invariantCulture = Bridge.merge(new Bridge.CultureInfo("iv", true), {
+                this.invariantCulture = Bridge.merge(new System.Globalization.CultureInfo("iv", true), {
                     englishName: "Invariant Language (Invariant Country)",
                     nativeName: "Invariant Language (Invariant Country)",
-                    numberFormat: Bridge.NumberFormatInfo.invariantInfo,
-                    dateTimeFormat: Bridge.DateTimeFormatInfo.invariantInfo
+                    numberFormat: System.Globalization.NumberFormatInfo.invariantInfo,
+                    dateTimeFormat: System.Globalization.DateTimeFormatInfo.invariantInfo,
+                    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+                        ANSICodePage: 1252,
+                        CultureName: "",
+                        EBCDICCodePage: 37,
+                        listSeparator: ",",
+                        IsRightToLeft: false,
+                        LCID: 127,
+                        MacCodePage: 10000,
+                        OEMCodePage: 437,
+                        IsReadOnly: true
+                    })
                 });
 
-                this.setCurrentCulture(Bridge.CultureInfo.invariantCulture);
+                this.setCurrentCulture(System.Globalization.CultureInfo.invariantCulture);
             },
 
             getCurrentCulture: function () {
@@ -279,16 +307,24 @@
             setCurrentCulture: function (culture) {
                 this.currentCulture = culture;
 
-                Bridge.DateTimeFormatInfo.currentInfo = culture.dateTimeFormat;
-                Bridge.NumberFormatInfo.currentInfo = culture.numberFormat;
+                System.Globalization.DateTimeFormatInfo.currentInfo = culture.dateTimeFormat;
+                System.Globalization.NumberFormatInfo.currentInfo = culture.numberFormat;
             },
 
             getCultureInfo: function (name) {
-                if (!name) {
-                    throw new Bridge.ArgumentNullException("name");
+                if (name == null) {
+                    throw new System.ArgumentNullException.$ctor1("name");
+                } else if (name === "") {
+                    return System.Globalization.CultureInfo.invariantCulture;
                 }
 
-                return this.cultures[name];
+                var c = this.cultures[name];
+
+                if (c == null) {
+                    throw new System.Globalization.CultureNotFoundException.$ctor5("name", name);
+                }
+
+                return c;
             },
 
             getCultures: function () {
@@ -304,34 +340,50 @@
             }
         },
 
-        constructor: function (name, create) {
+        ctor: function (name, create) {
+            this.$initialize();
             this.name = name;
 
-            if (!Bridge.CultureInfo.cultures) {
-                Bridge.CultureInfo.cultures = {};
+            if (!System.Globalization.CultureInfo.cultures) {
+                System.Globalization.CultureInfo.cultures = {};
             }
 
-            if (Bridge.CultureInfo.cultures[name]) {
-                Bridge.copy(this, Bridge.CultureInfo.cultures[name], [
-                    "englishName",
-                    "nativeName",
-                    "numberFormat",
-                    "dateTimeFormat"
-                ]);
+            if (name == null) {
+                throw new System.ArgumentNullException.$ctor1("name");
+            }
+
+            var c;
+
+            if (name === "") {
+                c =  System.Globalization.CultureInfo.invariantCulture;
             } else {
+                c = System.Globalization.CultureInfo.cultures[name];
+            }
+
+            if (c == null) {
                 if (!create) {
-                    throw new Bridge.CultureNotFoundException("name", name);
+                    throw new System.Globalization.CultureNotFoundException.$ctor5("name", name);
                 }
 
-                Bridge.CultureInfo.cultures[name] = this;
+                System.Globalization.CultureInfo.cultures[name] = this;
+            } else {
+                Bridge.copy(this, c, [
+                            "englishName",
+                            "nativeName",
+                            "numberFormat",
+                            "dateTimeFormat",
+                            "TextInfo"
+                ]);
+
+                this.TextInfo.IsReadOnly = false;
             }
         },
 
-        getFormat:  function (type) {
+        getFormat: function (type) {
             switch (type) {
-                case Bridge.NumberFormatInfo:
+                case System.Globalization.NumberFormatInfo:
                     return this.numberFormat;
-                case Bridge.DateTimeFormatInfo:
+                case System.Globalization.DateTimeFormatInfo:
                     return this.dateTimeFormat;
                 default:
                     return null;
@@ -339,6 +391,6 @@
         },
 
         clone: function () {
-            return new Bridge.CultureInfo(this.name);
+            return new System.Globalization.CultureInfo(this.name);
         }
     });

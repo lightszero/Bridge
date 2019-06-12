@@ -1,7 +1,6 @@
 using Bridge.Contract;
 using ICSharpCode.NRefactory.CSharp;
 using Mono.Cecil;
-using System;
 using System.Collections.Generic;
 
 namespace Bridge.Translator
@@ -20,7 +19,7 @@ namespace Bridge.Translator
             set;
         }
 
-        public Action<string, string> Log
+        public ILogger Log
         {
             get;
             set;
@@ -50,6 +49,18 @@ namespace Bridge.Translator
             protected set;
         }
 
+        public ProjectProperties ProjectProperties
+        {
+            get;
+            set;
+        }
+
+        public string DefaultNamespace
+        {
+            get;
+            set;
+        }
+
         public string BuildArguments
         {
             get;
@@ -76,7 +87,7 @@ namespace Bridge.Translator
             protected set;
         }
 
-        public IList<ParsedSourceFile> ParsedSourceFiles
+        public ParsedSourceFile[] ParsedSourceFiles
         {
             get;
             protected set;
@@ -114,10 +125,16 @@ namespace Bridge.Translator
             protected set;
         }
 
-        public Dictionary<string, string> Outputs
+        public TranslatorOutput Outputs
         {
             get;
             protected set;
+        }
+
+        public IEmitterOutputs EmitterOutputs
+        {
+            get;
+            set;
         }
 
         public IPlugins Plugins
@@ -156,12 +173,6 @@ namespace Bridge.Translator
             set;
         }
 
-        public string Configuration
-        {
-            get;
-            set;
-        }
-
         public List<string> DefineConstants
         {
             get;
@@ -179,5 +190,31 @@ namespace Bridge.Translator
             get;
             set;
         }
+
+        /// <summary>
+        /// Indicates whether strict mode will be added to generated script files
+        /// </summary>
+        public bool NoStrictMode
+        {
+            get;
+            set;
+        }
+
+        public string[] SkipPluginAssemblies
+        {
+            get;
+            set;
+        }
+
+        public OverflowMode? OverflowMode
+        {
+            get;
+            set;
+        }
+
+        public HashSet<string> ExtractedScripts
+        {
+            get; set;
+        } = new HashSet<string>();
     }
 }

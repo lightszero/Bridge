@@ -1,5 +1,6 @@
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.Semantics;
+using ICSharpCode.NRefactory.TypeSystem;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -37,34 +38,47 @@ namespace Bridge.Contract
             set;
         }
 
-        public string GetName(IEmitter emitter)
+        public IMember InterfaceMember
+        {
+            get; set;
+        }
+
+        public IMember DerivedMember
+        {
+            get; set;
+        }
+
+        public bool IsPropertyInitializer
+        {
+            get; set;
+        }
+
+        public string GetName(IEmitter emitter, bool withoutTypeParams = false)
         {
             string fieldName = this.Name;
 
             if (this.VarInitializer != null)
             {
                 var rr = emitter.Resolver.ResolveNode(this.VarInitializer, emitter) as MemberResolveResult;
-                fieldName = OverloadsCollection.Create(emitter, rr.Member).GetOverloadName();
+                fieldName = OverloadsCollection.Create(emitter, rr.Member).GetOverloadName(false, null, withoutTypeParams);
             }
             else if (this.Entity is PropertyDeclaration)
             {
-                fieldName = OverloadsCollection.Create(emitter, (PropertyDeclaration)this.Entity).GetOverloadName();
+                fieldName = OverloadsCollection.Create(emitter, (PropertyDeclaration)this.Entity, isField: true).GetOverloadName(false, null, withoutTypeParams);
             }
             else
             {
-                fieldName = emitter.AssemblyInfo.PreserveMemberCase ? fieldName : TypeConfigItem.ToLowerCamelCase(fieldName);
-
-                if (Helpers.IsReservedWord(fieldName))
+                if (this.Entity != null)
                 {
-                    fieldName = Helpers.ChangeReservedWord(fieldName);
+                    var rr = emitter.Resolver.ResolveNode(this.Entity, emitter) as MemberResolveResult;
+
+                    if (rr != null)
+                    {
+                        fieldName = OverloadsCollection.Create(emitter, rr.Member).GetOverloadName(false, null, withoutTypeParams);
+                    }
                 }
             }
             return fieldName;
-        }
-
-        public static string ToLowerCamelCase(string text)
-        {
-            return text.Substring(0, 1).ToLower(CultureInfo.InvariantCulture) + text.Substring(1);
         }
     }
 
@@ -76,6 +90,7 @@ namespace Bridge.Contract
             this.Events = new List<TypeConfigItem>();
             this.Properties = new List<TypeConfigItem>();
             this.Alias = new List<TypeConfigItem>();
+            this.AutoPropertyInitializers = new List<TypeConfigItem>();
         }
 
         public bool HasMembers
@@ -113,6 +128,12 @@ namespace Bridge.Contract
         }
 
         public List<TypeConfigItem> Alias
+        {
+            get;
+            set;
+        }
+
+        public List<TypeConfigItem> AutoPropertyInitializers
         {
             get;
             set;

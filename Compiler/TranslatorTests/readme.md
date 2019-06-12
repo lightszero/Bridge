@@ -1,4 +1,12 @@
-﻿﻿These server-side NUnit tests are to check transpilation process from end to end and can be considered as integration tests as well.
+﻿**Please note**
+The test project should have a dependency on **Bridge.PostBuild** project (the project that triggers Bridge Core JavaScript generation).
+The dependency can be set in **Solution Properties** -> **Project Dependencies**.
+This is required in order to get NUnit Test Adapter not triggering **Bridge** and **Bridge.Html5** projects compilation
+afterwards or instead of **Bridge.PostBuild** project.
+
+
+
+﻿These server-side NUnit tests are to check transpilation process from end to end and can be considered as integration tests as well.
 
 There is `NUnit test project` located at 
   https://github.com/bridgedotnet/Bridge/blob/master/Compiler/TranslatorTests/Bridge.Translator.Tests.csproj
@@ -12,7 +20,7 @@ A test fails if any descrepancies found.
 
 **Working with server-side NUnit tests**
 
- 1) Install a NUnit test runner. For example,  NUnit Test Adapter for Visual Studio https://visualstudiogallery.msdn.microsoft.com/6ab922d0-21c0-4f06-ab5f-4ecd1fe7175d
+ 1) Install [NUnit3 Test Adapter](https://visualstudiogallery.msdn.microsoft.com/0da0f6bd-9bb6-4ae3-87a8-537788622f2d)  
  2) Run the tests in Visual Studio `Test Explorer` window.
 
 Basically, there are two reasons why a test can fail:    
@@ -20,7 +28,7 @@ Basically, there are two reasons why a test can fail:
        - See the test error description to check the difference between actual and expected outputs;
        - Copy actual output from *Bridge\output* folder into *Bridge\reference* folder and use any Diff tool to check all the differences. Please note there is a utility located at https://github.com/bridgedotnet/Bridge/blob/master/Compiler/TranslatorTests/CopyOutputToReference/CopyOutputToReference.sln
          The utility copies `actual` output into corresponding `reference` folder for each Bridge test project (do not forget to run test before running the copy utility to generate output before copying).         
-    2) Corresponding `Bridge test project` cannot be compiled and (or) transpiled:
+    2) Corresponding `Bridge test project` cannot be compiled neither C# compiler nor Bridge compiler:
        - open the corresponding Bridge test *test.csproj* project file in Visual Studio and rebuild it to see the underlying errors
 
 
@@ -53,8 +61,8 @@ Basically, there are two reasons why a test can fail:
   - Run all tests locally in Visual Studio using NUnit Test Adapter;
   - Push the changes.
   
-**Troubleshooting on CI server**
-1) Test results are on the build TESTS page. For example, https://ci.appveyor.com/project/ObjectDotNet/builder/build/tests
-   It contains both js client tests and cs server tests
+**Troubleshooting on CI server**  
+1) Test results are on the build TESTS page. For example, https://ci.appveyor.com/project/ObjectDotNet/builder/build/tests  
+   It contains both js client tests and cs server tests  
 2) There are logs accessible on the build ARTIFACTS page (three msbuild log files and one test log file `Bridge.Translator.Tests.run.log`)
    For example, https://ci.appveyor.com/project/ObjectDotNet/builder/build/artifacts

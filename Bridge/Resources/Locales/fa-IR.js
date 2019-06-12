@@ -1,27 +1,27 @@
-﻿Bridge.merge(new Bridge.CultureInfo("fa-IR", true), {
-    englishName: "Persian",
+Bridge.merge(new System.Globalization.CultureInfo("fa-IR", true), {
+    englishName: "Persian (Iran)",
     nativeName: "فارسى (ایران)",
 
-    numberFormat: Bridge.merge(new Bridge.NumberFormatInfo(), {
-        naNSymbol: "مبهم",
+    numberFormat: Bridge.merge(new System.Globalization.NumberFormatInfo(), {
+        nanSymbol: "ناعدد",
         negativeSign: "-",
         positiveSign: "+",
-        negativeInfinitySymbol: "منهای بی نهایت",
-        positiveInfinitySymbol: "بی نهایت",
+        negativeInfinitySymbol: "-∞",
+        positiveInfinitySymbol: "∞",
         percentSymbol: "%",
         percentGroupSizes: [3],
         percentDecimalDigits: 2,
         percentDecimalSeparator: "/",
         percentGroupSeparator: ",",
         percentPositivePattern: 0,
-        percentNegativePattern: 0,
+        percentNegativePattern: 11,
         currencySymbol: "ريال",
         currencyGroupSizes: [3],
         currencyDecimalDigits: 2,
         currencyDecimalSeparator: "/",
         currencyGroupSeparator: ",",
-        currencyNegativePattern: 3,
-        currencyPositivePattern: 0,
+        currencyNegativePattern: 6,
+        currencyPositivePattern: 1,
         numberGroupSizes: [3],
         numberDecimalDigits: 2,
         numberDecimalSeparator: "/",
@@ -29,20 +29,20 @@
         numberNegativePattern: 3
     }),
 
-    dateTimeFormat: Bridge.merge(new Bridge.DateTimeFormatInfo(), {
+    dateTimeFormat: Bridge.merge(new System.Globalization.DateTimeFormatInfo(), {
         abbreviatedDayNames: ["يكشنبه","دوشنبه","سه شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"],
-        abbreviatedMonthGenitiveNames: ["ژانويه","فوريه","مارس","آوريل","مه","ژوئن","ژوئيه","اوت","سپتامبر","اُكتبر","نوامبر","دسامبر",""],
-        abbreviatedMonthNames: ["ژانويه","فوريه","مارس","آوريل","مه","ژوئن","ژوئيه","اوت","سپتامبر","اُكتبر","نوامبر","دسامبر",""],
+        abbreviatedMonthGenitiveNames: ["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند",""],
+        abbreviatedMonthNames: ["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند",""],
         amDesignator: "ق.ظ",
         dateSeparator: "/",
         dayNames: ["يكشنبه","دوشنبه","سه شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"],
         firstDayOfWeek: 6,
-        fullDateTimePattern: "dddd, dd MMMM yyyy hh:mm:ss tt",
-        longDatePattern: "dddd, dd MMMM yyyy",
+        fullDateTimePattern: "dddd, d MMMM yyyy hh:mm:ss tt",
+        longDatePattern: "dddd, d MMMM yyyy",
         longTimePattern: "hh:mm:ss tt",
         monthDayPattern: "d MMMM",
-        monthGenitiveNames: ["ژانويه","فوريه","مارس","آوريل","مه","ژوئن","ژوئيه","اوت","سپتامبر","اُكتبر","نوامبر","دسامبر",""],
-        monthNames: ["ژانويه","فوريه","مارس","آوريل","مه","ژوئن","ژوئيه","اوت","سپتامبر","اُكتبر","نوامبر","دسامبر",""],
+        monthGenitiveNames: ["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند",""],
+        monthNames: ["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند",""],
         pmDesignator: "ب.ظ",
         rfc1123: "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'",
         shortDatePattern: "dd/MM/yyyy",
@@ -53,6 +53,18 @@
         timeSeparator: ":",
         universalSortableDateTimePattern: "yyyy'-'MM'-'dd HH':'mm':'ss'Z'",
         yearMonthPattern: "MMMM, yyyy",
-        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.uzzz"
+        roundtripFormat: "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffzzz"
+    }),
+
+    TextInfo: Bridge.merge(new System.Globalization.TextInfo(), {
+        ANSICodePage: 1256,
+        CultureName: "fa-IR",
+        EBCDICCodePage: 20420,
+        IsRightToLeft: true,
+        LCID: 1065,
+        listSeparator: "؛",
+        MacCodePage: 10004,
+        OEMCodePage: 720,
+        IsReadOnly: true
     })
 });
